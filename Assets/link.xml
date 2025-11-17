@@ -1,0 +1,28 @@
+<linker>
+	<assembly fullname="GoogleMobileAds.iOS" ignoreIfMissing="1">
+		<namespace fullname="GoogleMobileAds" preserve="all" />
+		<namespace fullname="GoogleMobileAds.iOS" preserve="all" />
+	</assembly>
+	<assembly fullname="GoogleMobileAds.Android" ignoreIfMissing="1">
+		<namespace fullname="GoogleMobileAds" preserve="all" />
+		<namespace fullname="GoogleMobileAds.Android" preserve="all" />
+	</assembly>
+	<assembly fullname="GoogleMobileAds.Ump.Android" ignoreIfMissing="1">
+		<namespace fullname="GoogleMobileAds" preserve="all" />
+		<namespace fullname="GoogleMobileAds.Ump.Android" preserve="all" />
+	</assembly>
+	<assembly fullname="GoogleMobileAds.Ump.iOS" ignoreIfMissing="1">
+		<namespace fullname="GoogleMobileAds" preserve="all" />
+		<namespace fullname="GoogleMobileAds.Ump.iOS" preserve="all" />
+	</assembly>
+  <assembly fullname="Assembly-CSharp">
+	<type fullname="Spawner`1[MissileType]" preserve="all"/>
+	<type fullname="Spawner`1[BoomType]" preserve="all"/>
+	<type fullname="Singleton`1[ButtonFunction]" preserve="all"/>
+	<type fullname="Singleton`1[GoogleMobileAdsController]" preserve="all"/>
+	<type fullname="Singleton`1[GameProgress]" preserve="all"/>
+	<type fullname="Singleton`1[GameData]" preserve="all"/>
+	<type fullname="Singleton`1[GlobalData]" preserve="all"/>
+	<type fullname="Singleton`1[AudioController]" preserve="all"/>
+  </assembly>
+</linker>

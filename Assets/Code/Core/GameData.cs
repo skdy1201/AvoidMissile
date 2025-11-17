@@ -1,0 +1,251 @@
+using GoogleMobileAds.Api;
+using GoogleMobileAds.Common;
+using NUnit.Framework;
+using NUnit.Framework.Constraints;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Serialization;
+using static UnityEngine.Rendering.DebugUI;
+
+public enum GameDataKey
+{
+    Rank,
+    MissileAlpha,
+    MainSound,
+    EffectSound,
+    ActiveParticle,
+}
+
+/// <summary>
+/// 게임의 전역적인 데이터를 관리하는 싱글톤
+/// </summary>
+public class GameData : Singleton<GameData>
+{
+
+    #region Serialized Fields
+
+    [FormerlySerializedAs("L_gameDataKeys")]
+    [SerializeField] List<string> gameDataKeys = new List<string>();
+
+    [FormerlySerializedAs("RankScore")]
+    [SerializeField] List<int> rankScore = new List<int>();
+
+    [Header("Option Value")]
+    [SerializeField] float missileAlpha = 1f;
+    [SerializeField] float mainSound = 0.5f;
+    [SerializeField] float effectSound = 0.5f;
+
+    #endregion
+
+    #region Private/Protected Fields
+
+    /// <summary>
+    /// 씬이 시작할 때, 옵션들을 동기화 해주는 작업을 함
+    /// </summary>
+    protected override void StartProtocol()
+    {
+        SyncPlayerPref();
+    }
+
+    /// <summary>
+    /// 마지막으로 설정된 옵션을 다시 저장함
+    /// </summary>
+    /// <remarks>
+    /// 미사일 투명도, BGM, 효과음에 대한 사항들을 저장
+    /// </remarks>
+    protected override void EndProtocol()
+    {
+        SetOption();
+    }
+
+    #endregion
+
+    #region Properties
+    #endregion
+
+    #region Unity Lifecycle
+
+    /// <summary>
+    /// Awake가 실행되면, 랭킹 리스트의 사이즈를 조절하고, 옵션을 동기화
+    /// </summary>
+    protected override void Awake()
+    {
+        base.Awake();
+
+        GameProgress.StartScene.AddListener(() => StartProtocol());
+        GameProgress.EndLevel.AddListener(() => EndProtocol());
+
+        for (int i = 0; i < 5; ++i)
+        {
+            rankScore.Add(0);
+        }
+
+        SyncPlayerPref();
+    }
+
+    #endregion
+
+    #region Public Methods
+
+    /// <summary>
+    /// 점수 저장 함수
+    /// </summary>
+    /// <param name="score"> 점수 </param>
+    /// <remarks>
+    /// 기존 랭킹 리스트에 더해두고, 정렬해서 5개만 추출
+    /// </remarks>
+    public void SaveScore(int score)
+    {
+        rankScore.Add(score);
+        rankScore.Sort((a, b) => b.CompareTo(a));
+
+        // 상위 5개
+        if (rankScore.Count > 5)
+        {
+            rankScore.RemoveAt(rankScore.Count - 1);
+        }
+
+        // PlayerPref에 저장
+        string key = "Rank";
+
+        for (int i = 0; i < rankScore.Count; ++i)
+        {
+            PlayerPrefs.SetInt(key + (i + 1), rankScore[i]);
+        }
+    }
+
+    /// <summary>
+    /// 최고 점수 구하기
+    /// </summary>
+    /// <returns> 가장 높은 점수 </returns>
+    public int GetMaxScore()
+    {
+        if (rankScore.Count == 0)
+            return 0;
+        else
+            return rankScore[0];
+    }
+
+    /// <summary>
+    /// 지정된 순위의 점수를 반환
+    /// </summary>
+    /// <param name="rank">조회할 순위 (1~5) </param>
+    /// <returns> 해당 순위의 점수 </returns>
+    public int GetRank(int rank)
+    {
+        string key = "Rank";
+        return PlayerPrefs.GetInt(key + rank);
+    }
+
+    /// <summary>
+    /// 옵션 타입에 따른 값
+    /// </summary>
+    /// <param name="type"> 옵션 타입 </param>
+    /// <returns> 옵션 값 </returns>
+    public float GetSettingValue(OptionType type)
+    {
+        float result = 0f;
+
+        switch (type)
+        {
+            case OptionType.Alpha:
+                {
+                    result = missileAlpha;
+                    break;
+                }
+            case OptionType.Bgm:
+                {
+                    result = mainSound;
+                    break;
+                }
+            case OptionType.EffectSound:
+                {
+                    result = effectSound;
+                    break;
+                }
+        }
+
+        return result;
+
+    }
+
+    /// <summary>
+    /// 옵션 값 설정
+    /// </summary>
+    /// <param name="type"> 옵션 타입 </param>
+    /// <param name="value"> 설정 값 </param>
+    public void SetSettingValue(OptionType type, float value)
+    {
+        // 타입과 변수 매칭
+        switch (type)
+        {
+            case OptionType.Alpha:
+                missileAlpha = value;
+                break;
+            case OptionType.Bgm:
+                mainSound = value;
+                AudioController.Instance.SetBGMvolume(value);
+                break;
+            case OptionType.EffectSound:
+                effectSound = value;
+                break;
+        }
+    }
+
+    /// <summary>
+    /// PlayerPref로 저장해둔 데이터들을 전부 동기화 시키기 
+    /// </summary>
+    /// <remarks>
+    /// 랭킹, 옵션
+    /// </remarks>
+    public void SyncPlayerPref()
+    {
+        if (gameDataKeys.Count == 0)
+        {
+            for (int i = 0; i < Enum.GetValues(typeof(GameDataKey)).Length; ++i)
+            {
+                GameDataKey key = (GameDataKey)i;
+                string keyName = key.ToString();
+                gameDataKeys.Add(keyName);
+            }
+        }
+
+        if (PlayerPrefs.HasKey(gameDataKeys[(int)GameDataKey.MainSound]))
+        {
+            mainSound = PlayerPrefs.GetFloat(gameDataKeys[(int)GameDataKey.MainSound]);
+        }
+
+        if (PlayerPrefs.HasKey(gameDataKeys[(int)GameDataKey.EffectSound]))
+        {
+            effectSound = PlayerPrefs.GetFloat(gameDataKeys[(int)GameDataKey.EffectSound]);
+        }
+
+        if (PlayerPrefs.HasKey(gameDataKeys[(int)GameDataKey.MissileAlpha]))
+        {
+            missileAlpha = PlayerPrefs.GetFloat(gameDataKeys[(int)GameDataKey.MissileAlpha]);
+        }
+
+        for (int i = 1; i <= 5; ++i)
+        {
+            if (PlayerPrefs.HasKey(gameDataKeys[(int)GameDataKey.Rank] + i))
+            {
+                rankScore[i - 1] = (PlayerPrefs.GetInt(gameDataKeys[(int)GameDataKey.Rank] + i));
+            }
+        }
+
+    }
+
+    /// <summary>
+    /// 시작했을 때, 옵션이 변경되었을때, PlayerPref도 갱신
+    /// </summary>
+    public void SetOption()
+    {
+        PlayerPrefs.SetFloat(gameDataKeys[(int)GameDataKey.MissileAlpha], missileAlpha);
+        PlayerPrefs.SetFloat(gameDataKeys[(int)GameDataKey.MainSound], mainSound);
+        PlayerPrefs.SetFloat(gameDataKeys[(int)GameDataKey.EffectSound], effectSound);
+    }
+
+    #endregion
+
+}

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 0
+    path: Assets/Level/Scenes/SampleScene.unity
+    guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 0
+    path: Assets/Scene/Title/TitleScene.unity
+    guid: 26123217a1d3b004cace264a9a546547
+  - enabled: 0
+    path: Assets/Scene/Main/PlayScene.unity
+    guid: 28ef6ac27fe18994fbe18be10efcd681
+  - enabled: 1
+    path: Assets/Scene/Test/TestScene.unity
+    guid: d1912664cd08b4f4cb40dea32ef21539
+  m_configObjects:
+    com.unity.adaptiveperformance.google.android.provider_settings: {fileID: 11400000, guid: 14d0128b3a0d45245be62cb81b4f4da5, type: 2}
+    com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: f0bb5beeff59db7479ffbf08a2dcffc3, type: 2}
+    com.unity.adaptiveperformance.samsung.android.provider_settings: {fileID: 11400000, guid: c971b8a725615bd46a8de57a36846b70, type: 2}
+    com.unity.adaptiveperformance.simulator.provider_settings: {fileID: 11400000, guid: dcc1b4ff54629154bbe8db89cab7d69c, type: 2}
+    com.unity.input.settings: {fileID: 11400000, guid: 9e7be553448fa2546aea5752021cbcf7, type: 2}
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_UseUCBPForAssetBundles: 0
