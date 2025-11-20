@@ -19,6 +19,7 @@ public enum ButtonType
     LeaderBoardClose,
     ParticleSpawn,
     RetryTest,
+    Edit,
 };
 
 public enum UIStateEnum

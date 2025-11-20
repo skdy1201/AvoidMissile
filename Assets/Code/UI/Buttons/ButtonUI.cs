@@ -20,6 +20,12 @@ public class ButtonUI : BaseUI, InterfaceUI
 
     #endregion
 
+    #region Property
+
+    public ButtonType buttonType => type;
+
+    #endregion
+
     #region Unity Lifecycle
 
     /// <summary>
@@ -62,6 +68,7 @@ public class ButtonUI : BaseUI, InterfaceUI
                     break;
                 case ButtonType.Title:
                 case ButtonType.Play:
+                case ButtonType.Edit:
                     button.onClick.AddListener(() => ButtonFunction.Instance.ChangeScene(this.gameObject));
                     break;
                 case ButtonType.Exit:
@@ -90,6 +97,13 @@ public class ButtonUI : BaseUI, InterfaceUI
                     break;
             }
         }
+
+        // 테스트 씬은 에디터일때만 사용하기 위해서 체크
+        #if !UNITY_EDITOR
+            if(buttonType == ButtonType.Edit)
+            Destroy(this);
+        #endif
+
     }
 
     #endregion

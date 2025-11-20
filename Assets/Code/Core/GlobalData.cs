@@ -35,6 +35,8 @@ public class GlobalData : Singleton<GlobalData>
 
     private static string TitleSceneStr = "TitleScene";
 
+    private static string DevTestSceneStr = "DevTestScene";
+
     #endregion
 
     #region Properties
@@ -47,6 +49,8 @@ public class GlobalData : Singleton<GlobalData>
     public string PrevScene => prevSceneStr;
     public string TitleScene => TitleSceneStr;
     public string PlayScene => PlaySceneStr;
+
+    public string DevTestScene => DevTestSceneStr;
 
     public GameObject Player
     {

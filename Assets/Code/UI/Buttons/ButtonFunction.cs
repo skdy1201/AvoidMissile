@@ -49,16 +49,24 @@ public class ButtonFunction : Singleton<ButtonFunction>
         UIController.Instance.DisableUIState((int)UIStateEnum.GameOver);
         UIController.Instance.EnableUIState((int)UIStateEnum.Main);
 
+        // ButtonType으로 씬을 전환하기 위해 캐싱
+        ButtonUI button = buttonObject.GetComponent<ButtonUI>();
+
         // EndScene 이벤트를 호출하고, StartProtocol을 예약
-        if (SceneManager.GetActiveScene().name == "TitleScene")
+        if (button.buttonType == ButtonType.Play)
         {
             GameProgress.EndLevel?.Invoke();
             StartCoroutine(SceneTransition(GameProgress.Instance.SoundFadeTime, GlobalData.Instance.PlayScene));
         }
-        else
+        else if(button.buttonType == ButtonType.Title)
         {
             GameProgress.EndLevel?.Invoke();
             StartCoroutine(SceneTransition(GameProgress.Instance.SoundFadeTime, GlobalData.Instance.TitleScene));
+        }
+        else
+        {
+            GameProgress.EndLevel?.Invoke();
+            StartCoroutine(SceneTransition(GameProgress.Instance.SoundFadeTime, GlobalData.Instance.DevTestScene));
         }
 
         // 다시 로딩될 동안 누르지 못하도록 기능 off
