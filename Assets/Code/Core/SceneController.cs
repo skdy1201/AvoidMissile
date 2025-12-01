@@ -3,6 +3,12 @@ using System.Collections;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+/// <summary>
+/// 씬 전환을 관리하는 스크립트
+/// </summary>
+/// <remarks>
+/// 
+/// </remarks>
 public class SceneController : Singleton<SceneController>
 {
 
@@ -32,6 +38,7 @@ public class SceneController : Singleton<SceneController>
 
     #endregion
 
+    #region Public Methods
 
     /// <summary>
     /// 씬을 변경해주는 함수
@@ -39,6 +46,7 @@ public class SceneController : Singleton<SceneController>
     /// <remarks>
     /// TitleScene과 PlayScene 간 전환을 처리하며, 씬 전환 중 중복 클릭을 방지하기 위해 버튼을 비활성화
     /// GameProgress.EndLevel 이벤트를 호출하고 사운드 페이드 아웃을 적용
+    /// UI 차단 상태를 활성화해 다른 UI들의 동작을 비활성화.
     /// </remarks>
     public void ChangeScene()
     {
@@ -93,6 +101,9 @@ public class SceneController : Singleton<SceneController>
 
     }
 
+    #endregion
+
+    #region Coroutines
 
     /// <summary>
     /// 씬 전환을 한 후, StartProtocol을 작동시키기 위한 코루틴
@@ -135,4 +146,7 @@ public class SceneController : Singleton<SceneController>
 
         StartCoroutine(reserveProtocol(strScene));
     }
+
+    #endregion
+
 }
