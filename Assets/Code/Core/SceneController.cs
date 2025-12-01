@@ -91,6 +91,10 @@ public class SceneController : Singleton<SceneController>
 
     }
 
+    /// <summary>
+    /// 씬 재시작 함수
+    /// </summary>
+    /// GameOver 상태에서 멈춘 TimeScale을 재조정
     public void RestartTestScene()
     {
         BoomEffectSpawner.Instance.SelfEndProtocol();
