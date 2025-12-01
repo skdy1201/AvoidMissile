@@ -61,15 +61,15 @@ public class ButtonUI : BaseUI, InterfaceUI
             switch (type)
             {
                 case ButtonType.Retry:
-                    button.onClick.AddListener(() => ButtonFunction.Instance.RestartPlayScene(this.gameObject));
+                    button.onClick.AddListener(() => SceneController.Instance.RestartPlayScene(this.gameObject));
                     break;
                 case ButtonType.RetryTest:
-                    button.onClick.AddListener(() => ButtonFunction.Instance.RestartTestScene(this.gameObject));
+                    button.onClick.AddListener(() => SceneController.Instance.RestartTestScene());
                     break;
                 case ButtonType.Title:
                 case ButtonType.Play:
                 case ButtonType.Edit:
-                    button.onClick.AddListener(() => ButtonFunction.Instance.ChangeScene(this.gameObject));
+                    button.onClick.AddListener(() => SceneController.Instance.ChangeScene());
                     break;
                 case ButtonType.Exit:
                     button.onClick.AddListener(() => ButtonFunction.Instance.ExitGame());

@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -34,81 +33,6 @@ public class ButtonFunction : Singleton<ButtonFunction>
     #endregion
 
     #region Public Methods
-
-    /// <summary>
-    /// 씬을 변경해주는 함수
-    /// </summary>
-    /// <remarks>
-    /// TitleScene과 PlayScene 간 전환을 처리하며, 씬 전환 중 중복 클릭을 방지하기 위해 버튼을 비활성화
-    /// GameProgress.EndLevel 이벤트를 호출하고 사운드 페이드 아웃을 적용
-    /// </remarks>
-    /// <param name="buttonObject"> 트리거가 될 버튼 </param>
-    public void ChangeScene(GameObject buttonObject)
-    {
-        Time.timeScale = 1.0f;
-        UIController.Instance.DisableUIState((int)UIStateEnum.GameOver);
-        UIController.Instance.EnableUIState((int)UIStateEnum.Main);
-
-        // ButtonType으로 씬을 전환하기 위해 캐싱
-        ButtonUI button = buttonObject.GetComponent<ButtonUI>();
-
-        // EndScene 이벤트를 호출하고, StartProtocol을 예약
-        if (button.buttonType == ButtonType.Play)
-        {
-            GameProgress.EndLevel?.Invoke();
-            StartCoroutine(SceneTransition(GameProgress.Instance.SoundFadeTime, GlobalData.Instance.PlayScene));
-        }
-        else if(button.buttonType == ButtonType.Title)
-        {
-            GameProgress.EndLevel?.Invoke();
-            StartCoroutine(SceneTransition(GameProgress.Instance.SoundFadeTime, GlobalData.Instance.TitleScene));
-        }
-        else
-        {
-            GameProgress.EndLevel?.Invoke();
-            StartCoroutine(SceneTransition(GameProgress.Instance.SoundFadeTime, GlobalData.Instance.DevTestScene));
-        }
-
-        // 다시 로딩될 동안 누르지 못하도록 기능 off
-        buttonObject.GetComponent<Button>().enabled = false;
-
-    }
-
-    /// <summary>
-    /// PlayScene 재시작 함수
-    /// </summary>
-    /// <param name="buttonObject"> 재시작 버튼 </param>
-    public void RestartPlayScene(GameObject buttonObject)
-    {
-        GameProgress.EndLevel?.Invoke();
-
-        // 플레이어 사망시 timescale이 0
-        Time.timeScale = 1.0f;
-
-        // UI 플래그 조정
-        UIController.Instance.EnableUIState((int)UIStateEnum.Main);
-        UIController.Instance.DisableUIState((int)UIStateEnum.GameOver);
-
-        // PlayScene 예약
-        StartCoroutine(reserveProtocol(GlobalData.Instance.PlayScene));
-
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-
-        buttonObject.GetComponent<Button>().enabled = false;
-
-    }
-
-    public void RestartTestScene(GameObject buttonObject)
-    {
-        BoomEffectSpawner.Instance.SelfEndProtocol();
-
-        Time.timeScale = 1.0f;
-
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-
-        buttonObject.GetComponent<Button>().enabled = false;
-
-    }
 
     /// <summary>
     /// UI 상태를 갱신하고, UI 컨트롤러에게 UI 현재 활성화 UI를 갱신
@@ -257,54 +181,12 @@ public class ButtonFunction : Singleton<ButtonFunction>
     #region Coroutines
 
     /// <summary>
-    /// 씬 전환을 한 후, StartProtocol을 작동시키기 위한 코루틴
-    /// </summary>
-    /// <param name="targetScene"> 타겟 씬 </param>
-    IEnumerator reserveProtocol(string targetScene)
-    {
-        // 이름을 비교하며 바꾸기 전까지 대기
-        yield return new WaitUntil(() => SceneManager.GetActiveScene().name == targetScene);
-
-        // 각 싱글톤 객체들의 초기화 동작 시작
-        if (GameProgress.StartScene != null)
-        {
-            GameProgress.StartScene?.Invoke();
-        }
-    }
-
-    /// <summary>
-    /// 일정한 시간을 통해 씬 바꾸기 
-    /// </summary>
-    /// <param name="time"> 씬 전환시간 </param>
-    /// <param name="strScene"> 전환하는 씬 이름 </param>
-    /// <returns></returns>
-    // TODO: AudioContoller의 fadeout 함수와 연계하는게 좋을지도
-    IEnumerator SceneTransition(float time, string strScene)
-    {
-        float curTime = time;
-
-        while (curTime > 0)
-        {
-            curTime -= Time.unscaledDeltaTime;
-
-            float ratio = Mathf.Lerp(GameData.Instance.GetSettingValue(OptionType.Bgm), 0.0f, (time - curTime) / time);
-
-            AudioController.Instance.SetBGMvolume(ratio);
-            yield return new WaitForSecondsRealtime(Time.unscaledDeltaTime);
-        }
-
-        SceneManager.LoadScene(strScene);
-
-        StartCoroutine(reserveProtocol(strScene));
-    }
-
-    /// <summary>
     /// 쿨타임 동작 함수
     /// </summary>
     /// <param name="targetButton"> 슬라이딩 버튼 </param>
     /// <param name="cooldownBackground"> 슬라이딩 버튼 쿨타임 이미지 </param>
     /// <param name="cooldown"> 쿨타임 </param>
-    IEnumerator ActiveCooltime(Button targetButton, Image cooldownBackground, float cooldown)
+   IEnumerator ActiveCooltime(Button targetButton, Image cooldownBackground, float cooldown)
     {
         // 쿨타임 배경 활성화 및 슬라이딩 버튼 비활성화
         cooldownBackground.enabled = true;
