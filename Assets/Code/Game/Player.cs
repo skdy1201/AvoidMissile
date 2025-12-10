@@ -1,9 +1,7 @@
-using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
+using System.Collections;
 
 
 /// <summary>
@@ -131,6 +129,19 @@ public class Player : MonoBehaviour
     {
         AudioController.Instance.PlayPlayerEffect(effectEnum);
     }
+
+    /// <summary>
+    /// 외부에서 플레이어의 속도를 변경하도록 하기 위한 public 함수
+    /// </summary>
+    /// <remarks>
+    /// 내부에서는 코루틴을 통해 변화
+    /// </remarks>
+    /// <param name="value"> 변경시킬 양 </param>
+    /// <param name="time"> 동작 시간 </param>
+    public void ChangeSpeed(float value, float time)
+    {
+        StartCoroutine(ActiveSpeedChange(value, time));
+    }    
     #endregion
 
     #region Private/Protected Methods
@@ -156,4 +167,28 @@ public class Player : MonoBehaviour
 
     #endregion
 
+    #region Coroutine
+
+    /// <summary>
+    /// 아이템을 먹고 난 후, Player의 속도를 조정하는 코루틴
+    /// </summary>
+    /// <param name="speed"> 아이템이 가진 속도 변화량 </param>
+    /// <param name="time"> 변화 시간</param>
+    /// <returns></returns>
+    IEnumerator ActiveSpeedChange(float speed, float time)
+    {
+        float origin = moveSpeed;
+
+        moveSpeed += speed;
+
+        // 최소 속력
+        if (moveSpeed <= 0)
+            moveSpeed = 0.1f;
+
+        yield return new WaitForSeconds(time);
+
+        moveSpeed = origin;
+    }
+
+    #endregion
 }

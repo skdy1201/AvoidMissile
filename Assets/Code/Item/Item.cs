@@ -43,10 +43,23 @@ public abstract class Item : MonoBehaviour
             category = parsedType;
         else
         {
-            Debug.Log("Wrong Item Type");
+            Debug.LogError("Wrong Item Type");
+        }
+
+        if(!float.TryParse(itemValue, out float parsedValue))
+        {
+            Debug.LogError("Wrong Value");
+            return;
         }
 
         value = float.Parse(itemValue);
+
+
+        if (!float.TryParse(itemTime, out float parsedTime))
+        {
+            Debug.LogError("Wrong Value");
+            return;
+        }
         time = float.Parse(itemTime);
 
 
