@@ -29,10 +29,12 @@ public class Player : MonoBehaviour
     private Vector3 moveVector;
 
     private Animator playerAnimator;
-    
+
     // 이동, 슬라이드 전환 변수
     private bool move;
     private bool slide = false;
+
+    private bool reversemove = false;
 
     #endregion
 
@@ -88,6 +90,13 @@ public class Player : MonoBehaviour
         float x = joystick.Horizontal;
         float z = joystick.Vertical;
 
+        if(reversemove)
+        {
+            x = -x;
+            z = -z;
+        }
+
+
         // 2. Move Position 
         moveVector = new Vector3(x, 0, z) * moveSpeed * Time.fixedDeltaTime;
 
@@ -141,7 +150,13 @@ public class Player : MonoBehaviour
     public void ChangeSpeed(float value, float time)
     {
         StartCoroutine(ActiveSpeedChange(value, time));
-    }    
+    }
+    
+    public void ControlReverse(float time)
+    {
+        StartCoroutine(ReverseCoroutine(time));
+    }
+
     #endregion
 
     #region Private/Protected Methods
@@ -185,9 +200,18 @@ public class Player : MonoBehaviour
         if (moveSpeed <= 0)
             moveSpeed = 0.1f;
 
-        yield return new WaitForSeconds(time);
+        yield return new WaitForSecondsRealtime(time);
 
         moveSpeed = origin;
+    }
+
+    IEnumerator ReverseCoroutine(float time)
+    {
+        reversemove = true;
+
+        yield return new WaitForSecondsRealtime(time);
+
+        reversemove = false;
     }
 
     #endregion
