@@ -11,27 +11,6 @@ using UnityEngine;
 /// </remakrs>
 public class MoveFast : Item
 {
-    #region Private/Protected Fields
-
-    private Collider itemCollider = null;
-
-    #endregion
-
-    #region Unity Lifecycle
-
-    /// <summary>
-    /// 콜라이더를 미리 캐싱
-    /// </summary>
-    private void Awake()
-    {
-        itemCollider = GetComponent<Collider>();
-
-        if (itemCollider == null)
-            Debug.LogError("item doesn't have collider");
-    }
-
-    #endregion
-
     #region Public Methods
 
     /// <summary>
@@ -44,23 +23,6 @@ public class MoveFast : Item
         if (player.GetComponent<Player>() != null)
         {
             player.GetComponent<Player>().ChangeSpeed(this.value, this.time);
-        }
-    }
-
-    #endregion
-
-    #region Private/Protected Methods
-
-    /// <summary>
-    /// 플레이어와 충돌한다면, 아이템의 효과를 발동시키고, 스포너에 반환한다.
-    /// </summary>
-    /// <param name="otherCollider"> 충돌한 다른 오브젝트 </param>
-    private void OnCollisionEnter(Collision otherCollider)
-    {
-        if (otherCollider.gameObject.layer == LayerMask.NameToLayer("Player"))
-        {
-            EffectItem();
-            ItemSpawner.Instance.ReturnSpawner(ItemType.SpeedUp, this.gameObject);
         }
     }
 
