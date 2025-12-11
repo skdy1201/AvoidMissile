@@ -20,6 +20,36 @@ public abstract class Item : MonoBehaviour
 
     #endregion
 
+    #region Private/Protected Fields
+
+    protected Collider itemCollider = null;
+
+    #endregion
+
+    #region Properties
+
+    public ItemType Category
+    {
+        get { return category; }
+    }
+
+    #endregion
+
+    #region Unity Lifecycle
+
+    /// <summary>
+    /// 콜라이더를 미리 캐싱
+    /// </summary>
+    private void Awake()
+    {
+        itemCollider = GetComponent<Collider>();
+
+        if (itemCollider == null)
+            Debug.LogError("item doesn't have collider");
+    }
+
+    #endregion
+
     #region Public Methods
 
     /// <summary>
@@ -63,6 +93,23 @@ public abstract class Item : MonoBehaviour
         time = float.Parse(itemTime);
 
 
+    }
+
+    #endregion
+
+    #region Private/Protected Methods
+
+    /// <summary>
+    /// 플레이어와 충돌한다면, 아이템의 효과를 발동시키고, 스포너에 반환한다.
+    /// </summary>
+    /// <param name="otherCollider"> 충돌한 다른 오브젝트 </param>
+    private void OnCollisionEnter(Collision otherCollider)
+    {
+        if (otherCollider.gameObject.layer == LayerMask.NameToLayer("Player"))
+        {
+            EffectItem();
+            ItemSpawner.Instance.ReturnSpawner(category, this.gameObject);
+        }
     }
 
     #endregion
