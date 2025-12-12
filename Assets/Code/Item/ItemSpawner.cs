@@ -10,8 +10,8 @@ public enum ItemType
 {
     SpeedUp,
     SpeedDown,
+    Control,
     Slide,
-    //Control,
     //GameOver,
 };
 

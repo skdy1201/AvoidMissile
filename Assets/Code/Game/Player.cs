@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
 using System.Collections;
+using System.Linq.Expressions;
 
 
 /// <summary>
@@ -36,6 +37,8 @@ public class Player : MonoBehaviour
 
     private bool reversemove = false;
 
+    private bool powerJump = false;
+
     #endregion
 
     #region Properties
@@ -64,6 +67,7 @@ public class Player : MonoBehaviour
         // 이동, 슬라이드 설정
         playerAnimator.SetBool("IsMove", move);
         playerAnimator.SetBool("IsSlide", slide);
+        playerAnimator.SetBool("PowerJump", powerJump);
 
 
         // 슬라이드일땐, Player 무적 처리
@@ -96,7 +100,6 @@ public class Player : MonoBehaviour
             z = -z;
         }
 
-
         // 2. Move Position 
         moveVector = new Vector3(x, 0, z) * moveSpeed * Time.fixedDeltaTime;
 
@@ -106,8 +109,10 @@ public class Player : MonoBehaviour
         if (slide)
         {
             move = false;
+
             moveVector = gameObject.transform.forward * (moveSpeed + 2.5f) * Time.fixedDeltaTime;
         }
+
 
         // 좌표 이동
         rigidBody.MovePosition(rigidBody.position + moveVector);
@@ -155,6 +160,11 @@ public class Player : MonoBehaviour
     public void ControlReverse(float time)
     {
         StartCoroutine(ReverseCoroutine(time));
+    }
+
+    public void ReinforceSlide(float time)
+    {
+        StartCoroutine(JumpCoroutine(time));
     }
 
     #endregion
@@ -212,6 +222,15 @@ public class Player : MonoBehaviour
         yield return new WaitForSecondsRealtime(time);
 
         reversemove = false;
+    }
+
+    IEnumerator JumpCoroutine(float time)
+    {
+        powerJump = true;
+
+        yield return new WaitForSecondsRealtime(time);
+
+        powerJump = false;
     }
 
     #endregion
