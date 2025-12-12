@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 
 /// <summary>
-/// ÇÃ·¹ÀÌ¾î ½ºÅ©¸³Æ®
+/// ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®
 /// </summary>
 public class Player : MonoBehaviour
 {
@@ -18,7 +18,7 @@ public class Player : MonoBehaviour
     [FormerlySerializedAs("Speed")]
     [SerializeField] private float moveSpeed;
 
-    // µð¹ö±×¿ë ÇÃ·¹ÀÌ¾î ¹«Àû º¯¼ö
+    // ï¿½ï¿½ï¿½ï¿½×¿ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     [SerializeField] bool undeadPlayer;
 
     #endregion
@@ -31,7 +31,7 @@ public class Player : MonoBehaviour
 
     private Animator playerAnimator;
 
-    // ÀÌµ¿, ½½¶óÀÌµå ÀüÈ¯ º¯¼ö
+    // ï¿½Ìµï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½
     private bool move;
     private bool slide = false;
 
@@ -46,8 +46,8 @@ public class Player : MonoBehaviour
 
     #region Unity Lifecycle
     /// <summary>
-    /// ÇÃ·¹ÀÌ¾î ¿ÀºêÁ§Æ®ÀÇ ´Ù¸¥ ½ºÅ©¸³Æ®¸¦ ¹Ì¸® ¸ÅÄª
-    /// GlobalData¿¡ ÇÃ·¹ÀÌ¾î µî·Ï
+    /// ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½Äª
+    /// GlobalDataï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½
     /// </summary>
 
     void Awake()
@@ -64,13 +64,13 @@ public class Player : MonoBehaviour
     /// </summary>
     void Update()
     {
-        // ÀÌµ¿, ½½¶óÀÌµå ¼³Á¤
+        // ï¿½Ìµï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½
         playerAnimator.SetBool("IsMove", move);
         playerAnimator.SetBool("IsSlide", slide);
         playerAnimator.SetBool("PowerJump", powerJump);
 
 
-        // ½½¶óÀÌµåÀÏ¶©, Player ¹«Àû Ã³¸®
+        // ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ï¿½Ï¶ï¿½, Player ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
         if (slide)
         {
             Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), true);
@@ -80,7 +80,7 @@ public class Player : MonoBehaviour
             Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), false);
         }
 
-        // Player ¹«Àû Ã³¸®
+        // Player ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
         if (undeadPlayer)
             this.gameObject.GetComponent<Collider>().enabled = false;
         else
@@ -105,7 +105,7 @@ public class Player : MonoBehaviour
 
         move = true;
 
-        // ½½¶óÀÌµå¶ó¸é, ÀÌµ¿¼Óµµ Áõ°¡
+        // ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½, ï¿½Ìµï¿½ï¿½Óµï¿½ ï¿½ï¿½ï¿½ï¿½
         if (slide)
         {
             move = false;
@@ -114,10 +114,10 @@ public class Player : MonoBehaviour
         }
 
 
-        // ÁÂÇ¥ ÀÌµ¿
+        // ï¿½ï¿½Ç¥ ï¿½Ìµï¿½
         rigidBody.MovePosition(rigidBody.position + moveVector);
 
-        // ÀÔ·ÂÀÌ ¾ø´Â °æ¿ì
+        // ï¿½Ô·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
         if (moveVector.sqrMagnitude == 0)
         {
             move = false;
@@ -145,13 +145,13 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// ¿ÜºÎ¿¡¼­ ÇÃ·¹ÀÌ¾îÀÇ ¼Óµµ¸¦ º¯°æÇÏµµ·Ï ÇÏ±â À§ÇÑ public ÇÔ¼ö
+    /// ï¿½ÜºÎ¿ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ public ï¿½Ô¼ï¿½
     /// </summary>
     /// <remarks>
-    /// ³»ºÎ¿¡¼­´Â ÄÚ·çÆ¾À» ÅëÇØ º¯È­
+    /// ï¿½ï¿½ï¿½Î¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú·ï¿½Æ¾ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­
     /// </remarks>
-    /// <param name="value"> º¯°æ½ÃÅ³ ¾ç </param>
-    /// <param name="time"> µ¿ÀÛ ½Ã°£ </param>
+    /// <param name="value"> ï¿½ï¿½ï¿½ï¿½ï¿½Å³ ï¿½ï¿½ </param>
+    /// <param name="time"> ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ </param>
     public void ChangeSpeed(float value, float time)
     {
         StartCoroutine(ActiveSpeedChange(value, time));
@@ -172,9 +172,9 @@ public class Player : MonoBehaviour
     #region Private/Protected Methods
 
     /// <summary>
-    /// ¹Ì»çÀÏ ·¹ÀÌ¾î¿Í Ãæµ¹ ½Ã, »ç¸Á ÀÌº¥Æ® µ¿ÀÛ
+    /// ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½ï¿½ ï¿½æµ¹ ï¿½ï¿½, ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½
     /// </summary>
-    /// <param name="collision"> Ãæµ¹ÇÑ ¿ÀºêÁ§Æ®ÀÇ Collision </param>
+    /// <param name="collision"> ï¿½æµ¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ Collision </param>
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.layer == LayerMask.NameToLayer("Missile"))
@@ -187,7 +187,7 @@ public class Player : MonoBehaviour
 
     #region Event Handlers
 
-    // ÇÃ·¹ÀÌ¾î »ç¸Á ÀÌº¥Æ®
+    // ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
     static public UnityEvent OnPlayerDead = new UnityEvent();
 
     #endregion
@@ -195,10 +195,10 @@ public class Player : MonoBehaviour
     #region Coroutine
 
     /// <summary>
-    /// ¾ÆÀÌÅÛÀ» ¸Ô°í ³­ ÈÄ, PlayerÀÇ ¼Óµµ¸¦ Á¶Á¤ÇÏ´Â ÄÚ·çÆ¾
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô°ï¿½ ï¿½ï¿½ ï¿½ï¿½, Playerï¿½ï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ú·ï¿½Æ¾
     /// </summary>
-    /// <param name="speed"> ¾ÆÀÌÅÛÀÌ °¡Áø ¼Óµµ º¯È­·® </param>
-    /// <param name="time"> º¯È­ ½Ã°£</param>
+    /// <param name="speed"> ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Óµï¿½ ï¿½ï¿½È­ï¿½ï¿½ </param>
+    /// <param name="time"> ï¿½ï¿½È­ ï¿½Ã°ï¿½</param>
     /// <returns></returns>
     IEnumerator ActiveSpeedChange(float speed, float time)
     {
@@ -206,7 +206,7 @@ public class Player : MonoBehaviour
 
         moveSpeed += speed;
 
-        // ÃÖ¼Ò ¼Ó·Â
+        // ï¿½Ö¼ï¿½ ï¿½Ó·ï¿½
         if (moveSpeed <= 0)
             moveSpeed = 0.1f;
 
