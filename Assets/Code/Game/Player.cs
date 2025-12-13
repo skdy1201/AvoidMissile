@@ -31,8 +31,8 @@ public class Player : MonoBehaviour
 
     private Animator playerAnimator;
 
-    // �̵�, �����̵� ��ȯ ����
     private bool move;
+
     private bool slide = false;
 
     private bool reversemove = false;
@@ -147,13 +147,13 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// �ܺο��� �÷��̾��� �ӵ��� �����ϵ��� �ϱ� ���� public �Լ�
+    /// 외부에서 플레이어의 속도를 바꾸도록 요청하는 함수
     /// </summary>
     /// <remarks>
-    /// ���ο����� �ڷ�ƾ�� ���� ��ȭ
+    /// 내부적으로 코루틴을 사용
     /// </remarks>
-    /// <param name="value"> �����ų �� </param>
-    /// <param name="time"> ���� �ð� </param>
+    /// <param name="value"> 바꿀 속도 </param>
+    /// <param name="time"> 시간 </param>
     public void ChangeSpeed(float value, float time)
     {
         StartCoroutine(ActiveSpeedChange(value, time));
@@ -174,13 +174,20 @@ public class Player : MonoBehaviour
     #region Private/Protected Methods
 
     /// <summary>
-    /// �̻��� ���̾�� �浹 ��, ��� �̺�Ʈ ����
+    /// 플레이어의 충돌 관리
     /// </summary>
-    /// <param name="collision"> �浹�� ������Ʈ�� Collision </param>
+    /// <param name="collision"> 충돌한 물체의 Collision </param>
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.layer == LayerMask.NameToLayer("Missile"))
         {
+            // 파워점프 중이라면, 충돌한 미사일 되돌리고 무적상태
+            if(slide && powerJump)
+            {
+                MissileSpawner.Instance.ReserveReturn(collision.gameObject);
+                return;
+            }
+
             OnPlayerDead?.Invoke();
         }
     }
@@ -189,7 +196,7 @@ public class Player : MonoBehaviour
 
     #region Event Handlers
 
-    // �÷��̾� ��� �̺�Ʈ
+    // 플레이어 사망 이벤트
     static public UnityEvent OnPlayerDead = new UnityEvent();
 
     #endregion
@@ -197,10 +204,10 @@ public class Player : MonoBehaviour
     #region Coroutine
 
     /// <summary>
-    /// �������� �԰� �� ��, Player�� �ӵ��� �����ϴ� �ڷ�ƾ
+    /// 플레이어의 속도를 바꾸는 코루틴
     /// </summary>
-    /// <param name="speed"> �������� ���� �ӵ� ��ȭ�� </param>
-    /// <param name="time"> ��ȭ �ð�</param>
+    /// <param name="speed"> 바꿀 속도 </param>
+    /// <param name="time">  시간 </param>
     /// <returns></returns>
     IEnumerator ActiveSpeedChange(float speed, float time)
     {
@@ -208,7 +215,7 @@ public class Player : MonoBehaviour
 
         moveSpeed += speed;
 
-        // �ּ� �ӷ�
+        // 이동 최소 값
         if (moveSpeed <= 0)
             moveSpeed = 0.1f;
 

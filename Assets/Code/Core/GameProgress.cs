@@ -32,6 +32,7 @@ public class GameProgress : Singleton<GameProgress>
 
     [SerializeField] private float soundfadeTime = 1f;
 
+    [SerializeField] private bool spawnItem = false;
     #endregion
 
     #region Properties
@@ -92,6 +93,11 @@ public class GameProgress : Singleton<GameProgress>
             {
                 spawnXAxis = true;
                 MissileSpawner.Instance.StartCoroutine("XAxisMissileSpawnLoop");
+            }
+
+            if(!spawnItem && currentLevel >= 1)
+            {
+                ItemSpawner.Instance.StartCoroutine("ItemSpawnLoop");
             }
         }
     }

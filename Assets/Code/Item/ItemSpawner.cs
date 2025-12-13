@@ -72,6 +72,8 @@ public class ItemSpawner : Spawner<ItemType>
             item.SetActive(false);
             spawners[i].Enqueue(item);
         }
+
+        Physics.IgnoreLayerCollision(LayerMask.NameToLayer("GameItem"), LayerMask.NameToLayer("Missile"), true);
     }
 
     // Update is called once per frame
