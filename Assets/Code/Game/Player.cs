@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 
 /// <summary>
-/// �÷��̾� ��ũ��Ʈ
+/// 플레이어의 조작과 관련한 스크립트
 /// </summary>
 public class Player : MonoBehaviour
 {
@@ -18,7 +18,7 @@ public class Player : MonoBehaviour
     [FormerlySerializedAs("Speed")]
     [SerializeField] private float moveSpeed;
 
-    // ����׿� �÷��̾� ���� ����
+    // 디버그용 불사 변수
     [SerializeField] bool undeadPlayer;
 
     #endregion
@@ -46,8 +46,8 @@ public class Player : MonoBehaviour
 
     #region Unity Lifecycle
     /// <summary>
-    /// �÷��̾� ������Ʈ�� �ٸ� ��ũ��Ʈ�� �̸� ��Ī
-    /// GlobalData�� �÷��̾� ���
+    /// 플레이어의 조작에 따라 변화를 줘야할 요소들을 미리 캐싱
+    /// GlobalData에 플레이어 등록
     /// </summary>
 
     void Awake()
@@ -58,43 +58,16 @@ public class Player : MonoBehaviour
         GlobalData.Instance.Player = this.gameObject;
     }
 
-
     /// <summary>
-    /// 
+    /// 풀레이어의 이동을 담당
     /// </summary>
-    void Update()
-    {
-        // �̵�, �����̵� ����
-        playerAnimator.SetBool("IsMove", move);
-        playerAnimator.SetBool("IsSlide", slide);
-        playerAnimator.SetBool("PowerJump", powerJump);
-
-
-        // �����̵��϶�, Player ���� ó��
-        if (slide)
-        {
-            Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), true);
-        }
-        else
-        {
-            Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), false);
-        }
-
-        // Player ���� ó��
-        if (undeadPlayer)
-            this.gameObject.GetComponent<Collider>().enabled = false;
-        else
-            this.gameObject.GetComponent<Collider>().enabled = true;
-
-    }
-
     void FixedUpdate()
     {
         // 1. Input Value
         float x = joystick.Horizontal;
         float z = joystick.Vertical;
 
-        if(reversemove)
+        if (reversemove)
         {
             x = -x;
             z = -z;
@@ -105,7 +78,7 @@ public class Player : MonoBehaviour
 
         move = true;
 
-        // �����̵���, �̵��ӵ� ����
+        // 슬라이드 체크
         if (slide)
         {
             move = false;
@@ -114,10 +87,10 @@ public class Player : MonoBehaviour
         }
 
 
-        // ��ǥ �̵�
+        // 이동 결과 기록
         rigidBody.MovePosition(rigidBody.position + moveVector);
 
-        // �Է��� ���� ���
+        //이동이 없다면 return
         if (moveVector.sqrMagnitude == 0)
         {
             move = false;
@@ -129,6 +102,35 @@ public class Player : MonoBehaviour
         Quaternion moveQuat = Quaternion.Slerp(rigidBody.rotation, dirQuat, 0.3f);
         rigidBody.MoveRotation(moveQuat);
 
+
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    void Update()
+    {
+        // 조작에 따른 결과를 기록해둔 변수를 에니메이터와 동기화
+        playerAnimator.SetBool("IsMove", move);
+        playerAnimator.SetBool("IsSlide", slide);
+        playerAnimator.SetBool("PowerJump", powerJump);
+
+
+        // 슬라이딩 시 플레이어 무적
+        if (slide)
+        {
+            Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), true);
+        }
+        else
+        {
+            Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), false);
+        }
+
+        // Player 불사 체크
+        if (undeadPlayer)
+            this.gameObject.GetComponent<Collider>().enabled = false;
+        else
+            this.gameObject.GetComponent<Collider>().enabled = true;
 
     }
 
