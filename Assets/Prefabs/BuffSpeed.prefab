@@ -40,6 +40,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: BuffSpeed
       objectReference: {fileID: 0}
+    - target: {fileID: 7370043300670028658, guid: 19b7e95a091652640b4df605bec6a161, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 7857787365096382920, guid: 19b7e95a091652640b4df605bec6a161, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.5
@@ -142,5 +146,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoveFast
   category: 0
-  value: 10
+  value: 0.5
   time: 5

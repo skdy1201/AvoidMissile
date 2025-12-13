@@ -64,6 +64,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ControlReverse
       objectReference: {fileID: 0}
+    - target: {fileID: 2153125207575981156, guid: 159a122a2346fae4fb92f428464c2837, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 2157344908428280713, guid: 159a122a2346fae4fb92f428464c2837, type: 3}
       propertyPath: endScale.x
       value: 0.7

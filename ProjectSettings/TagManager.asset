@@ -13,7 +13,7 @@ TagManager:
   - UI
   - Platform
   - Missile
-  - 
+  - GameItem
   - 
   - 
   - 
@@ -44,11 +44,11 @@ TagManager:
   - name: Platform
     uniqueID: 3530906359
     locked: 0
-  - name: Missile
-    uniqueID: 2309546051
+  - name: New Layer 2
+    uniqueID: 2326642373
     locked: 0
-  - name: UI
-    uniqueID: 2950125055
+  - name: New Layer 3
+    uniqueID: 3952197139
     locked: 0
   m_RenderingLayers:
   - Default

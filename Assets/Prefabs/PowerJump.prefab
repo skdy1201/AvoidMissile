@@ -64,6 +64,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PowerJump
       objectReference: {fileID: 0}
+    - target: {fileID: 634584603299474288, guid: 48853cd3cc24c284d8a5333395c20ba3, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 1264779780576043437, guid: 48853cd3cc24c284d8a5333395c20ba3, type: 3}
       propertyPath: endScale.x
       value: 0.7
@@ -94,7 +98,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1867166540756735673, guid: 48853cd3cc24c284d8a5333395c20ba3, type: 3}
       propertyPath: isFloating
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

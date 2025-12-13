@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: NerfSpeed
       objectReference: {fileID: 0}
+    - target: {fileID: 519974796596659617, guid: 996928e6bd7f53b4c922c5099f203847, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 899738053168111387, guid: 996928e6bd7f53b4c922c5099f203847, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.5
