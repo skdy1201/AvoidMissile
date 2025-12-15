@@ -24,6 +24,10 @@ public abstract class Item : MonoBehaviour
 
     protected Collider itemCollider = null;
 
+    // ItemSpawner의 TIle Check를 위한, 배정 타일 변수
+    protected int spawnTile = -1;
+
+
     #endregion
 
     #region Properties
@@ -31,6 +35,12 @@ public abstract class Item : MonoBehaviour
     public ItemType Category
     {
         get { return category; }
+    }
+
+    public int SpawnTile
+    {
+        get { return spawnTile; }
+        set {  spawnTile = value; }
     }
 
     #endregion
@@ -46,6 +56,8 @@ public abstract class Item : MonoBehaviour
 
         if (itemCollider == null)
             Debug.LogError("item doesn't have collider");
+
+        
     }
 
     #endregion
@@ -108,6 +120,11 @@ public abstract class Item : MonoBehaviour
         if (otherCollider.gameObject.layer == LayerMask.NameToLayer("Player"))
         {
             EffectItem();
+
+            // 스포너의 타일 체크를 off로 바꾸고, 초기값으로 되돌리기
+            ItemSpawner.Instance.OffSpawnTileidx(spawnTile);
+            spawnTile = -1;
+
             ItemSpawner.Instance.ReturnSpawner(category, this.gameObject);
         }
     }

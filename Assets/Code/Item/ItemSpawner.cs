@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 
 /// <summary>
@@ -34,6 +35,9 @@ public class ItemSpawner : Spawner<ItemType>
     [SerializeField] private int maxItemSpawn = 4;
 
     [SerializeField] private LinkedList<GameObject> activeItems = new LinkedList<GameObject>();
+
+    private List<bool> itemSpawnTies = Enumerable.Repeat(false, 100).ToList();
+
     #endregion
 
     #region Private/Protected Fields
@@ -73,7 +77,9 @@ public class ItemSpawner : Spawner<ItemType>
             spawners[i].Enqueue(item);
         }
 
+        // 에디터에서의 레이어 설정이 이상해, 코드로 직접 설정
         Physics.IgnoreLayerCollision(LayerMask.NameToLayer("GameItem"), LayerMask.NameToLayer("Missile"), true);
+
     }
 
     // Update is called once per frame
@@ -117,6 +123,17 @@ public class ItemSpawner : Spawner<ItemType>
     // 다시 큐에 되돌려놓기
     public override void ReturnSpawner(ItemType type, GameObject item)
     {
+        Item itemcomponent = item.GetComponent<Item>();
+
+        // 아이템 스폰 체크 리스트 갱신
+        if(itemcomponent != null)
+        {
+            int spawnidx = itemcomponent.SpawnTile;
+
+            if (spawnidx > -1)
+                itemSpawnTies[spawnidx] = false;
+        }
+        
         if(activeItems.Contains(item))
             activeItems.Remove(item);
 
@@ -130,6 +147,13 @@ public class ItemSpawner : Spawner<ItemType>
     public void SetPlatform(Platform platform)
     {
         gamePlatform = platform;
+    }
+
+    // 아이템.cs에서 off 해줄 수 있도록 하는 public 함수
+    public void OffSpawnTileidx(int tileidx)
+    {
+        if (itemSpawnTies[tileidx] == true)
+            itemSpawnTies[tileidx] = false;
     }
 
     #endregion
@@ -173,9 +197,6 @@ public class ItemSpawner : Spawner<ItemType>
     /// </summary>
     IEnumerator ItemSpawnLoop()
     {
-        // 중복 체크 set
-        HashSet<int> spawnTileCheck = new HashSet<int>();
-
         while (true)
         {
             int spawnTile = Random.Range(1, maxItemSpawn);
@@ -184,11 +205,22 @@ public class ItemSpawner : Spawner<ItemType>
             {
                 int randomrange = Random.Range(0, 99);
 
-                // 이미 선택된 타일이면, 한 차례 건너 뛴다.
-                if (spawnTileCheck.Contains(randomrange))
-                    continue;
+                // 3번 다시 찾는데 중복이라면 그냥 넘어가기
+                if (itemSpawnTies[randomrange] == true)
+                {
+                    int count = 3;
 
-                spawnTileCheck.Add(randomrange);
+                    while (itemSpawnTies[randomrange] == true && count > 0)
+                    {
+                        randomrange = Random.Range(0, 99);
+                        --count;
+                    }
+
+                    continue;
+                }
+
+                // 타일 체크
+                itemSpawnTies[randomrange] = true;
 
                 Debug.Log($"tile idx = {randomrange}");
 
@@ -208,8 +240,6 @@ public class ItemSpawner : Spawner<ItemType>
                 item.SetActive(true);
             }
 
-            // 스폰 끝났으니 초기화
-            spawnTileCheck.Clear();
            
             yield return new WaitForSeconds(10f);
         }
