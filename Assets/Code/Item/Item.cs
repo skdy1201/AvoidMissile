@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -18,15 +19,18 @@ public abstract class Item : MonoBehaviour
 
     [SerializeField] protected float time;
 
+    // ItemSpawner의 TIle Check를 위한, 배정 타일 변수
+    [SerializeField]protected int spawnTile = -1;
+
     #endregion
 
     #region Private/Protected Fields
 
     protected Collider itemCollider = null;
 
-    // ItemSpawner의 TIle Check를 위한, 배정 타일 변수
-    protected int spawnTile = -1;
 
+
+    protected Material itemMaterial;
 
     #endregion
 
@@ -57,7 +61,17 @@ public abstract class Item : MonoBehaviour
         if (itemCollider == null)
             Debug.LogError("item doesn't have collider");
 
-        
+        itemMaterial = gameObject.GetComponent<MeshRenderer>().material;
+
+        if (itemMaterial != null)
+            Debug.Log("material find");
+
+
+    }
+
+    private void OnEnable()
+    {
+        StartCoroutine("ItemTimer");
     }
 
     #endregion
@@ -121,12 +135,36 @@ public abstract class Item : MonoBehaviour
         {
             EffectItem();
 
-            // 스포너의 타일 체크를 off로 바꾸고, 초기값으로 되돌리기
-            ItemSpawner.Instance.OffSpawnTileidx(spawnTile);
-            spawnTile = -1;
-
             ItemSpawner.Instance.ReturnSpawner(category, this.gameObject);
         }
+    }
+
+    #endregion
+
+    #region
+
+    IEnumerator ItemTimer()
+    {
+        Color itemColor = itemMaterial.color;
+
+        yield return new WaitForSecondsRealtime(3.5f);
+
+        float Timer = 3.5f;
+
+        while(Timer >= 0f)
+        {
+            float itemAlpha = Mathf.PingPong(Time.time * 5f, 1f);
+
+            itemColor.a = itemAlpha;
+
+            itemMaterial.color = itemColor;
+
+            Timer -= Time.deltaTime;
+
+            yield return null;
+        }
+
+        ItemSpawner.Instance.ReturnSpawner(category, gameObject);
     }
 
     #endregion

@@ -137,6 +137,11 @@ public class ItemSpawner : Spawner<ItemType>
         if(activeItems.Contains(item))
             activeItems.Remove(item);
 
+        Debug.Log("in here");
+
+        // item check list 갱신
+        OffSpawnTileidx(itemcomponent.SpawnTile, itemcomponent);
+
         int spawnerIndex = (int)type;
         item.SetActive(false);
         item.transform.parent = this.transform;
@@ -150,10 +155,14 @@ public class ItemSpawner : Spawner<ItemType>
     }
 
     // 아이템.cs에서 off 해줄 수 있도록 하는 public 함수
-    public void OffSpawnTileidx(int tileidx)
+    public void OffSpawnTileidx(int tileidx, Item item)
     {
+        Debug.Log($"tileidx is {tileidx}");
+
         if (itemSpawnTies[tileidx] == true)
             itemSpawnTies[tileidx] = false;
+
+        item.SpawnTile = -1;
     }
 
     #endregion
@@ -234,6 +243,8 @@ public class ItemSpawner : Spawner<ItemType>
                 GameObject item = RentSpawner((ItemType)itemType);
 
                 item.transform.position = tilePos;
+
+                item.GetComponent<Item>().SpawnTile = spawnTile;
 
                 activeItems.AddLast(item);
 
