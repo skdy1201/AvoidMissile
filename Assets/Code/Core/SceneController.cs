@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// 씬 전환을 관리하는 스크립트
@@ -50,13 +51,12 @@ public class SceneController : Singleton<SceneController>
     /// </remarks>
     public void ChangeScene()
     {
-
         Time.timeScale = 1.0f;
         UIController.Instance.DisableUIState((int)UIStateEnum.GameOver);
         UIController.Instance.EnableUIState((int)UIStateEnum.Main);
         UIController.Instance.EnableUIState((int)UIStateEnum.Block);
 
-        UIController.Instance.CheckBlock();
+        EventSystem.current.enabled = false;
 
         GameProgress.EndLevel?.Invoke();
 
@@ -65,6 +65,18 @@ public class SceneController : Singleton<SceneController>
         else if (SceneManager.GetActiveScene().name == GlobalData.Instance.PlayScene || SceneManager.GetActiveScene().name == GlobalData.Instance.DevTestScene)
             StartCoroutine(SceneTransition(GameProgress.Instance.SoundFadeTime, GlobalData.Instance.TitleScene));
 
+    }
+
+    public void ChnageTestScnen()
+    {
+        Time.timeScale = 1.0f;
+        UIController.Instance.DisableUIState((int)UIStateEnum.GameOver);
+        UIController.Instance.EnableUIState((int)UIStateEnum.Main);
+        UIController.Instance.EnableUIState((int)UIStateEnum.Block);
+
+        GameProgress.EndLevel?.Invoke();
+
+        StartCoroutine(SceneTransition(GameProgress.Instance.SoundFadeTime, GlobalData.Instance.DevTestScene));
     }
 
     /// <summary>

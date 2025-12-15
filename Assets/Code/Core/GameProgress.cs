@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
+using UnityEngine.EventSystems;
+
 
 // TODO : UPDATE LELVEL을 좀 더 간소화 시킬 방법을 찾아야 할 것 같다.
 // 이름을 매번 update에서 캐싱하는게 별로일수도
@@ -117,6 +119,8 @@ public class GameProgress : Singleton<GameProgress>
     /// </remarks>
     protected override void StartProtocol()
     {
+        EventSystem.current.enabled = true;
+
         if (Time.timeScale == 0f)
             Time.timeScale = 1f;
 
