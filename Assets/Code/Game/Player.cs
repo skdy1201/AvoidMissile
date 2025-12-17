@@ -73,6 +73,29 @@ public class Player : MonoBehaviour
             z = -z;
         }
 
+#if UNITY_EDITOR
+        if (Input.GetKey(KeyCode.W))
+        {
+            z = 1f;
+        }
+
+        if (Input.GetKey(KeyCode.S))
+        {
+            z = -1f;
+        }
+
+        if (Input.GetKey(KeyCode.A))
+        {
+            x = -1f;
+        }
+
+        if (Input.GetKey(KeyCode.D))
+        {
+            x = 1f;
+        }
+#endif
+
+
         // 2. Move Position 
         moveVector = new Vector3(x, 0, z) * moveSpeed * Time.fixedDeltaTime;
 
