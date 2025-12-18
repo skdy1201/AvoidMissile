@@ -39,9 +39,20 @@ public class Player : MonoBehaviour
 
     private bool powerJump = false;
 
+    /// <summary>
+    /// 버프가 끝났음에도 powerJump인 경우가 있기 때문에, 이를 분간하기 위한 변수
+    /// </summary>
+    private bool activePowerJump = false;
+
     #endregion
 
     #region Properties
+
+    public bool ActivePowerJump
+    {
+        get { return activePowerJump; }
+    }
+
     #endregion
 
     #region Unity Lifecycle
@@ -73,6 +84,7 @@ public class Player : MonoBehaviour
             z = -z;
         }
 
+ //에디터용 키보드 간단 조작
 #if UNITY_EDITOR
         if (Input.GetKey(KeyCode.W))
         {
@@ -140,7 +152,7 @@ public class Player : MonoBehaviour
 
 
         // 슬라이딩 시 플레이어 무적
-        if (slide)
+        if (slide && activePowerJump == false)
         {
             Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), true);
         }
@@ -161,8 +173,23 @@ public class Player : MonoBehaviour
 
     #region Public Methods
 
-    public void ActivateSlide() => slide = true;
-    public void DeactivateSlide() => slide = false;
+    // 버프 상태일땐, PowerJump도 같이 active
+    public void ActivateSlide()
+    {
+        if (powerJump)
+            activePowerJump = true;
+
+        slide = true;
+
+    }
+
+    public void DeactivateSlide()
+    {
+        if(powerJump)
+            activePowerJump = false;
+
+        slide = false;
+    } 
 
     public void PlayerEffectSound(int effectEnum)
     {
@@ -199,18 +226,14 @@ public class Player : MonoBehaviour
     /// <summary>
     /// 플레이어의 충돌 관리
     /// </summary>
+    /// <remarks>
+    /// PowerJump일땐 충돌을 해야하기 때문에 조건 추가
+    /// </remarks>
     /// <param name="collision"> 충돌한 물체의 Collision </param>
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Missile"))
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Missile") && activePowerJump == false) 
         {
-            // 파워점프 중이라면, 충돌한 미사일 되돌리고 무적상태
-            if(slide && powerJump)
-            {
-                MissileSpawner.Instance.ReserveReturn(collision.gameObject);
-                return;
-            }
-
             OnPlayerDead?.Invoke();
         }
     }

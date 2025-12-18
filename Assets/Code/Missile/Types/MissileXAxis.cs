@@ -181,17 +181,10 @@ public class MissileXAxis : Missile
                 Destroy(this.gameObject);
             }
 
-
             // 충돌 지점에 이펙트 스폰
             Vector3 contact = collision.contacts[0].point;
 
-            GameObject gameObject = BoomEffectSpawner.Instance.RentSpawner(BoomParticle.Normal);
-
-            gameObject.transform.position = contact;
-            gameObject.SetActive(true);
-
-            // 폭발 소리 재생
-            AudioController.Instance.PlayExploreSound();
+            ActiveBombEffect(contact);
         }
     }
 

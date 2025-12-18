@@ -87,14 +87,7 @@ public class MissileYAxis : Missile
         // 폭발 이펙트를 정확한 충돌 위치에 표시하기 위해 접점 저장
         Vector3 contact = collision.contacts[0].point;
 
-        // 폭발 이펙트 받아두기
-        // TODO: 미사일 이펙트가 폭파하지 않는다면 봐야할 부분
-        GameObject boomEffect = BoomEffectSpawner.Instance.RentSpawner(BoomParticle.Normal);
-
-        boomEffect.transform.position = contact;
-        boomEffect.SetActive(true);
-
-        AudioController.Instance.PlayExploreSound();
+        ActiveBombEffect(contact);
 
         // 충돌체의 레이어에 따른 조치
         if (collision.gameObject.layer == LayerMask.NameToLayer("Platform"))
