@@ -128,9 +128,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62e1203bcf242a143a6f0bdc44df41b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoveFast
-  category: 0
+  category: 1
   value: -1
   time: 5
+  spawnTile: -1
 --- !u!65 &4458686872015317539
 BoxCollider:
   m_ObjectHideFlags: 0

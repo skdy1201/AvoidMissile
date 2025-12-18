@@ -124,9 +124,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b772a3450fac33b49b7f9c43da0063be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControlReverse
-  category: 0
+  category: 2
   value: 0
   time: 5
+  spawnTile: -1
 --- !u!65 &6685885031904457229
 BoxCollider:
   m_ObjectHideFlags: 0

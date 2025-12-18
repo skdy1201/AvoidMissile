@@ -63,10 +63,6 @@ public abstract class Item : MonoBehaviour
 
         itemMaterial = gameObject.GetComponent<MeshRenderer>().material;
 
-        if (itemMaterial != null)
-            Debug.Log("material find");
-
-
     }
 
     private void OnEnable()
@@ -163,6 +159,9 @@ public abstract class Item : MonoBehaviour
 
             yield return null;
         }
+
+        itemColor.a = 1f;
+        itemMaterial.color = itemColor;
 
         ItemSpawner.Instance.ReturnSpawner(category, gameObject);
     }

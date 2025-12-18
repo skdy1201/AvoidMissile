@@ -27,10 +27,15 @@ namespace Benjathemaker
         public float scaleLerpSpeed = 1f; // Speed of scaling transition
         private float scaleTimer;
 
+        // 아이템 스포너의 위치 설정과 충돌 방지
+        private void OnEnable()
+        {
+            initialPosition = transform.position;
+        }
+
         void Start()
         {
             initialScale = transform.localScale;
-            initialPosition = transform.position;
 
             // Adjust start and end scale based on initial scale
             startScale = initialScale;

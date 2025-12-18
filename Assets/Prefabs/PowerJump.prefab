@@ -149,6 +149,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08eab97c65675914582eb7ad78ed8081, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PowerJump
-  category: 0
+  category: 3
   value: 0
   time: 10
+  spawnTile: -1
