@@ -128,13 +128,13 @@ public class ItemSpawner : Spawner<ItemType>
         item.SetActive(false);
 
         Item itemcomponent = item.GetComponent<Item>();
+        itemcomponent.ResetItemAlpha();
+
 
         // 아이템 스폰 체크 리스트 갱신
         if(itemcomponent != null)
         {
             int spawnidx = itemcomponent.SpawnTile;
-
-            Debug.Log($"Return {item.name} SpawnIdx is {spawnidx}");
 
             if (spawnidx > -1)
                 itemSpawnTies[spawnidx] = false;
@@ -146,8 +146,6 @@ public class ItemSpawner : Spawner<ItemType>
         int spawnerIndex = (int)type;
         item.transform.parent = this.transform;
         spawners[spawnerIndex].Enqueue(item);
-
-        Debug.Log($"{type.ToString()}'s queue size is {spawners[spawnerIndex].Count}");
 
     }
 
@@ -246,19 +244,12 @@ public class ItemSpawner : Spawner<ItemType>
 
                 activeItems.AddLast(item);
 
-                Debug.Log($"{item.name}'s  tile idx = {randomrange}");
-                Debug.Log($"{randomrange}'s TilePos is {tilePos}");
-                Debug.Log($"{item.name}'s  category idx = {item.GetComponent<Item>().SpawnTile}");
-
-
                 item.SetActive(true);
 
             }
 
-
             yield return new WaitForSeconds(10f);
         }
-
     }
 
     #endregion

@@ -14,7 +14,7 @@ public class PowerJump : Item
     {
         GameObject player = GlobalData.Instance.Player;
 
-        if (player.GetComponent<Player>() != null)
+        if (player.GetComponent<Player>() != null && player.GetComponent<Player>().PowerJump == false)
         {
             player.GetComponent<Player>().ReinforceSlide(this.time);
         }

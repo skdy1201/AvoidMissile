@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
 using System.Collections;
-using System.Linq.Expressions;
+using System.Collections.Generic;
 
 
 /// <summary>
@@ -44,6 +44,8 @@ public class Player : MonoBehaviour
     /// </summary>
     private bool activePowerJump = false;
 
+    private float bonusSpeed = 0f;
+
     #endregion
 
     #region Properties
@@ -51,6 +53,11 @@ public class Player : MonoBehaviour
     public bool ActivePowerJump
     {
         get { return activePowerJump; }
+    }
+
+    public bool PowerJump
+    {
+        get { return powerJump; }
     }
 
     #endregion
@@ -107,9 +114,14 @@ public class Player : MonoBehaviour
         }
 #endif
 
+        float nowSpeed = moveSpeed + bonusSpeed;
+
+        // 최소속도 보장
+        if (nowSpeed <= 0f)
+            nowSpeed = 0.1f;
 
         // 2. Move Position 
-        moveVector = new Vector3(x, 0, z) * moveSpeed * Time.fixedDeltaTime;
+        moveVector = new Vector3(x, 0, z) * nowSpeed * Time.fixedDeltaTime;
 
         move = true;
 
@@ -118,7 +130,7 @@ public class Player : MonoBehaviour
         {
             move = false;
 
-            moveVector = gameObject.transform.forward * (moveSpeed + 2.5f) * Time.fixedDeltaTime;
+            moveVector = gameObject.transform.forward * (nowSpeed + 2.5f) * Time.fixedDeltaTime;
         }
 
 
@@ -257,35 +269,30 @@ public class Player : MonoBehaviour
     /// <returns></returns>
     IEnumerator ActiveSpeedChange(float speed, float time)
     {
-        float origin = moveSpeed;
-
-        moveSpeed += speed;
-
-        // 이동 최소 값
-        if (moveSpeed <= 0)
-            moveSpeed = 0.1f;
+        bonusSpeed += speed;
 
         yield return new WaitForSecondsRealtime(time);
 
-        moveSpeed = origin;
+        bonusSpeed -= speed;
     }
 
     IEnumerator ReverseCoroutine(float time)
     {
-        reversemove = true;
+        reversemove = !reversemove;
 
         yield return new WaitForSecondsRealtime(time);
 
-        reversemove = false;
+        reversemove = !reversemove;
     }
 
     IEnumerator JumpCoroutine(float time)
     {
-        powerJump = true;
+      powerJump = true;
 
-        yield return new WaitForSecondsRealtime(time);
+      yield return new WaitForSecondsRealtime(time);
 
-        powerJump = false;
+      powerJump = false;
+
     }
 
     #endregion

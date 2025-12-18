@@ -135,6 +135,16 @@ public abstract class Item : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 아이템을 ReturnSpawner 시킬때, 변한 Alpha값을 원상복구
+    /// </summary>
+    public void ResetItemAlpha()
+    {
+        Color itemColor = itemMaterial.color;
+        itemColor.a = 1f;
+        itemMaterial.color = itemColor;
+    }
+
     #endregion
 
     #region
@@ -143,9 +153,9 @@ public abstract class Item : MonoBehaviour
     {
         Color itemColor = itemMaterial.color;
 
-        yield return new WaitForSecondsRealtime(3.5f);
+        yield return new WaitForSecondsRealtime(10f);
 
-        float Timer = 3.5f;
+        float Timer = 5f;
 
         while(Timer >= 0f)
         {
@@ -160,8 +170,7 @@ public abstract class Item : MonoBehaviour
             yield return null;
         }
 
-        itemColor.a = 1f;
-        itemMaterial.color = itemColor;
+        ResetItemAlpha();
 
         ItemSpawner.Instance.ReturnSpawner(category, gameObject);
     }
