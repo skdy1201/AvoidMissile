@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public enum ButtonType
 {
@@ -29,7 +30,6 @@ public enum UIStateEnum
     Option = 2,
     GameOver = 4,
     LeaderBoard = 8,
-    Block = 16,
 }
 
 //TODO : DISABLE과 UPDATE UISTATE가 좀 기능이 겹치는 느낌
@@ -59,11 +59,6 @@ public class UIController : Singleton<UIController>
     /// UI는 한 상태에만 고정되지 않고 여러 상황이 동시에 활성화될 수 있어 비트 플래그 방식 사용
     /// </remarks>
     private int uiState = 0;
-
-    /// <summary>
-    /// 다른 UI들의 동작을 막기 위한 객체
-    /// </summary>
-    private BlockUI blockUI;
 
     #endregion
 
@@ -154,30 +149,6 @@ public class UIController : Singleton<UIController>
     /// <returns>현재 UI 상태를 나타내는 비트 플래그 값</returns>
     public int GetCurrentUIState() => uiState;
 
-    public void RegisterBlock(BlockUI UI) => blockUI = UI;
-
-    /// <summary>
-    /// 블록 UI의 범위 안에 있다면, 해당 UI를 비활성화
-    /// </summary>
-    public void CheckBlock()
-    {
-
-        foreach(var ui in currentUIs)
-        {
-            RectTransform rectTransform = ui.GetComponent<RectTransform>();
-
-            if(blockUI.InRange(new Vector2(rectTransform.anchoredPosition3D.x, rectTransform.anchoredPosition3D.y)))
-            {
-                
-                if(ui.GetComponent<Button>() != null)
-                {
-                    ui.GetComponent<Button>().enabled = false;
-                }
-            }
-
-        }
-    }
-
     #endregion
 
     #region Private/Protected Methods
@@ -187,7 +158,9 @@ public class UIController : Singleton<UIController>
     /// </summary>
     protected override void StartProtocol()
     {
-        UIController.Instance.DisableUIState((int)UIStateEnum.Block);
+        if (EventSystem.current.enabled == false)
+            EventSystem.current.enabled = true;
+
         UpdateUIStates(uiState);
     }
 
