@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 /// <summary>
@@ -42,7 +43,16 @@ public class CameraController : MonoBehaviour
 
         mainCamera.rect = cameraRect;
 
+        Debug.Log($"mainCamera's rect is {cameraRect}");
+
+        ChangeCameraRect.Invoke();
     }
+
+    #endregion
+
+    #region Event Handlers
+
+    static public UnityEvent ChangeCameraRect = new UnityEvent();
 
     #endregion
 

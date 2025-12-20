@@ -54,7 +54,6 @@ public class SceneController : Singleton<SceneController>
         Time.timeScale = 1.0f;
         UIController.Instance.DisableUIState((int)UIStateEnum.GameOver);
         UIController.Instance.EnableUIState((int)UIStateEnum.Main);
-        UIController.Instance.EnableUIState((int)UIStateEnum.Block);
 
         EventSystem.current.enabled = false;
 
@@ -72,7 +71,6 @@ public class SceneController : Singleton<SceneController>
         Time.timeScale = 1.0f;
         UIController.Instance.DisableUIState((int)UIStateEnum.GameOver);
         UIController.Instance.EnableUIState((int)UIStateEnum.Main);
-        UIController.Instance.EnableUIState((int)UIStateEnum.Block);
 
         GameProgress.EndLevel?.Invoke();
 
