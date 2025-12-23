@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
 using System.Collections;
-using System.Collections.Generic;
 
 
 /// <summary>
@@ -25,26 +24,26 @@ public class Player : MonoBehaviour
 
     #region Private/Protected Fields
 
+    // 플레이어 물리 관련 변수
     private Rigidbody rigidBody;
-
     private Vector3 moveVector;
 
     private Animator playerAnimator;
 
+    // 플레이어 조작 관련 변수
     private bool move;
-
     private bool slide = false;
-
     private bool reversemove = false;
-
     private bool powerJump = false;
+    private float bonusSpeed = 0f;
 
     /// <summary>
     /// 버프가 끝났음에도 powerJump인 경우가 있기 때문에, 이를 분간하기 위한 변수
     /// </summary>
     private bool activePowerJump = false;
 
-    private float bonusSpeed = 0f;
+    // 잠금 상태 체크 변수
+    private bool lockSkill = false;
 
     #endregion
 
@@ -58,6 +57,11 @@ public class Player : MonoBehaviour
     public bool PowerJump
     {
         get { return powerJump; }
+    }
+
+    public bool LockSkill
+    {
+        get { return lockSkill; }
     }
 
     #endregion
@@ -114,6 +118,7 @@ public class Player : MonoBehaviour
         }
 #endif
 
+        // 속도는 아이템으로 변경된 속도와 기본 속도를 더한 값으로 적용
         float nowSpeed = moveSpeed + bonusSpeed;
 
         // 최소속도 보장
@@ -195,6 +200,7 @@ public class Player : MonoBehaviour
 
     }
 
+    // 슬라이드 종료를 갱신하는 함수
     public void DeactivateSlide()
     {
         if(powerJump)
@@ -231,6 +237,18 @@ public class Player : MonoBehaviour
         StartCoroutine(JumpCoroutine(time));
     }
 
+    /// <summary>
+    /// 스킬 잠금은 중첩으로 작용시키지 않기 때문에, 이미 잠금 상태라면 효과 발동을 무효화
+    /// </summary>
+    /// <param name="time"></param>
+    public void SkillLock(float time)
+    {
+        if (lockSkill)
+            return;
+        
+        StartCoroutine(SlideLock(time));
+    }
+
     #endregion
 
     #region Private/Protected Methods
@@ -256,6 +274,10 @@ public class Player : MonoBehaviour
 
     // 플레이어 사망 이벤트
     static public UnityEvent OnPlayerDead = new UnityEvent();
+
+    // 버튼의 이벤트 등록
+    static public UnityEvent OnSkilllockOn = new UnityEvent();
+    static public UnityEvent OnSkillLockOff = new UnityEvent();
 
     #endregion
 
@@ -293,6 +315,23 @@ public class Player : MonoBehaviour
 
       powerJump = false;
 
+    }
+
+    /// <summary>
+    /// 슬라이드 락 코루틴
+    /// </summary>
+    /// <param name="time"> 버튼들의 이벤트들을 동작시키며, 지속시간이 끝나면 다시 상태를 초기화 </param>
+    /// <returns></returns>
+    IEnumerator SlideLock(float time)
+    {
+        lockSkill = true;
+        OnSkilllockOn.Invoke();
+
+        yield return new WaitForSecondsRealtime(time);
+
+        lockSkill = false;
+
+        OnSkillLockOff.Invoke();
     }
 
     #endregion

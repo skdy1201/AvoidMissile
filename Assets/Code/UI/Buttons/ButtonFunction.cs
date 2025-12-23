@@ -98,14 +98,15 @@ public class ButtonFunction : Singleton<ButtonFunction>
     /// </summary>
     /// <remarks>
     /// 쿨타임 동안 버튼이 비활성화되어 연속 사용을 방지합니다.
+    /// 스킬 잠금 여부도 같이 체크
     /// </remarks>
     public void ExecuteSlide()
     {
-        GameObject player = GlobalData.Instance.Player;
+        Player player = GlobalData.Instance.Player.GetComponent<Player>();
 
-        if (player != null)
+        if (player != null && player.LockSkill== false)
         {
-            player.GetComponent<Player>().ActivateSlide();
+            player.ActivateSlide();
 
             StartCoroutine(ActiveCooltime(SlideCooltime.GetButtonObject, SlideCooltime.GetCooldownImage, SlideCooltime.GetCooldown));
         }

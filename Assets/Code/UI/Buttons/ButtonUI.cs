@@ -17,7 +17,6 @@ public class ButtonUI : BaseUI, InterfaceUI
     /// 버튼 종류에 대한 열거형
     /// </summary>
     [SerializeField] private ButtonType type;
-
     #endregion
 
     #region Property
@@ -25,6 +24,8 @@ public class ButtonUI : BaseUI, InterfaceUI
     public ButtonType buttonType => type;
 
     #endregion
+
+    private GameObject lockUI;
 
     #region Unity Lifecycle
 
@@ -68,8 +69,10 @@ public class ButtonUI : BaseUI, InterfaceUI
                     break;
                 case ButtonType.Title:
                 case ButtonType.Play:
-                case ButtonType.Edit:
                     button.onClick.AddListener(() => SceneController.Instance.ChangeScene());
+                    break;
+                case ButtonType.Edit:
+                    button.onClick.AddListener(() => SceneController.Instance.ChnageTestScnen());
                     break;
                 case ButtonType.Exit:
                     button.onClick.AddListener(() => ButtonFunction.Instance.ExitGame());
@@ -104,8 +107,29 @@ public class ButtonUI : BaseUI, InterfaceUI
             Destroy(this);
         #endif
 
+        if(buttonType == ButtonType.Slide)
+        {
+            Player.OnSkillLockOff.AddListener(() => OffLock());
+            Player.OnSkilllockOn.AddListener(() => ActiveLock());
+        }
+
     }
 
     #endregion
 
+    public void RegisterLock(GameObject ui) => lockUI = ui;
+
+    public void ActiveLock()
+    {
+        Debug.Log("skill lock on");
+        lockUI.SetActive(true);
+    }
+
+    public void OffLock()
+    {
+        Debug.Log("skill lock off");
+
+        LockUI lockui = lockUI.GetComponent<LockUI>();
+        lockui.OffLockUI();
+    }
 }
