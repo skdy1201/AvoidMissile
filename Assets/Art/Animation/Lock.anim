@@ -6,7 +6,7 @@ AnimationClip:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: LockAnimation
+  m_Name: Lock
   serializedVersion: 7
   m_Legacy: 0
   m_Compressed: 0
@@ -23,7 +23,7 @@ AnimationClip:
     - time: 0
       value: {fileID: -235187429, guid: b5dee8666718d434aada379971aa5268, type: 3}
     - time: 0.083333336
-      value: {fileID: -2094467094, guid: b5dee8666718d434aada379971aa5268, type: 3}
+      value: {fileID: -235187429, guid: b5dee8666718d434aada379971aa5268, type: 3}
     - time: 0.16666667
       value: {fileID: 1097708750, guid: b5dee8666718d434aada379971aa5268, type: 3}
     - time: 0.25
@@ -119,7 +119,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
     pptrCurveMapping:
     - {fileID: -235187429, guid: b5dee8666718d434aada379971aa5268, type: 3}
-    - {fileID: -2094467094, guid: b5dee8666718d434aada379971aa5268, type: 3}
+    - {fileID: -235187429, guid: b5dee8666718d434aada379971aa5268, type: 3}
     - {fileID: 1097708750, guid: b5dee8666718d434aada379971aa5268, type: 3}
     - {fileID: -1800888682, guid: b5dee8666718d434aada379971aa5268, type: 3}
     - {fileID: -1197464781, guid: b5dee8666718d434aada379971aa5268, type: 3}
