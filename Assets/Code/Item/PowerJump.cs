@@ -17,7 +17,10 @@ public class PowerJump : Item
         if (player.GetComponent<Player>() != null && player.GetComponent<Player>().PowerJump == false)
         {
             player.GetComponent<Player>().ReinforceSlide(this.time);
+
+            AudioController.Instance.PlayItemSound((int)ItemEffectSound.Buff);
         }
+
     }
 
     #endregion

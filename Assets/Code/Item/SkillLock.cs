@@ -9,8 +9,11 @@ public class SkillLock : Item
     {
         Player player = GlobalData.Instance.Player.GetComponent<Player>();
 
-        player.SkillLock(time);
+        if (player.GetComponent<Player>() != null)
+        {
+            player.SkillLock(time);
 
-
+            AudioController.Instance.PlayItemSound((int)ItemEffectSound.Lock);
+        }
     }
 }

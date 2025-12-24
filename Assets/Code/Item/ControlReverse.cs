@@ -15,6 +15,8 @@ public class ControlReverse : Item
         if (player.GetComponent<Player>() != null)
         {
             player.GetComponent<Player>().ControlReverse(this.time);
+
+            AudioController.Instance.PlayItemSound((int)ItemEffectSound.Reverse);
         }
     }
 }

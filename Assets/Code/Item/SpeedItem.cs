@@ -23,6 +23,11 @@ public class MoveFast : Item
         if (player.GetComponent<Player>() != null)
         {
             player.GetComponent<Player>().ChangeSpeed(this.value, this.time);
+
+            if (category == ItemType.SpeedUp)
+                AudioController.Instance.PlayItemSound((int)ItemEffectSound.Buff);
+            else
+                AudioController.Instance.PlayItemSound((int)(ItemEffectSound.Nerf));
         }
     }
 
