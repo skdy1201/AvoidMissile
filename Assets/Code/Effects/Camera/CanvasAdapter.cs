@@ -1,5 +1,17 @@
 using UnityEngine;
 
+public enum UIPosition
+{
+    Left,
+    Right,
+    Top,
+    Bottom,
+    LeftTop,
+    LeftBottom,
+    RightTop,
+    RightBottom
+}
+
 /// <summary>
 /// CameraController로 바뀐 Rect에 맞춰 해당 UI의 Anchor를 조정
 /// </summary>
@@ -27,14 +39,20 @@ public class CanvasAdapter : MonoBehaviour
         }
 
         RectTransform rectTransform = GetComponent<RectTransform>();
+        Vector2 curPosition = rectTransform.position;
 
-        Rect CameraRect = mainCamera.rect;
+        Rect cameraRect = mainCamera.rect;
 
-        // 카메라 rect를 그대로 앵커로 적용
-        rectTransform.anchorMin = new Vector2(CameraRect.x, CameraRect.y);
-        rectTransform.anchorMax = new Vector2(
-            CameraRect.x + CameraRect.width,
-            CameraRect.y + CameraRect.height);
+       // // 카메라 rect를 그대로 앵커로 적용
+       // rectTransform.anchorMin = new Vector2(CameraRect.x, CameraRect.y);
+       // rectTransform.anchorMax = new Vector2(
+       //     CameraRect.x + CameraRect.width,
+       //     CameraRect.y + CameraRect.height);
+
+        Debug.Log(rectTransform.anchorMin);
+        Debug.Log(rectTransform.anchorMax);
 
     }
+
+
 }
