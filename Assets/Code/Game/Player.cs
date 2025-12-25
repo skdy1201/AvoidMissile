@@ -209,6 +209,10 @@ public class Player : MonoBehaviour
         slide = false;
     } 
 
+    /// <summary>
+    /// 에니메이터에서 이벤트로 작동시킬 함수
+    /// </summary>
+    /// <param name="effectEnum"></param>
     public void PlayerEffectSound(int effectEnum)
     {
         AudioController.Instance.PlayPlayerEffect(effectEnum);
