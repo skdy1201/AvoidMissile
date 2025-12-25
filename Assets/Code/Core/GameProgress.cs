@@ -91,16 +91,6 @@ public class GameProgress : Singleton<GameProgress>
 
             gameTimer = 0f;
 
-            if (spawnXAxis == false && currentLevel >= 10)
-            {
-                spawnXAxis = true;
-                MissileSpawner.Instance.StartCoroutine("XAxisMissileSpawnLoop");
-            }
-
-            if(!spawnItem && currentLevel >= 1)
-            {
-                ItemSpawner.Instance.StartCoroutine("ItemSpawnLoop");
-            }
         }
     }
 
@@ -139,6 +129,8 @@ public class GameProgress : Singleton<GameProgress>
 
     protected override void EndProtocol()
     {
+        spawnXAxis = false;
+        spawnItem = false;
     }
 
     /// <summary>
@@ -187,12 +179,24 @@ public class GameProgress : Singleton<GameProgress>
 
         MissileSpawner.Instance.MissileBaseSpeed = nextMissileSpeed;
 
+        if (spawnXAxis == false && currentLevel >= 10)
+        {
+            spawnXAxis = true;
+            MissileSpawner.Instance.StartCoroutine("XAxisMissileSpawnLoop");
+        }
+
         // X축 미사일 스폰 상태라면
         if (spawnXAxis)
         {
             MissileSpawner.Instance.UpdateSetting();
         }
 
+
+        if (!spawnItem && currentLevel >= 20)
+        {
+            spawnItem = true;
+            ItemSpawner.Instance.StartCoroutine("ItemSpawnLoop");
+        }
     }
 
     /// <summary>

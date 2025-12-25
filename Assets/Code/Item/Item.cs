@@ -153,9 +153,9 @@ public abstract class Item : MonoBehaviour
     {
         Color itemColor = itemMaterial.color;
 
-        yield return new WaitForSecondsRealtime(10f);
+        yield return new WaitForSecondsRealtime(3.5f);
 
-        float Timer = 5f;
+        float Timer = 2.5f;
 
         while(Timer >= 0f)
         {

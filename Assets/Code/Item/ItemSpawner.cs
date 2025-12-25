@@ -14,6 +14,7 @@ public enum ItemType
     SpeedDown,
     Control,
     Slide,
+    Lock,
     //GameOver,
 };
 
@@ -69,6 +70,8 @@ public class ItemSpawner : Spawner<ItemType>
         // 아이템 프리팹들을 하나씩 생성해 스포너에 집어넣기
         int itemcount = System.Enum.GetValues(typeof(ItemType)).Length;
 
+        Debug.Log($"item count is {itemcount}");
+        Debug.Log($"itemNamingNUmber is {itemNamingNumber.Count}");
         for (int i = 0; i < itemcount; ++i)
         {
             GameObject item = Instantiate(ItemPrefabs[i]);
@@ -232,7 +235,7 @@ public class ItemSpawner : Spawner<ItemType>
 
                 // 스폰 위치 재조정
                 Vector3 tilePos = gamePlatform.GetTile(randomrange).transform.position;
-                tilePos.y += 1.5f;
+                tilePos.y += 2f;
                 tilePos.x -= GlobalData.Instance.TileXScale / 2f;
                 tilePos.z += GlobalData.Instance.TileZScale / 2f;
                 
