@@ -13,6 +13,7 @@ public class Missile : MonoBehaviour
 
     [SerializeField] private int missileNumber;
     [SerializeField] private bool missileReturn;
+    [SerializeField] private int spawnTime;
 
     #endregion
 
@@ -34,6 +35,12 @@ public class Missile : MonoBehaviour
 
     public bool MissileReturn { get => missileReturn; set => missileReturn = value; }
 
+    public int SpawnTime
+    {
+        get => spawnTime;
+        set => spawnTime = value;
+    }
+
     #endregion
 
     #region Unity Lifecycle
@@ -49,7 +56,7 @@ public class Missile : MonoBehaviour
     #endregion
 
     #region Public Methods
-    
+
     /// <summary>
     /// 충돌 지점의 폭발 효과를 동작시키기 위한 함수
     /// </summary>
@@ -81,7 +88,7 @@ public class Missile : MonoBehaviour
             if(player.ActivePowerJump)
             {
                 this.gameObject.SetActive(false);
-                MissileSpawner.Instance.ReserveReturn(this.gameObject);
+                MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis ,this.gameObject);
 
                 GameProgress.Instance.Score = GameProgress.Instance.Score;
 

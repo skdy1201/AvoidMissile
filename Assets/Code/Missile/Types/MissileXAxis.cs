@@ -172,8 +172,6 @@ public class MissileXAxis : Missile
         {
             missileHP--;
 
-            MissileSpawner.Instance.ReserveReturn(collision.gameObject);
-
             // 체력이 0이 되면 파괴
             if (missileHP <= 0)
             {

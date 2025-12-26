@@ -63,7 +63,6 @@ public class MissileSpawner : Spawner<MissileType>
     [SerializeField] public GameObject yAxisMissilePrefab;
     [SerializeField] public GameObject xAxisMissilePrefab;
     [SerializeField] public Platform gamePlatform;
-    [SerializeField] private Material transparentMaterial;
 
     [Header("Instantiate Setting")]
     [SerializeField] YAxisSetting yMissileSetting;
@@ -83,6 +82,10 @@ public class MissileSpawner : Spawner<MissileType>
     [SerializeField] public float missileCycle;
     [SerializeField] public float baseMissileSpeed;
     [SerializeField] private bool coroutineActive = false;
+
+    [Header("Cur Queue Info")]
+    [SerializeField] private int yAxisQueueSize;
+
 
     #endregion
 
@@ -192,11 +195,18 @@ public class MissileSpawner : Spawner<MissileType>
     /// </summary>
     void Update()
     {
-        // 미사일 리스트가 100개 이상이면, 일괄 반환
-        if (returnMissiles.Count > 100)
+        yAxisQueueSize = spawners[(int)MissileType.YAxis].Count;
+
+        // 미사일 리스트가 25개 이상이면, 일괄 반환
+        if (returnMissiles.Count >= 25)
         {
             for (int i = 0; i < returnMissiles.Count; i++)
             {
+                if (returnMissiles[i] == null)
+                {
+                    Debug.LogWarning("during return missile is null");
+                }
+
                 ReturnSpawner(MissileType.YAxis, returnMissiles[i]);
             }
 
@@ -220,14 +230,48 @@ public class MissileSpawner : Spawner<MissileType>
         // 스포너가 비었다면, 생성
         if (spawners[typeidx].Count <= 0)
         {
+            if (yAxisMissilePrefab == null)
+            {
+                Debug.LogWarning("[RentSpawner] yAxisMissilePrefab is NOT assigned!");
+                return null;
+            }
+
             GameObject obj = Instantiate(yAxisMissilePrefab);
+
+            if (obj == null)
+            {
+                Debug.LogWarning("[RentSpawner] Instantiate failed!");
+                return null;
+            }
+
             obj.name = $"{obj.name}{missileNumber}";
+
+
+            Missile missileComponent = obj.GetComponent<Missile>();
+            if (missileComponent == null)
+            {
+                Debug.LogWarning("[RentSpawner] Missile component not found!");
+                Destroy(obj);
+                return null;
+            }
+
             obj.GetComponent<Missile>().MissileNumber = missileNumber;
             missileNumber++;
+
+            if (obj.GetComponent<MissileYAxis>() != null)
+                obj.GetComponent<MissileYAxis>().MissileReturn = false;
+
             return obj;
         }
 
         GameObject cur = spawners[typeidx].Dequeue();
+
+        if (cur == null)
+        {
+            Debug.LogWarning("[RentSpawner] Pool Rent error!");
+            return null;
+        }
+
         cur.transform.SetParent(null);
 
         return cur;
@@ -243,7 +287,10 @@ public class MissileSpawner : Spawner<MissileType>
         int typeidx = (int)type;
 
         if (missile == null)
+        {
+            Debug.LogWarning("Before ReturnSpawner problem");
             return;
+        }
 
         missile.SetActive(false);
 
@@ -261,6 +308,11 @@ public class MissileSpawner : Spawner<MissileType>
     /// <param name="obj"> 미사일 오브젝트 </param>
     public void ReserveReturn(GameObject obj)
     {
+        if (obj == null)
+        {
+            Debug.LogWarning("ReserveRetrun problem");
+        }
+
         if (obj.GetComponent<Missile>().MissileReturn == false)
         {
             obj.GetComponent<Missile>().MissileReturn = true;
@@ -416,7 +468,8 @@ public class MissileSpawner : Spawner<MissileType>
             var currentYMissile = currentNode.Value;
             var nextNode = currentNode.Next;
             currentYAxisMissiles.Remove(currentNode);
-            ReturnSpawner(MissileType.YAxis, currentYMissile);
+
+            Destroy(currentYMissile);
 
             currentNode = nextNode;
         }
@@ -436,11 +489,21 @@ public class MissileSpawner : Spawner<MissileType>
         {
             for (int i = 0; i < returnMissiles.Count; i++)
             {
-                ReturnSpawner(MissileType.YAxis, returnMissiles[i]);
+               Destroy(returnMissiles[i]);
             }
 
             returnMissiles.Clear();
         }
+
+        // 큐도 정리
+        while (spawners[(int)MissileType.YAxis].Count > 0)
+        {
+            GameObject missile = spawners[(int)MissileType.YAxis].Dequeue();
+            if (missile != null)
+                Destroy(missile);
+        }
+
+        missileNumber = 0;
     }
 
     /// <summary>
@@ -495,34 +558,40 @@ public class MissileSpawner : Spawner<MissileType>
             tileTransform.x -= tileX / 2;
             tileTransform.z += tileZ / 2;
 
-            GameObject misisleObject = RentSpawner(MissileType.YAxis);
+            // 미사일을 풀에서 꺼내기
+            GameObject missileObject = RentSpawner(MissileType.YAxis);
 
-            misisleObject.transform.position = tileTransform;
-
-            // 미사일 투명도가 100이 아니고, 현재 가져온 미사일 재질이 붙투명이라면 재질 변경
-            if (misisleObject.GetComponent<MissileYAxis>().MissileTransparent == false)
+            if (missileObject.GetComponent<MissileYAxis>() != null)
             {
-                misisleObject.GetComponent<MissileYAxis>().ChangeMaterial(transparentMaterial);
+                missileObject.GetComponent<MissileYAxis>().SpawnTime = missileObject.GetComponent<MissileYAxis>().SpawnTime + 1;
             }
+
+            if (missileObject == null)
+            {
+                Debug.LogWarning("rent fail");
+                continue;
+            }
+
+            missileObject.transform.position = tileTransform;
 
             float alpha = GameData.Instance.GetSettingValue(OptionType.Alpha);
 
-            if (alpha != misisleObject.GetComponent<MissileYAxis>().GetMissileAlpha())
+            if (alpha != missileObject.GetComponent<MissileYAxis>().GetMissileAlpha())
             {
-                misisleObject.GetComponent<MissileYAxis>().ChangeAlpha(alpha);
+                missileObject.GetComponent<MissileYAxis>().ChangeAlpha(alpha);
             }
 
-            misisleObject.SetActive(true);
+            missileObject.SetActive(true);
 
             Vector2 xzCoordinate = new Vector2(tileTransform.x, tileTransform.z);
-            misisleObject.GetComponent<MissileYAxis>().XZCoord = xzCoordinate;
+            missileObject.GetComponent<MissileYAxis>().XZCoord = xzCoordinate;
 
             // 드래그로 미사일 속도 설정
-            Rigidbody missileRigidBody = misisleObject.GetComponent<Rigidbody>();
+            Rigidbody missileRigidBody = missileObject.GetComponent<Rigidbody>();
             float randomDrag = Random.Range(1.5f, baseMissileSpeed);
             missileRigidBody.linearDamping = randomDrag;
 
-            currentYAxisMissiles.AddLast(misisleObject);
+            currentYAxisMissiles.AddLast(missileObject);
         }
     }
 

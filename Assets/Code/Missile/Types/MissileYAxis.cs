@@ -12,13 +12,11 @@ public class MissileYAxis : Missile
     #region Serialized Fields
     
     [SerializeField] public Vector2 XZCoord = new Vector2();
+    [SerializeField] private Material missileMaterial;
 
     #endregion
 
     #region Private/Protected Fields
-
-    private Material missileMaterial = null;
-
     #endregion
 
     #region Properties
@@ -36,6 +34,19 @@ public class MissileYAxis : Missile
     {
         base.Awake();
         missileCollider = GetComponent<Collider>();
+        missileMaterial = GetComponent<MeshRenderer>().material;
+
+        if (missileMaterial == null)
+            Debug.LogError("missile material is null");
+    }
+
+    private void OnEnable()
+    {
+        this.CollisionOther = false;
+    }
+
+    private void OnDestroy()
+    {
 
     }
 
@@ -82,6 +93,12 @@ public class MissileYAxis : Missile
     /// <param name="collision"> 충돌한 오브젝트 콜라이더 </param>
     protected override void OnCollisionEnter(Collision collision)
     {
+        // 이미 충돌인지 확인
+        if (this.CollisionOther)
+        {
+            return;  // 이미 처리됨
+        }
+
         base.OnCollisionEnter(collision);
 
         // 폭발 이펙트를 정확한 충돌 위치에 표시하기 위해 접점 저장
@@ -95,7 +112,7 @@ public class MissileYAxis : Missile
             this.CollisionOther = true;
 
             this.gameObject.SetActive(false);
-            MissileSpawner.Instance.ReserveReturn(this.gameObject);
+            MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, this.gameObject);
 
             GameProgress.Instance.Score = GameProgress.Instance.Score;
         }
@@ -118,19 +135,12 @@ public class MissileYAxis : Missile
 
                     // 이 미사일은 풀로 반환
                     collision.gameObject.SetActive(false);
-                    MissileSpawner.Instance.ReserveReturn(this.gameObject);
+                    MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, this.gameObject);
                 }
-                else if (this.gameObject.transform.position.y == otherMissileY)
-                {
-                    //좌표가 같다면  인스턴스 ID로 비교
-                    if (this.gameObject.GetInstanceID() > collision.gameObject.GetInstanceID())
-                    {
-                        this.gameObject.GetComponent<Missile>().CollisionOther = true;
-
-                        collision.gameObject.SetActive(false);
-                        MissileSpawner.Instance.ReserveReturn(this.gameObject);
-                    }
-                }
+            }
+            else if (collision.gameObject.GetComponent<MissileXAxis>() != null)
+            {
+                MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, this.gameObject);
             }
         }
     }
