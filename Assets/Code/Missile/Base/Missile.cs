@@ -87,15 +87,19 @@ public class Missile : MonoBehaviour
 
             if(player.ActivePowerJump)
             {
-                this.gameObject.SetActive(false);
-                MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis ,this.gameObject);
-
                 GameProgress.Instance.Score = GameProgress.Instance.Score;
 
                 // 폭발 이펙트를 정확한 충돌 위치에 표시하기 위해 접점 저장
                 Vector3 contact = collision.contacts[0].point;
 
                 ActiveBombEffect(contact);
+
+                this.gameObject.SetActive(false);
+
+                if(this.gameObject.GetComponent<MissileYAxis>() != null)
+                MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, this.gameObject);
+                else
+                    Destroy(this.gameObject);
             }
         }
     }

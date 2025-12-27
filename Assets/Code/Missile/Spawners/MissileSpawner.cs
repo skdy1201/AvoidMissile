@@ -534,6 +534,26 @@ public class MissileSpawner : Spawner<MissileType>
     /// </summary>
     private void SpawnMissile()
     {
+        // 사전 체크
+        if (gamePlatform == null)
+        {
+            Debug.LogError("[SpawnMissile] gamePlatform is null!");
+            return;
+        }
+
+        if (GlobalData.Instance == null)
+        {
+            Debug.LogError("[SpawnMissile] GlobalData.Instance is null!");
+            return;
+        }
+
+        if (GameData.Instance == null)
+        {
+            Debug.LogError("[SpawnMissile] GameData.Instance is null!");
+            return;
+        }
+
+
         int missileCount = Random.Range(minMissileCount, curMaxMissileCount);
 
         // 동일 타일 생성 방지를 위한 체크
@@ -551,7 +571,15 @@ public class MissileSpawner : Spawner<MissileType>
 
             tileIndexes.Add(spawnTileid);
 
-            Vector3 tileTransform = gamePlatform.GetTile(spawnTileid).transform.position;
+            GameObject spawnTile = gamePlatform.GetTile(spawnTileid);
+
+            if(spawnTile == null)
+            {
+                Debug.LogError("spawnTile is null");
+                continue;
+            }
+
+            Vector3 tileTransform = spawnTile.transform.position;
 
             // 생성 지점 조정
             tileTransform.y += GlobalData.Instance.MissileDropPoint;
@@ -561,15 +589,15 @@ public class MissileSpawner : Spawner<MissileType>
             // 미사일을 풀에서 꺼내기
             GameObject missileObject = RentSpawner(MissileType.YAxis);
 
+            if (missileObject == null)
+            {
+                Debug.LogError("[SpawnMissile] RentSpawner returned null!");
+                continue;
+            }
+
             if (missileObject.GetComponent<MissileYAxis>() != null)
             {
                 missileObject.GetComponent<MissileYAxis>().SpawnTime = missileObject.GetComponent<MissileYAxis>().SpawnTime + 1;
-            }
-
-            if (missileObject == null)
-            {
-                Debug.LogWarning("rent fail");
-                continue;
             }
 
             missileObject.transform.position = tileTransform;
@@ -588,6 +616,13 @@ public class MissileSpawner : Spawner<MissileType>
 
             // 드래그로 미사일 속도 설정
             Rigidbody missileRigidBody = missileObject.GetComponent<Rigidbody>();
+
+            if (missileRigidBody == null)
+            {
+                Debug.LogError($"[SpawnMissile] No Rigidbody on {missileObject.name}!");
+                continue;
+            }
+
             float randomDrag = Random.Range(1.5f, baseMissileSpeed);
             missileRigidBody.linearDamping = randomDrag;
 

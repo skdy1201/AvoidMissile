@@ -47,7 +47,7 @@ public class MissileYAxis : Missile
 
     private void OnDestroy()
     {
-
+        Debug.Log("yaxis missile destroy");
     }
 
     #endregion
@@ -111,7 +111,6 @@ public class MissileYAxis : Missile
         {
             this.CollisionOther = true;
 
-            this.gameObject.SetActive(false);
             MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, this.gameObject);
 
             GameProgress.Instance.Score = GameProgress.Instance.Score;
@@ -134,7 +133,6 @@ public class MissileYAxis : Missile
                     this.gameObject.GetComponent<Missile>().CollisionOther = true;
 
                     // 이 미사일은 풀로 반환
-                    collision.gameObject.SetActive(false);
                     MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, this.gameObject);
                 }
             }
