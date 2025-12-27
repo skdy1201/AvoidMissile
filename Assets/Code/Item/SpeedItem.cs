@@ -27,7 +27,10 @@ public class MoveFast : Item
             if (category == ItemType.SpeedUp)
                 AudioController.Instance.PlayItemSound((int)ItemEffectSound.Buff);
             else
+            {
                 AudioController.Instance.PlayItemSound((int)(ItemEffectSound.Nerf));
+                GameProgress.Instance.AddCustomScore(5);
+            }
         }
     }
 

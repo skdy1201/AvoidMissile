@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
 using UnityEngine.EventSystems;
+using System.Collections;
 
 
 // TODO : UPDATE LELVEL을 좀 더 간소화 시킬 방법을 찾아야 할 것 같다.
@@ -22,6 +22,8 @@ public class GameProgress : Singleton<GameProgress>
 
     [SerializeField] private float gameTimer = 0f;
 
+    [SerializeField] private float levelTimer = 0f;
+
     [SerializeField] private float currentLevel = 1f;
 
     [SerializeField] private int playerScore = 0;
@@ -35,6 +37,7 @@ public class GameProgress : Singleton<GameProgress>
     [SerializeField] private float soundfadeTime = 1f;
 
     [SerializeField] private bool spawnItem = false;
+
     #endregion
 
     #region Properties
@@ -78,18 +81,20 @@ public class GameProgress : Singleton<GameProgress>
     /// </remarks>
     void Update()
     {
+        gameTimer += Time.deltaTime;
+
         if (SceneManager.GetActiveScene().name == GlobalData.Instance.PlayScene)
         {
-            gameTimer += Time.deltaTime;
+            levelTimer += Time.deltaTime;
         }
 
-        if (gameTimer >= 5f)
+        if (levelTimer >= 5f)
         {
             ++currentLevel;
 
             UpdateLevel();
 
-            gameTimer = 0f;
+            levelTimer = 0f;
 
         }
     }
@@ -97,6 +102,9 @@ public class GameProgress : Singleton<GameProgress>
     #endregion
 
     #region Public Methods
+
+    public void AddCustomScore(int value) => playerScore += value;
+
     #endregion
 
     #region Private/Protected Methods
@@ -117,6 +125,7 @@ public class GameProgress : Singleton<GameProgress>
         if (SceneManager.GetActiveScene().name == GlobalData.Instance.PlayScene)
         {
             gameTimer = 0f;
+            levelTimer = 0f;
             currentLevel = 1f;
 
             playerScore = 0;
@@ -124,6 +133,7 @@ public class GameProgress : Singleton<GameProgress>
             isPlayerDead = false;
 
             spawnXAxis = false;
+
         }
     }
 
@@ -227,7 +237,7 @@ public class GameProgress : Singleton<GameProgress>
     public static UnityEvent EndLevel = new UnityEvent();
 
     #endregion
-  
+
 }
 
 

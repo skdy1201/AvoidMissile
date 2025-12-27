@@ -230,7 +230,6 @@ public class ItemSpawner : Spawner<ItemType>
                 // 타일 체크
                 itemSpawnTies[randomrange] = true;
 
-
                 int itemType = Random.Range(0, System.Enum.GetValues(typeof(ItemType)).Length);
 
                 // 스폰 위치 재조정

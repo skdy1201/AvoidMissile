@@ -7,6 +7,8 @@ public class SkillLock : Item
 {
     public override void EffectItem()
     {
+        Debug.Log("in Skill Lock Item");
+
         Player player = GlobalData.Instance.Player.GetComponent<Player>();
 
         if (player.GetComponent<Player>() != null)
@@ -14,6 +16,9 @@ public class SkillLock : Item
             player.SkillLock(time);
 
             AudioController.Instance.PlayItemSound((int)ItemEffectSound.Lock);
+
+            GameProgress.Instance.AddCustomScore(25);
+
         }
     }
 }
