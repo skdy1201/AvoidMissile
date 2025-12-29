@@ -70,7 +70,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -2478382723919055575, guid: f74382061aee24e48982801f0bec805f, type: 3}
+  - {fileID: 2100000, guid: 39282178c1a71c84f95286bfba6f9fc9, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -153,11 +153,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: efe9e93787cb2a445ac32823c2bd138d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  number: 0
-  bReturn: 0
-  bCollision: 0
-  xzcoord: {x: 0, y: 0}
-  bTransperant: 0
+  missileNumber: 0
+  missileReturn: 0
+  XZCoord: {x: 0, y: 0}
+  missileMaterial: {fileID: 0}
 --- !u!1001 &13301847479999365
 PrefabInstance:
   m_ObjectHideFlags: 0
