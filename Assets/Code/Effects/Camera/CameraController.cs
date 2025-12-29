@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
+//TODO : SetResolutioin을 안썼던 이유 찾아보기
+
 /// <summary>
 /// 화면 비율을 16:9로 고정하고, 다른 비율의 화면에는 레터박스를 추가.
 /// </summary>
