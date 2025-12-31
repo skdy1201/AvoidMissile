@@ -3,7 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-
+/// <summary>
+/// 아이템 데이터 동기화 구조체
+/// </summary>
+public struct ItemData
+{
+    public string Name;
+    public string Type;
+    public string Value;
+    public string Time;
+}
 
 /// <summary>
 /// 아이템 타입 열거형
@@ -15,7 +24,7 @@ public enum ItemType
     Control,
     Slide,
     Lock,
-    //GameOver,
+    Revive,
 };
 
 /// <summary>
@@ -66,6 +75,8 @@ public class ItemSpawner : Spawner<ItemType>
     {
         base.Awake();
         Player.OnPlayerDead.AddListener(OnPlayerDeath);
+
+        SyncItemData();
 
         // 아이템 프리팹들을 하나씩 생성해 스포너에 집어넣기
         int itemcount = System.Enum.GetValues(typeof(ItemType)).Length;
@@ -187,6 +198,39 @@ public class ItemSpawner : Spawner<ItemType>
         }
     }
 
+    /// <summary>
+    /// 바이너리 데이터로 동기화 해둔 아이템 설정 값을, 실제 프리팹과 연결
+    /// </summary>
+    /// <remarks>
+    /// 아이템의 이름을 통해 값을 연결
+    /// </remarks>
+    private void SyncItemData()
+    {
+       Dictionary<string, ItemData> itemDatas = GameData.Instance.ItemDatas();
+
+       for(int i = 0; i < ItemPrefabs.Count; ++i)
+       {
+            string itemName = ItemPrefabs[i].name;
+
+            ItemData curItemData = itemDatas[itemName];
+
+            Item curItem = ItemPrefabs[i].GetComponent<Item>();
+
+            string dataValue = curItemData.Value;
+            string dataTime = curItemData.Time;
+
+           if(float.TryParse(dataValue, out float valuefloat))
+           {
+                curItem.SetValue(valuefloat);
+           }
+
+           if(float.TryParse(dataTime, out float timefloat))
+           {
+                curItem.SetTime(timefloat);
+           }
+       }
+    }
+
     #endregion
 
     #region Event Handlers
@@ -231,6 +275,7 @@ public class ItemSpawner : Spawner<ItemType>
                 itemSpawnTies[randomrange] = true;
 
                 int itemType = Random.Range(0, System.Enum.GetValues(typeof(ItemType)).Length);
+                itemType = (int)ItemType.SpeedUp;
 
                 // 스폰 위치 재조정
                 Vector3 tilePos = gamePlatform.GetTile(randomrange).transform.position;

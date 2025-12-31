@@ -1,12 +1,8 @@
-using GoogleMobileAds.Api;
-using GoogleMobileAds.Common;
-using NUnit.Framework;
-using NUnit.Framework.Constraints;
 using System;
+using System.IO;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
-using UnityEngine.Serialization;
-using static UnityEngine.Rendering.DebugUI;
 
 public enum GameDataKey
 {
@@ -25,16 +21,15 @@ public class GameData : Singleton<GameData>
 
     #region Serialized Fields
 
-    [FormerlySerializedAs("L_gameDataKeys")]
     [SerializeField] List<string> gameDataKeys = new List<string>();
 
-    [FormerlySerializedAs("RankScore")]
     [SerializeField] List<int> rankScore = new List<int>();
 
-    [Header("Option Value")]
     [SerializeField] float missileAlpha = 1f;
     [SerializeField] float mainSound = 0.5f;
     [SerializeField] float effectSound = 0.5f;
+
+    [SerializeField] Dictionary<string, ItemData> itemDatas = new Dictionary<string, ItemData>();
 
     #endregion
 
@@ -61,8 +56,6 @@ public class GameData : Singleton<GameData>
 
     #endregion
 
-    #region Properties
-    #endregion
 
     #region Unity Lifecycle
 
@@ -82,6 +75,8 @@ public class GameData : Singleton<GameData>
         }
 
         SyncPlayerPref();
+
+        LoadItemData();
     }
 
     #endregion
@@ -246,6 +241,50 @@ public class GameData : Singleton<GameData>
         PlayerPrefs.SetFloat(gameDataKeys[(int)GameDataKey.EffectSound], effectSound);
     }
 
+    public Dictionary<string, ItemData> ItemDatas() => itemDatas;
+
     #endregion
 
+    #region Private/Protected Methods
+
+    /// <summary>
+    /// 바이너리 파일을 읽어서 데이터로 저장
+    /// </summary>
+    /// <remarks>
+    /// Bytes 파일은 TextAsset으로 로드 가능
+    /// 로드한 파일을 읽는 것이기 때문에, MemoryStream 사용
+    /// 파일 내부가 Binary이기 때문에, BinaryReader 사용
+    /// </remarks>
+    private void LoadItemData()
+    {
+        string itemDataFilePath = "itemBinary";
+        TextAsset itemBinaryData = Resources.Load<TextAsset>(itemDataFilePath);
+
+        if(itemBinaryData == null)
+        {
+            Debug.LogError("binary File Missing");
+        }
+
+        using (MemoryStream memoryStream = new MemoryStream(itemBinaryData.bytes))
+        {
+            using (BinaryReader reader = new BinaryReader(memoryStream, Encoding.UTF8))
+            { 
+                int itemCount = reader.ReadInt32();
+
+                for(int i = 0; i < itemCount; ++i)
+                {
+                    ItemData now = new ItemData();
+
+                    now.Name = reader.ReadString();
+                    now.Type = reader.ReadString();
+                    now.Value = reader.ReadString();
+                    now.Time = reader.ReadString();
+                
+                    itemDatas.Add(now.Name, now);
+                }
+            }
+        }
+    }
+
+    #endregion
 }

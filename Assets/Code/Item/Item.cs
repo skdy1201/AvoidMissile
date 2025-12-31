@@ -28,8 +28,6 @@ public abstract class Item : MonoBehaviour
 
     protected Collider itemCollider = null;
 
-
-
     protected Material itemMaterial;
 
     #endregion
@@ -116,6 +114,9 @@ public abstract class Item : MonoBehaviour
 
 
     }
+
+    public void SetValue(float  datavalue) => value = datavalue;
+    public void SetTime(float dataTime) => time = dataTime;
 
     #endregion
 
