@@ -9,6 +9,8 @@ using System.Text;
 /// </summary>
 /// <remarks>
 /// csv를 확인, 바이너리 파일화, 바이너리 파일 해석
+/// ReadCSV와 ChangeBinary는 같은 코드가 쓰이지만, Editor에서 쓰는 함수인 점,
+/// ReadCSVS는 로깅만 하지만, Write는 추가 작업이 있기 때문에, 함수화를 하지 않음
 /// </remarks>
 public class ConvertBinary : EditorWindow
 {

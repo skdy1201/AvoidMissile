@@ -110,7 +110,6 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
             adUnitId = "ca-app-pub-4152423074686548/3054849538";
         }
 
-
         // Send the request to load the ad.
         InterstitialAd.Load(adUnitId, adRequest, (InterstitialAd ad, LoadAdError error) =>
         {
@@ -124,8 +123,6 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
             interstitialAd = ad;
 
             // 광고가 끝날 때, 처리할 이벤트들 등록
-            interstitialAd.OnAdFullScreenContentOpened += () => AudioController.Instance.PauseBGM();
-            interstitialAd.OnAdFullScreenContentClosed += () => AudioController.Instance.PlayCurBGM();
             interstitialAd.OnAdFullScreenContentClosed += () => ReleaseAd();
 
         });
@@ -139,6 +136,8 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     {
         if (interstitialAd != null && interstitialAd.CanShowAd())
         {
+            Debug.Log("Show Ad");
+           // AudioController.Instance.PauseBGM();
             interstitialAd.Show();
         }
     }
@@ -158,32 +157,10 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
             interstitialAd.Destroy();
             interstitialAd = null;
             Debug.Log("Ad Destroy");
-            Debug.Log($"TimeScale is : {Time.timeScale}");
-
-            // 다음 프레임과 그 다음 프레임도 체크
-            StartCoroutine(RestoreTimeScale());
-
         }
         // [END destroy_ad]]
 
-    }
 
-    #endregion
-
-
-    #region Coroutines
-
-    /// <summary>
-    /// GoogleAdmob이 TimeScale을 임의로 조정해서 코루틴으로 체크
-    /// </summary>
-    /// <remarks>
-    /// 플레이어가 죽은 시점이기 때문에, timescale을 다시 0으로 만들어둔다.
-    /// </remarks>
-    private IEnumerator RestoreTimeScale()
-    {
-        yield return new WaitUntil(() => Time.timeScale == 1f);
-
-        Time.timeScale = 0f;
     }
 
     #endregion
