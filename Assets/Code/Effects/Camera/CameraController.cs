@@ -24,13 +24,13 @@ public class CameraController : MonoBehaviour
     private void Awake()
     {
         Camera mainCamera = GetComponent<Camera>();
-
+        
         // 종현재 화면 비율과 목표 비율(16:9)을 비교하여 스케일 계산
         Rect cameraRect = mainCamera.rect;
-
+        
         float heightScale = ((float)Screen.width / Screen.height) / TargetAspectRatio;
         float widthScale = 1f / heightScale;
-
+        
         // 화면이 16:9보다 세로로 긴 경우 상하에, 가로로 긴 경우 좌우에 레터박스 추가
         if (heightScale < 1)
         {
@@ -42,19 +42,21 @@ public class CameraController : MonoBehaviour
             cameraRect.width = widthScale;
             cameraRect.x = (1f - widthScale) / 2f;
         }
-
+        
         mainCamera.rect = cameraRect;
+     
+    }
 
-        Debug.Log($"mainCamera's rect is {cameraRect}");
-
-        ChangeCameraRect.Invoke();
+    private void Start()
+    {
+        SetSafeArea.Invoke();
     }
 
     #endregion
 
     #region Event Handlers
 
-    static public UnityEvent ChangeCameraRect = new UnityEvent();
+    static public UnityEvent SetSafeArea = new UnityEvent();
 
     #endregion
 
