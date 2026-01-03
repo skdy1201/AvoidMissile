@@ -3,7 +3,6 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
-
 public enum GameDataKey
 {
     Rank,
@@ -276,7 +275,7 @@ public class GameData : Singleton<GameData>
                     ItemData now = new ItemData();
 
                     now.Name = reader.ReadString();
-                    now.Type = reader.ReadString();
+                    now.Percent = reader.ReadString();
                     now.Value = reader.ReadString();
                     now.Time = reader.ReadString();
                 

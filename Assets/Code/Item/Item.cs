@@ -15,6 +15,8 @@ public abstract class Item : MonoBehaviour
 
     [SerializeField] protected ItemType category;
 
+    [SerializeField] protected int percent;
+
     [SerializeField] protected float value;
 
     [SerializeField] protected float time;
@@ -29,6 +31,8 @@ public abstract class Item : MonoBehaviour
     protected Collider itemCollider = null;
 
     protected Material itemMaterial;
+
+    private int cumulativePercent;
 
     #endregion
 
@@ -45,6 +49,18 @@ public abstract class Item : MonoBehaviour
         set {  spawnTile = value; }
     }
 
+    public int Percent
+    {
+        get { return percent; }
+        set { percent = value; }
+    }
+
+    public int CumulativePercent
+    {
+        get { return cumulativePercent; }
+        set { cumulativePercent = value; }
+    }
+
     #endregion
 
     #region Unity Lifecycle
@@ -52,7 +68,7 @@ public abstract class Item : MonoBehaviour
     /// <summary>
     /// 콜라이더를 미리 캐싱
     /// </summary>
-    private void Awake()
+    protected virtual void Awake()
     {
         itemCollider = GetComponent<Collider>();
 
@@ -115,7 +131,7 @@ public abstract class Item : MonoBehaviour
 
     }
 
-    public void SetValue(float  datavalue) => value = datavalue;
+    public void SetValue(float  dataValue) => value = dataValue;
     public void SetTime(float dataTime) => time = dataTime;
 
     #endregion

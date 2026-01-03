@@ -9,7 +9,7 @@ using System.Linq;
 public struct ItemData
 {
     public string Name;
-    public string Type;
+    public string Percent;
     public string Value;
     public string Time;
 }
@@ -54,6 +54,9 @@ public class ItemSpawner : Spawner<ItemType>
     #region Private/Protected Fields
 
     private List<bool> itemSpawnTies = Enumerable.Repeat(false, 100).ToList();
+
+    // 부활 아이템을 먹었는지 체크
+    private bool activeRevive = false;
 
     #endregion
 
@@ -169,6 +172,42 @@ public class ItemSpawner : Spawner<ItemType>
         gamePlatform = platform;
     }
 
+    /// <summary>
+    /// 확률대로 나오는지 아이템 100번 시뮬레이션
+    /// </summary>
+    public void TestPercent()
+    {
+        for(int i = 0; i < 100; ++i)
+        {
+            int randomPercent = (int)(Random.value * 100);
+            int type = CalculatePercent(randomPercent);
+
+            Debug.Log($"{i}'s time Percent is {randomPercent}, type is {type}");
+        }
+    }
+
+    public void TakeRevive()
+    {
+        if (activeRevive == true)
+            return;
+
+        activeRevive = true;
+
+        Item itemScript = null;
+
+        for(int i = (int)ItemType.Control; i <= (int)ItemType.Lock; ++i)
+        {
+            itemScript = ItemPrefabs[i].GetComponent<Item>();
+
+            itemScript.Percent += 1;
+        }
+
+        itemScript = ItemPrefabs[(int)ItemType.Revive].GetComponent<Item>();
+        itemScript.Percent = 0;
+
+        ReCalculateCumulativePercent();
+    }
+
     #endregion
 
     #region Private/Protected Methods
@@ -208,6 +247,8 @@ public class ItemSpawner : Spawner<ItemType>
     {
        Dictionary<string, ItemData> itemDatas = GameData.Instance.ItemDatas();
 
+        int curpercent = 0;
+
        for(int i = 0; i < ItemPrefabs.Count; ++i)
        {
             string itemName = ItemPrefabs[i].name;
@@ -216,24 +257,93 @@ public class ItemSpawner : Spawner<ItemType>
 
             Item curItem = ItemPrefabs[i].GetComponent<Item>();
 
+            string dataPercent = curItemData.Percent;
             string dataValue = curItemData.Value;
             string dataTime = curItemData.Time;
 
-           if(float.TryParse(dataValue, out float valuefloat))
+           if(int.TryParse(dataPercent, out int percentint))
            {
-                curItem.SetValue(valuefloat);
+                curItem.Percent = percentint;
+                curItem.CumulativePercent = (percentint + curpercent);
+                curpercent += percentint;
            }
 
+            Debug.Log($"cur percent is {curpercent}");
+
+           if(float.TryParse(dataValue, out float valuefloat))
+           {
+               curItem.SetValue(valuefloat);
+           }
+
+           
            if(float.TryParse(dataTime, out float timefloat))
            {
-                curItem.SetTime(timefloat);
+               curItem.SetTime(timefloat);
            }
        }
     }
 
-    #endregion
+    private int CalculatePercent(int value)
+    {
+        int itemIndex = 0;
 
-    #region Event Handlers
+        int percentStart = 0;
+        int percentEnd = 0;
+
+        for(int i = 0; i < ItemPrefabs.Count; ++i)
+        {
+            Item currentItem = ItemPrefabs[i].GetComponent<Item>();
+
+            if(currentItem == null)
+            {
+                Debug.LogError("Not Item in ItemPrefabs");
+            }
+
+            percentEnd = currentItem.CumulativePercent;
+
+            if (percentStart < value && value <= percentEnd)
+            {
+                itemIndex = i;
+                break;
+            }
+            else
+            {
+                percentStart = percentEnd;
+            }
+        }
+
+        return itemIndex;
+    }
+
+    /// <summary>
+    /// 확률 재계산 함수
+    /// </summary>
+    /// <remarks>
+    /// 부활 아이템을 한 번 먹으면 확률을 0으로 만들어야 한다.
+    /// 이후 랜덤 선택시 범위에 들어가지 않도록 누적확률을 조정
+    /// </remarks>
+    private void ReCalculateCumulativePercent()
+    {
+        // 누적 확률
+        int percentStart = 0;
+
+        for (int i = 0; i < ItemPrefabs.Count; ++i)
+        {
+            Item currentItem = ItemPrefabs[i].GetComponent<Item>();
+
+            currentItem.CumulativePercent = percentStart + currentItem.Percent;
+
+            // 스폰확률이 0이면, Random.Value에서 나오지 않도록 누적확률 조정(0 ~ 100)
+            if (currentItem.Percent == 0)
+                currentItem.CumulativePercent = 101;
+            else
+                percentStart = currentItem.CumulativePercent;
+
+            Debug.Log($"item cumulativePercent is {currentItem.CumulativePercent}");
+
+        }
+    }
+
     #endregion
 
     #region Coroutines
@@ -274,8 +384,9 @@ public class ItemSpawner : Spawner<ItemType>
                 // 타일 체크
                 itemSpawnTies[randomrange] = true;
 
-                int itemType = Random.Range(0, System.Enum.GetValues(typeof(ItemType)).Length);
-                itemType = (int)ItemType.SpeedUp;
+                int itemPercent = (int)Random.value * 100;
+                int itemType = CalculatePercent(itemPercent);
+                itemType = (int)ItemType.Revive;
 
                 // 스폰 위치 재조정
                 Vector3 tilePos = gamePlatform.GetTile(randomrange).transform.position;
