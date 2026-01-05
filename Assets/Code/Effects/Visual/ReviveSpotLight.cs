@@ -26,6 +26,8 @@ public class ReviveSpotLight : MonoBehaviour
 
     private bool effectEnd = false;
 
+    private GameObject player;
+
     #endregion
 
     #region Unity Lifecycle
@@ -38,6 +40,7 @@ public class ReviveSpotLight : MonoBehaviour
         targetLight = GetComponent<Light>();
         targetLight.innerSpotAngle = 0f;
         targetLight.spotAngle = 0f;
+        GameProgress.Instance.RegisterReviveLight(this.gameObject);
         this.gameObject.SetActive(false);
     }
 
@@ -48,12 +51,24 @@ public class ReviveSpotLight : MonoBehaviour
     }
 
     /// <summary>
+    /// Player와 효과의 위치를 동기화
+    /// </summary>
+    private void FixedUpdate()
+    {
+        Vector3 playerXZ = player.transform.position;
+        playerXZ.y = this.transform.position.y;
+
+        this.transform.position = playerXZ;
+    }
+
+    /// <summary>
     /// 효과 종료 체크
     /// </summary>
     private void Update()
     {
         if (effectEnd)
         {
+            player.GetComponent<Player>().OffRevive();
             gameObject.SetActive(false);
         }
     }
@@ -68,6 +83,8 @@ public class ReviveSpotLight : MonoBehaviour
     /// </summary>
     IEnumerator ReviveEffect()
     {
+        player = GlobalData.Instance.Player;
+
         float duration = 0f;
 
         while (duration < effectTimer)
@@ -76,12 +93,12 @@ public class ReviveSpotLight : MonoBehaviour
 
             float ratio = duration / effectTimer;
 
+            // 선형 증가를 위한 비율과 각도 측정
             float fianlIntensity = Mathf.Lerp(0, targetIntensity, ratio);
             float finalAngle = Mathf.Lerp(0, targetAngle, ratio);
 
             targetLight.intensity = fianlIntensity;
             targetLight.spotAngle = finalAngle;
-
             yield return null;
         }
 

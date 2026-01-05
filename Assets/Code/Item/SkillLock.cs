@@ -15,7 +15,7 @@ public class SkillLock : Item
         {
             player.SkillLock(time);
 
-            AudioController.Instance.PlayItemSound((int)ItemEffectSound.Lock);
+            AudioController.Instance.PlayItemSound((int)ItemEffectSFX.Lock);
 
             GameProgress.Instance.AddCustomScore(25);
 

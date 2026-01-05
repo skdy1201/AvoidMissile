@@ -13,18 +13,20 @@ public enum SoundType
     BombSound,
 }
 
-public enum PlayerEffectSound
+public enum PlayerEffectSFX
 {
     Slide,
     Jump,
+    Respawn,
 }
 
-public enum ItemEffectSound
+public enum ItemEffectSFX
 {
     Buff,
     Nerf,
     Reverse,
     Lock,
+    Revive,
 }
 
 // TODO : 사운드 감소 연결 안해둠.

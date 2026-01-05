@@ -49,6 +49,8 @@ public class ItemSpawner : Spawner<ItemType>
 
     [SerializeField] private List<int> itemNamingNumber = Enumerable.Repeat(0, System.Enum.GetValues(typeof(ItemType)).Length).ToList();
 
+    [Header("Test")]
+    [SerializeField] private bool spawnRevive = false;
     #endregion
 
     #region Private/Protected Fields
@@ -186,6 +188,13 @@ public class ItemSpawner : Spawner<ItemType>
         }
     }
 
+    /// <summary>
+    /// 부활 아이템을 먹고 확률을 재조정 하기 위한 함수
+    /// </summary>
+    /// <remarks>
+    /// 스킬 락, 리버스 컨트롤, 파워 점프에게 각각 1% 씩 분배 후,
+    /// 누적 확률 재계산
+    /// </remarks>
     public void TakeRevive()
     {
         if (activeRevive == true)
@@ -235,6 +244,8 @@ public class ItemSpawner : Spawner<ItemType>
                 }
             }
         }
+        
+        spawnRevive = false;
     }
 
     /// <summary>
@@ -386,7 +397,12 @@ public class ItemSpawner : Spawner<ItemType>
 
                 int itemPercent = (int)Random.value * 100;
                 int itemType = CalculatePercent(itemPercent);
-                itemType = (int)ItemType.Revive;
+
+                if(spawnRevive  == false)
+                {
+                    itemType = (int)ItemType.Revive;
+                    spawnRevive = true;
+                }
 
                 // 스폰 위치 재조정
                 Vector3 tilePos = gamePlatform.GetTile(randomrange).transform.position;

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
 using System.Collections;
+using UnityEngine.Rendering;
 
 
 /// <summary>
@@ -45,6 +46,9 @@ public class Player : MonoBehaviour
     // 잠금 상태 체크 변수
     private bool lockSkill = false;
 
+    // Player 부활 변수
+    private bool readyRevive = false;
+
     #endregion
 
     #region Properties
@@ -62,6 +66,12 @@ public class Player : MonoBehaviour
     public bool LockSkill
     {
         get { return lockSkill; }
+    }
+
+    public bool Revive
+    {
+        get { return readyRevive; }
+        set { readyRevive = value;}
     }
 
     #endregion
@@ -253,6 +263,23 @@ public class Player : MonoBehaviour
         StartCoroutine(SlideLock(time));
     }
 
+    /// <summary>
+    /// 처음 스폰위치로 플레이어 이동, 부활 효과가 지속되는 동안 무적 처리
+    /// </summary>
+    public void ActiveRevive()
+    {
+        GameProgress.Instance.PlayerAlive = true;
+        Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), true);
+        this.transform.position = Vector3.zero;
+        PlayerEffectSound((int)PlayerEffectSFX.Respawn);
+    }
+
+    public void OffRevive()
+    {
+        Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), false);
+        readyRevive = false;
+    }
+
     #endregion
 
     #region Private/Protected Methods
@@ -262,13 +289,22 @@ public class Player : MonoBehaviour
     /// </summary>
     /// <remarks>
     /// PowerJump일땐 충돌을 해야하기 때문에 조건 추가
+    /// 낙사도 부활이 가능하기 때문에, Layer 체크 추가
     /// </remarks>
     /// <param name="collision"> 충돌한 물체의 Collision </param>
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Missile") && activePowerJump == false) 
+        if ((collision.gameObject.layer == LayerMask.NameToLayer("GameBoundary") || collision.gameObject.layer == LayerMask.NameToLayer("Missile")) && activePowerJump == false) 
         {
-            OnPlayerDead?.Invoke();
+            if(readyRevive == false)
+                OnPlayerDead?.Invoke();
+            else
+            {
+                // 부활 동작 및 효과 발동
+                ActiveRevive();
+                ActiveEffect.Invoke();
+
+            }
         }
     }
 
@@ -282,6 +318,9 @@ public class Player : MonoBehaviour
     // 버튼의 이벤트 등록
     static public UnityEvent OnSkilllockOn = new UnityEvent();
     static public UnityEvent OnSkillLockOff = new UnityEvent();
+
+    // 부활시 이펙트 동작 이벤트
+    static public UnityEvent ActiveEffect = new UnityEvent();
 
     #endregion
 

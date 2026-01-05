@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 public class ReviveItem : Item
 {
@@ -7,7 +8,14 @@ public class ReviveItem : Item
     /// </summary>
     public override void EffectItem()
     {
+        Debug.Log("Take Revive");
+
+        AudioController.Instance.PlayItemSound((int)ItemEffectSFX.Revive);
+
         ItemSpawner.Instance.TakeRevive();
-        ItemSpawner.Instance.TestPercent();
+
+        // 부활여부 체크 갱신
+        GlobalData.Instance.Player.GetComponent<Player>().Revive = true;
     }
+
 }

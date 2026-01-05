@@ -18,7 +18,7 @@ public class PowerJump : Item
         {
             player.GetComponent<Player>().ReinforceSlide(this.time);
 
-            AudioController.Instance.PlayItemSound((int)ItemEffectSound.Buff);
+            AudioController.Instance.PlayItemSound((int)ItemEffectSFX.Buff);
         }
 
     }

@@ -16,7 +16,7 @@ public class ControlReverse : Item
         {
             player.GetComponent<Player>().ControlReverse(this.time);
 
-            AudioController.Instance.PlayItemSound((int)ItemEffectSound.Reverse);
+            AudioController.Instance.PlayItemSound((int)ItemEffectSFX.Reverse);
 
             GameProgress.Instance.AddCustomScore(50);
         }

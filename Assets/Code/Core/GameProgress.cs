@@ -29,6 +29,9 @@ public class GameProgress : Singleton<GameProgress>
     [SerializeField] private int playerScore = 0;
 
     [SerializeField] private bool isPlayerDead = false;
+    
+    // 광고 부활과 부활 아이템의 중복 사용을 막기 위한 변수
+    [SerializeField] private bool playerAlive = false;
 
     [SerializeField] private bool spawnXAxis = false;
 
@@ -38,6 +41,8 @@ public class GameProgress : Singleton<GameProgress>
 
     [SerializeField] private bool spawnItem = false;
 
+    // 부활 효과 스포트라이트 객체
+    [SerializeField] private GameObject reviveSpotLight;
     #endregion
 
     #region Properties
@@ -47,6 +52,12 @@ public class GameProgress : Singleton<GameProgress>
     {
         get { return playerScore; }
         set { playerScore++; }
+    }
+
+    public bool PlayerAlive
+    {
+        get { return playerAlive; }
+        set { playerAlive = value; }
     }
 
     public bool IsPlaying => !isPlayerDead;
@@ -67,6 +78,7 @@ public class GameProgress : Singleton<GameProgress>
         Application.targetFrameRate = 60;
 
         Player.OnPlayerDead.AddListener(EndGame);
+        Player.ActiveEffect.AddListener(ActiveReviveEffect);
         StartScene.AddListener(StartProtocol);
         EndLevel.AddListener(EndProtocol);
 
@@ -105,6 +117,8 @@ public class GameProgress : Singleton<GameProgress>
 
     public void AddCustomScore(int value) => playerScore += value;
 
+    public void RegisterReviveLight(GameObject spotLight) => reviveSpotLight = spotLight;
+
     #endregion
 
     #region Private/Protected Methods
@@ -141,6 +155,7 @@ public class GameProgress : Singleton<GameProgress>
     {
         spawnXAxis = false;
         spawnItem = false;
+        reviveSpotLight = null;
     }
 
     /// <summary>
@@ -202,7 +217,7 @@ public class GameProgress : Singleton<GameProgress>
         }
 
 
-        if (!spawnItem && currentLevel >= 20)
+        if (!spawnItem && currentLevel >= 1)
         {
             spawnItem = true;
             ItemSpawner.Instance.StartCoroutine("ItemSpawnLoop");
@@ -220,6 +235,11 @@ public class GameProgress : Singleton<GameProgress>
         GameData.Instance.SaveScore(playerScore);
         GoogleMobileAdsController.Instance.DisplayAd();
 
+    }
+
+    private void ActiveReviveEffect()
+    {
+        reviveSpotLight.SetActive(true);
     }
 
     #endregion
