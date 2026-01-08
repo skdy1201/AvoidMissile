@@ -7,7 +7,7 @@ using System.Collections;
 /// <summary>
 /// GameOver 시, 그레이 스케일을 동작
 /// </summary>
-public class PostProcessTrigger : MonoBehaviour
+public class GreyScaleTrigger : MonoBehaviour
 {
     #region Private/Protected Fields
 
@@ -32,11 +32,26 @@ public class PostProcessTrigger : MonoBehaviour
         volumeComponent.enabled = false;
 
         Player.OnPlayerDead.AddListener(() => StartCoroutine(StartGrayScale()));
+
+        GameProgress.Instance.RegisterGreyScaleTrigger(this);
     }
 
     private void OnDestroy()
     {
         Player.OnPlayerDead.RemoveListener(() => StartGrayScale());
+    }
+
+    #endregion
+
+    #region Public Method
+    
+    /// <summary>
+    /// RewardAd 이후 다시 플레이 하기 위해 볼륨 컴포넌트 비활성화 및 초기화
+    /// </summary>
+    public void ResetGreyScale()
+    {
+        volumeComponent.weight = 0f;
+        volumeComponent.enabled = false;
     }
 
     #endregion
