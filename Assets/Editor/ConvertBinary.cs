@@ -52,8 +52,8 @@ public class ConvertBinary : EditorWindow
 
                         if (string.IsNullOrEmpty(now.Name))
                             now.Name = cur;
-                        else if (string.IsNullOrEmpty(now.Type))
-                            now.Type = cur;
+                        else if (string.IsNullOrEmpty(now.Percent))
+                            now.Percent = cur;
                         else if (string.IsNullOrEmpty(now.Value))
                             now.Value = cur;
 
@@ -64,7 +64,7 @@ public class ConvertBinary : EditorWindow
 
                 now.Time = cur;
 
-                Debug.Log($"cur ItemData's name is {now.Name} , type is {now.Type}, value is {now.Value}, time is {now.Time}");
+                Debug.Log($"cur ItemData's name is {now.Name} , percent is {now.Percent}, value is {now.Value}, time is {now.Time}");
 
             }
         }
@@ -113,11 +113,10 @@ public class ConvertBinary : EditorWindow
                         cur += datas[lineIndex][i];
                     else
                     {
-
                         if (string.IsNullOrEmpty(now.Name))
                             now.Name = cur;
-                        else if (string.IsNullOrEmpty(now.Type))
-                            now.Type = cur;
+                        else if (string.IsNullOrEmpty(now.Percent))
+                            now.Percent = cur;
                         else if (string.IsNullOrEmpty(now.Value))
                             now.Value = cur;
 
@@ -153,7 +152,7 @@ public class ConvertBinary : EditorWindow
                 for(int i = 0; i <  itemDatas.Count; ++i)
                 {
                     writer.Write(itemDatas[i].Name);
-                    writer.Write(itemDatas[i].Type);
+                    writer.Write(itemDatas[i].Percent);
                     writer.Write(itemDatas[i].Value);
                     writer.Write(itemDatas[i].Time);
                 }
@@ -185,11 +184,11 @@ public class ConvertBinary : EditorWindow
                         ItemData now = new ItemData();
 
                         now.Name = reader.ReadString();
-                        now.Type = reader.ReadString();
+                        now.Percent = reader.ReadString();
                         now.Value = reader.ReadString();
                         now.Time = reader.ReadString();
 
-                        Debug.Log($"item name is {now.Name}, Type is {now.Type}, Value is {now.Value}, Time is {now.Time}");
+                        Debug.Log($"item name is {now.Name}, Percent is {now.Percent}, Value is {now.Value}, Time is {now.Time}");
                     }
 
                 }

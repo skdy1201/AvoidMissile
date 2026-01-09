@@ -217,6 +217,11 @@ public class ItemSpawner : Spawner<ItemType>
         ReCalculateCumulativePercent();
     }
 
+    public override void OnPlayerDeath()
+    {
+        base.OnPlayerDeath();
+    }
+
     #endregion
 
     #region Private/Protected Methods
@@ -230,21 +235,13 @@ public class ItemSpawner : Spawner<ItemType>
     {
         gamePlatform = null;
 
-        if(activeItems.Count > 0)
+        while (activeItems.Count > 0)
         {
-            while(activeItems.Count > 0)
-            {
-                var curitem = activeItems.First;
-
-                GameObject gameObject = curitem.Value;
-
-                if ((gameObject.GetComponent<Item>() != null))
-                {
-                    ReturnSpawner(gameObject.GetComponent<Item>().Category, gameObject);
-                }
-            }
+            GameObject item = activeItems.First.Value;
+            activeItems.RemoveFirst(); 
+            Destroy(item);
         }
-        
+
         spawnRevive = false;
     }
 
@@ -395,14 +392,8 @@ public class ItemSpawner : Spawner<ItemType>
                 // 타일 체크
                 itemSpawnTies[randomrange] = true;
 
-                int itemPercent = (int)Random.value * 100;
+                int itemPercent = (int)(Random.value * 100);
                 int itemType = CalculatePercent(itemPercent);
-
-                if(spawnRevive  == false)
-                {
-                    itemType = (int)ItemType.Revive;
-                    spawnRevive = true;
-                }
 
                 // 스폰 위치 재조정
                 Vector3 tilePos = gamePlatform.GetTile(randomrange).transform.position;
