@@ -1,8 +1,7 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using System.Collections;
+using UnityEngine.SceneManagement;
 
 
 // TODO : UPDATE LELVEL을 좀 더 간소화 시킬 방법을 찾아야 할 것 같다.
@@ -29,7 +28,7 @@ public class GameProgress : Singleton<GameProgress>
     [SerializeField] private int playerScore = 0;
 
     [SerializeField] private bool isPlayerDead = false;
-    
+
     // 광고 부활과 부활 아이템의 중복 사용을 막기 위한 변수
     [SerializeField] private bool playerAlive = false;
 
@@ -43,6 +42,9 @@ public class GameProgress : Singleton<GameProgress>
 
     // 부활 효과 스포트라이트 객체
     [SerializeField] private GameObject reviveSpotLight;
+
+    // 그레이 스케일 효과 객체
+    [SerializeField] private GreyScaleTrigger greyScale;
     #endregion
 
     #region Properties
@@ -119,6 +121,36 @@ public class GameProgress : Singleton<GameProgress>
 
     public void RegisterReviveLight(GameObject spotLight) => reviveSpotLight = spotLight;
 
+    public void RegisterGreyScaleTrigger(GreyScaleTrigger greyScaleTrigger) => greyScale = greyScaleTrigger;
+
+    /// <summary>
+    /// 보상형 광고 이후 게임 재시작
+    /// </summary>
+    /// <remarks>
+    /// 게임 오버일때 나오는 GreyScale을 다시 초기화
+    /// 기존 진행 상태에 따른 스폰 재개
+    /// </remarks>
+    public void AdRevive()
+    {
+        GlobalData.Instance.Player.GetComponent<Player>().ActiveRevive();
+        greyScale.ResetGreyScale();
+
+        MissileSpawner.Instance.StartCoroutine("MissileSpawnLoop");
+
+        if (currentLevel >= 10)
+            MissileSpawner.Instance.StartCoroutine("XAxisMissileSpawnLoop");
+        else
+            spawnXAxis = false;
+
+        if (currentLevel >= 20)
+            ItemSpawner.Instance.StartCoroutine("ItemSpawnLoop");
+        else
+            spawnItem = false;
+
+        Time.timeScale = 1f;
+
+    }
+
     #endregion
 
     #region Private/Protected Methods
@@ -148,6 +180,7 @@ public class GameProgress : Singleton<GameProgress>
 
             spawnXAxis = false;
 
+            playerAlive = false;
         }
     }
 
@@ -187,7 +220,7 @@ public class GameProgress : Singleton<GameProgress>
                 MissileSpawner.Instance.CurMaxMissileCount = MissileSpawner.Instance.limitMinMissileCount;
                 nextLimitMissileCount = MissileSpawner.Instance.limitMissileCount;
             }
-            
+
             // 최소 미사일 개수 설정
             MissileSpawner.Instance.LimitMinMissileCount = nextLimitMissileCount / 2;
         }
@@ -232,8 +265,11 @@ public class GameProgress : Singleton<GameProgress>
         Time.timeScale = 0f;
         isPlayerDead = true;
 
+        // 부활이 아닐때만 점수 기록
+        if(PlayerAlive == false)
         GameData.Instance.SaveScore(playerScore);
-        GoogleMobileAdsController.Instance.DisplayAd();
+
+        GoogleMobileAdsController.Instance.DisplayInterstitialAd();
 
     }
 

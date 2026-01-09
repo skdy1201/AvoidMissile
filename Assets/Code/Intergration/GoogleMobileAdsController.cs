@@ -1,9 +1,8 @@
 using GoogleMobileAds;
 using GoogleMobileAds.Api;
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 
 /// <summary>
 /// Google AdMob 외부 SDK를 사용할 수 있도록 도와주는 컨트롤러
@@ -16,8 +15,12 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
 {
     #region Serialized Fields
 
-    [FormerlySerializedAs("useTestAds")]
+    [Header("TestAdId")]
     [SerializeField] private bool testModeEnabled = false;
+
+    [Header("Ad Finish Flag")]
+    [SerializeField] private bool finishinterstitialAd = false;
+    [SerializeField] private bool finishRewardedAd = false;
 
     #endregion
 
@@ -25,9 +28,12 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
 
     private InterstitialAd interstitialAd;
 
-    #endregion
-
-    #region Properties
+    private RewardedAd rewardedAd;
+    
+    // 광고 로딩 실패시, 로드횟수 제한
+    private int currentRetryCount = 0;
+    private const int maxRetryCount = 3;
+       
     #endregion
 
     #region Unity Lifecycle
@@ -53,6 +59,8 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
                 return;
             }
         });
+        
+        StartCoroutine(AdmobChecker());
     }
 
     #endregion
@@ -62,9 +70,17 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     /// <summary>
     /// 외부에서 광고 재생을 하기 위한 래퍼 함수
     /// </summary>
-    public void DisplayAd()
+    public void DisplayInterstitialAd()
     {
-        ShowAd();
+        ShowInterstitialAd();
+    }
+
+    /// <summary>
+    /// 리워드 광고를 외부에서 재생할 수 있는 래퍼 함수
+    /// </summary>
+    public void DisplayRewardAd()
+    {
+        ShowRewardAd();
     }
 
     #endregion
@@ -78,7 +94,8 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     {
         if (SceneManager.GetActiveScene().name == GlobalData.Instance.PlayScene)
         {
-            LoadAd();
+            LoadInterstitialAd();
+            LoadRewardedAd();
         }
     }
 
@@ -90,12 +107,12 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     }
 
     /// <summary>
-    /// 광고 로드
+    /// 전면광고 로드
     /// </summary>
     /// <remarks>
     /// 테스트 버전에선 테스트 광고 ID를 사용하기 위해 내부적으로 체크
     /// </remarks>
-    private void LoadAd()
+    private void LoadInterstitialAd()
     {
         // Create our request used to load the ad.
         var adRequest = new AdRequest();
@@ -123,23 +140,99 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
             interstitialAd = ad;
 
             // 광고가 끝날 때, 처리할 이벤트들 등록
-            interstitialAd.OnAdFullScreenContentClosed += () => ReleaseAd();
-
+            interstitialAd.OnAdFullScreenContentClosed += () => finishinterstitialAd = true;
+            interstitialAd.OnAdFullScreenContentClosed += () => ReleasedinterstitialAd();
         });
+  
 
     }
 
     /// <summary>
-    /// 광고 재생
+    /// 보상형 광고 로드 함수
     /// </summary>
-    private void ShowAd()
+    /// <remarks>
+    /// 보상형 광고 로드 횟수를 제한하라는 가이드에 맞춰
+    /// 실패시 3번 재시도
+    /// </remarks>
+    private void LoadRewardedAd()
+    {
+        string adUnitId;
+
+        if (testModeEnabled)
+            adUnitId = "ca-app-pub-3940256099942544/5224354917";
+        else
+            adUnitId = "ca-app-pub-4152423074686548/8826235366";
+
+        var adRequest = new AdRequest();
+
+        RewardedAd.Load(adUnitId, adRequest, (RewardedAd ad, LoadAdError error) =>
+        {
+            if (error != null)
+            {
+                currentRetryCount++;
+
+                if (currentRetryCount < maxRetryCount)
+                {
+                    Debug.LogWarning("Rewarded Ad load Failed");
+
+                    LoadRewardedAd();
+                }
+                else
+                {
+                    currentRetryCount = 0;
+                }
+
+                return;
+            }
+
+            // ad loaded successfully
+            rewardedAd = ad;
+            currentRetryCount = 0;
+
+            RegisterRewardedAdEvents();
+
+        });
+    }
+
+    /// <summary>
+    /// 전면광고 재생
+    /// </summary>
+    private void ShowInterstitialAd()
     {
         if (interstitialAd != null && interstitialAd.CanShowAd())
         {
             Debug.Log("Show Ad");
-           // AudioController.Instance.PauseBGM();
             interstitialAd.Show();
         }
+    }
+
+    /// <summary>
+    /// AdMob 홈페이지에서 설정한 Reward를 체크해 보상 제공
+    /// </summary>
+    private void ShowRewardAd()
+    {
+        if (rewardedAd != null && rewardedAd.CanShowAd())
+        {
+            Debug.Log("Show Rewarded Ad");
+
+            rewardedAd.Show((Reward reward) =>
+            {
+
+                Debug.Log("in reward");
+
+                if(reward.Type == "Reward" && reward.Amount == 10)
+                {
+                    Debug.Log("Reward Check Sucesses");
+                    finishRewardedAd = true;
+                }
+            });
+        }
+
+    }
+
+    private void ReleasedinterstitialAd()
+    {
+        DestroyInterstitialAd();
     }
 
     /// <summary>
@@ -148,7 +241,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     /// <remarks>
     /// TimeScale  조정을 위한 코루틴 체크
     /// </remarks>
-    private void ReleaseAd()
+    private void DestroyInterstitialAd()
     {
         // [START destroy_ad]
         if (interstitialAd != null)
@@ -160,9 +253,77 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
         }
         // [END destroy_ad]]
 
+    }
 
+    /// <summary>
+    /// 광고 끝난 이후, 해당 광고 제거
+    /// </summary>
+    private void ReleaseRewardedAd()
+    {
+
+        if (rewardedAd != null)
+        {
+            rewardedAd.Destroy();
+            rewardedAd = null;
+        }
+
+    }
+
+    // 리워드 광고 이벤트 연결
+    private void RegisterRewardedAdEvents()
+    {
+        rewardedAd.OnAdFullScreenContentClosed += () =>
+        {
+            Debug.Log("[GoogleMobileAds] Rewarded ad closed.");
+            ReleaseRewardedAd();
+            LoadRewardedAd(); // 다음 시청을 위해 재로드
+            UIController.Instance.ReviveUIController();
+
+        };
+
+        rewardedAd.OnAdFullScreenContentFailed += (AdError error) =>
+        {
+            Debug.LogError($"[GoogleMobileAds] Rewarded ad failed to show: {error.GetMessage()}");
+            LoadRewardedAd(); // 실패 시 재로드
+        };
     }
 
     #endregion
 
+    #region Coroutine
+    
+    /// <summary>
+    /// Admob이 임의로 TimeScale을 조종하기 때문에, 코루틴으로 검사하며, 상황마다 TimeScale을 의도대로 통제
+    /// </summary>
+    /// <remarks>
+    /// 전면 광고는 끝난 이후, 일시 정지
+    /// 보상 광고는 광고가 끝나자 마자, 부활효과가 작동하기 때문에, 일시 정지 후, 부활 시작
+    /// </remarks>
+    IEnumerator AdmobChecker()
+    {
+        while(true)
+        {
+            yield return new WaitForSecondsRealtime(0.1f);
+
+            if(finishinterstitialAd == true)
+            {
+                Debug.Log("in finishinterstitialad finish");
+                Time.timeScale = 0f;
+                finishinterstitialAd = false;
+            }
+            else if(finishRewardedAd == true)
+            {
+                // 재부활을 하지 못하도록 미리 세팅
+                Player player = GlobalData.Instance.Player.GetComponent<Player>();
+                player.Revive = true;
+                GameProgress.Instance.PlayerAlive = true;
+                ItemSpawner.Instance.TakeRevive();
+
+                Time.timeScale = 0f;
+                finishRewardedAd = false;
+
+            }
+        }
+    }
+    #endregion
 }

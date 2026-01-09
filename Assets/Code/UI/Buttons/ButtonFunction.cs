@@ -14,6 +14,7 @@ public class ButtonFunction : Singleton<ButtonFunction>
     #endregion
 
     #region Private/Protected Fields
+
     #endregion
 
     #region Properties
@@ -156,6 +157,17 @@ public class ButtonFunction : Singleton<ButtonFunction>
         }
     }
 
+    public void ReviveAdvertise()
+    {
+        Time.timeScale = 0f;
+        GoogleMobileAdsController.Instance.DisplayRewardAd();
+    }
+
+    public void ActiveRemainCooldown()
+    {
+        StartCoroutine(ActiveCooltime(SlideCooltime.GetButtonObject, SlideCooltime.GetCooldownImage, SlideCooltime.GetCooldown));
+    }
+
     #endregion
 
     #region Private/Protected Methods
@@ -193,24 +205,33 @@ public class ButtonFunction : Singleton<ButtonFunction>
         cooldownBackground.enabled = true;
         targetButton.enabled = false;
 
-        float curtime = cooldown;
+        ButtonUI buttonUI = targetButton.gameObject.GetComponent<ButtonUI>();
+
+        if (buttonUI.RemainCooldown <= 0)
+            buttonUI.RemainCooldown = cooldown;
+
+      
+        buttonUI.Cooldown = true;
 
         // 코루틴 내 while 문으로 시간계산 및 이미지 변화
-        while (curtime >= 0f)
+        while (buttonUI.RemainCooldown >= 0f)
         {
 
             if (Time.timeScale > 0f)
             {
-                curtime -= Time.deltaTime;
+                buttonUI.RemainCooldown -= Time.deltaTime;
 
-                float ratio = Mathf.Clamp01(curtime / cooldown);
+                float ratio = Mathf.Clamp01(buttonUI.RemainCooldown / cooldown);
 
                 cooldownBackground.fillAmount = ratio;
             }
 
-            yield return null;
+            yield return new WaitForSecondsRealtime(Time.deltaTime);
 
         }
+
+        buttonUI.RemainCooldown = 0;
+        buttonUI.Cooldown = false;
 
         // 이미지 및 버튼 비활성화
         cooldownBackground.enabled = false;

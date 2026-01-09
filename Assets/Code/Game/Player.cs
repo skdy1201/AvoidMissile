@@ -177,17 +177,6 @@ public class Player : MonoBehaviour
         playerAnimator.SetBool("IsSlide", slide);
         playerAnimator.SetBool("PowerJump", powerJump);
 
-
-        // 슬라이딩 시 플레이어 무적
-        if (slide && activePowerJump == false)
-        {
-            Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), true);
-        }
-        else
-        {
-            Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), false);
-        }
-
         // Player 불사 체크
         if (undeadPlayer)
             this.gameObject.GetComponent<Collider>().enabled = false;
@@ -203,11 +192,16 @@ public class Player : MonoBehaviour
     // 버프 상태일땐, PowerJump도 같이 active
     public void ActivateSlide()
     {
+        // 강화 상태일땐, 충돌해서 미사일을 없앨 수 있기 때문에, 일반 슬라이드와 다른 처리
         if (powerJump)
+        {
             activePowerJump = true;
+            slide = true;
+            return;
+        }
 
         slide = true;
-
+        Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), true);
     }
 
     // 슬라이드 종료를 갱신하는 함수
@@ -217,7 +211,8 @@ public class Player : MonoBehaviour
             activePowerJump = false;
 
         slide = false;
-    } 
+        Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), false);
+    }
 
     /// <summary>
     /// 에니메이터에서 이벤트로 작동시킬 함수
@@ -269,15 +264,16 @@ public class Player : MonoBehaviour
     public void ActiveRevive()
     {
         GameProgress.Instance.PlayerAlive = true;
+        readyRevive = false;
         Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), true);
         this.transform.position = Vector3.zero;
         PlayerEffectSound((int)PlayerEffectSFX.Respawn);
+        ActiveEffect.Invoke();
     }
 
     public void OffRevive()
     {
         Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), false);
-        readyRevive = false;
     }
 
     #endregion
@@ -294,16 +290,20 @@ public class Player : MonoBehaviour
     /// <param name="collision"> 충돌한 물체의 Collision </param>
     private void OnCollisionEnter(Collision collision)
     {
-        if ((collision.gameObject.layer == LayerMask.NameToLayer("GameBoundary") || collision.gameObject.layer == LayerMask.NameToLayer("Missile")) && activePowerJump == false) 
+
+        if (collision.gameObject.layer == LayerMask.NameToLayer("GameBoundary"))
         {
-            if(readyRevive == false)
+            if (readyRevive == false)
+                OnPlayerDead?.Invoke();
+        }
+        else if(collision.gameObject.layer == LayerMask.NameToLayer("Missile") && activePowerJump == false)
+        {
+            if (readyRevive == false)
                 OnPlayerDead?.Invoke();
             else
             {
                 // 부활 동작 및 효과 발동
                 ActiveRevive();
-                ActiveEffect.Invoke();
-
             }
         }
     }
@@ -313,14 +313,14 @@ public class Player : MonoBehaviour
     #region Event Handlers
 
     // 플레이어 사망 이벤트
-    static public UnityEvent OnPlayerDead = new UnityEvent();
+    public static UnityEvent OnPlayerDead = new UnityEvent();
 
     // 버튼의 이벤트 등록
-    static public UnityEvent OnSkilllockOn = new UnityEvent();
-    static public UnityEvent OnSkillLockOff = new UnityEvent();
+    public static UnityEvent OnSkilllockOn = new UnityEvent();
+    public static UnityEvent OnSkillLockOff = new UnityEvent();
 
     // 부활시 이펙트 동작 이벤트
-    static public UnityEvent ActiveEffect = new UnityEvent();
+    public static UnityEvent ActiveEffect = new UnityEvent();
 
     #endregion
 
@@ -336,7 +336,7 @@ public class Player : MonoBehaviour
     {
         bonusSpeed += speed;
 
-        yield return new WaitForSecondsRealtime(time);
+        yield return new WaitForSeconds(time);
 
         bonusSpeed -= speed;
     }
@@ -345,7 +345,7 @@ public class Player : MonoBehaviour
     {
         reversemove = !reversemove;
 
-        yield return new WaitForSecondsRealtime(time);
+        yield return new WaitForSeconds(time);
 
         reversemove = !reversemove;
     }
@@ -354,7 +354,7 @@ public class Player : MonoBehaviour
     {
       powerJump = true;
 
-      yield return new WaitForSecondsRealtime(time);
+      yield return new WaitForSeconds(time);
 
       powerJump = false;
 
@@ -370,7 +370,7 @@ public class Player : MonoBehaviour
         lockSkill = true;
         OnSkilllockOn.Invoke();
 
-        yield return new WaitForSecondsRealtime(time);
+        yield return new WaitForSeconds(time);
 
         lockSkill = false;
 

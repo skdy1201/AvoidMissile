@@ -23,9 +23,24 @@ public class ButtonUI : BaseUI, InterfaceUI
 
     public ButtonType buttonType => type;
 
+    public bool Cooldown
+    {
+        get { return inCooldown; }
+        set { inCooldown = value; }
+    }
+
+    public float RemainCooldown
+    {
+        get { return remainCooldown; }
+        set { remainCooldown = value; }
+    }
+
     #endregion
 
     private GameObject lockUI;
+
+    private bool inCooldown = false;
+    private float remainCooldown = 0f;
 
     #region Unity Lifecycle
 
@@ -40,6 +55,14 @@ public class ButtonUI : BaseUI, InterfaceUI
     {
         base.Awake();
         Init();
+    }
+
+    private void OnEnable()
+    {
+        if (type == ButtonType.Revive && GameProgress.Instance.PlayerAlive)
+            gameObject.SetActive(false);
+        else if (type == ButtonType.Slide && inCooldown == true && remainCooldown > 0f)
+            AdReviveinCooldown();
     }
 
     #endregion
@@ -98,14 +121,11 @@ public class ButtonUI : BaseUI, InterfaceUI
                 case ButtonType.ParticleSpawn:
                     button.onClick.AddListener(() => ButtonFunction.Instance.SpawnParticle());
                     break;
+                case ButtonType.Revive:
+                    button.onClick.AddListener(() => ButtonFunction.Instance.ReviveAdvertise());
+                    break;
             }
         }
-
-        // 테스트 씬은 에디터일때만 사용하기 위해서 체크
-        #if !UNITY_EDITOR
-            if(buttonType == ButtonType.Edit)
-            Destroy(this);
-        #endif
 
         if(buttonType == ButtonType.Slide)
         {
@@ -117,19 +137,25 @@ public class ButtonUI : BaseUI, InterfaceUI
 
     #endregion
 
-    public void RegisterLock(GameObject ui) => lockUI = ui;
-
+    public void RegisterLock(GameObject ui)
+    {
+        lockUI = ui;
+    }
     public void ActiveLock()
     {
-        Debug.Log("skill lock on");
         lockUI.SetActive(true);
     }
 
     public void OffLock()
     {
-        Debug.Log("skill lock off");
-
         LockUI lockui = lockUI.GetComponent<LockUI>();
         lockui.OffLockUI();
+    }
+
+    public void AdReviveinCooldown()
+    {
+        if (remainCooldown > 0 && inCooldown == true)
+            ButtonFunction.Instance.ActiveRemainCooldown();
+           
     }
 }
