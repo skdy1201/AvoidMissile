@@ -1,9 +1,9 @@
 using UnityEditor;
 using UnityEngine;
 
-public class PlayerPrefDelete : MonoBehaviour
+public class PlayerPrefDelete : EditorWindow
 {
-    [MenuItem("Window/PlayerPrefs 초기화")]
+    [MenuItem("Custom/PlayerPrefs 초기화")]
     private static void ResetPrefs()
     {
         PlayerPrefs.DeleteAll();
