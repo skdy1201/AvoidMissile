@@ -128,8 +128,7 @@ public class MissileYAxis : Missile
                 {
                     // 미사일 속도 조정
                     Rigidbody lowerRigidBody = collision.gameObject.GetComponent<Rigidbody>();
-                    lowerRigidBody.linearDamping = Mathf.Clamp(lowerRigidBody.linearDamping, 1.5f, lowerRigidBody.linearDamping - 0.05f);
-
+                    lowerRigidBody.linearDamping = Mathf.Max(lowerRigidBody.linearDamping - 0.05f,1.5f);
                     this.gameObject.GetComponent<Missile>().CollisionOther = true;
 
                     // 이 미사일은 풀로 반환

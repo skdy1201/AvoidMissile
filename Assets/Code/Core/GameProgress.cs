@@ -132,6 +132,7 @@ public class GameProgress : Singleton<GameProgress>
     /// </remarks>
     public void AdRevive()
     {
+        
         GlobalData.Instance.Player.GetComponent<Player>().ActiveRevive();
         greyScale.ResetGreyScale();
 
@@ -203,7 +204,8 @@ public class GameProgress : Singleton<GameProgress>
     /// </remarks>
     private void UpdateLevel()
     {
-        int nextLimitMissileCount = Mathf.FloorToInt(Mathf.Exp(currentLevel));
+        // 제곱근 방식으로 레벨 증가하도록 수정(25 레벨에 50 도달)
+        int nextLimitMissileCount = Mathf.FloorToInt(Mathf.Sqrt(currentLevel * 100));
 
         // Y축 미사일 스폰시
         if (spawnYAxis)
@@ -250,7 +252,7 @@ public class GameProgress : Singleton<GameProgress>
         }
 
 
-        if (!spawnItem && currentLevel >= 1)
+        if (!spawnItem && currentLevel >= 20)
         {
             spawnItem = true;
             ItemSpawner.Instance.StartCoroutine("ItemSpawnLoop");
