@@ -154,9 +154,11 @@ MonoBehaviour:
   - {fileID: 7029200049899823511, guid: 979d012915cd3bc4e8cdd5e549f51cfc, type: 3}
   - {fileID: 4711491472352257879, guid: ffc943c28212f564fb5d6d025be94255, type: 3}
   - {fileID: 5144267131997473547, guid: 9cf4f195b69f4c64f80c73c2c5ee251c, type: 3}
+  - {fileID: 6879674182584759250, guid: ef29cf517297f9c41b54d2a1a4918214, type: 3}
   gamePlatform: {fileID: 0}
-  maxItemSpawn: 3
-  itemNamingNumber: 0000000000000000000000000000000000000000
+  maxItemSpawn: 5
+  itemNamingNumber: 000000000000000000000000000000000000000000000000
+  spawnRevive: 0
 --- !u!4 &28720291
 Transform:
   m_ObjectHideFlags: 0
@@ -212,11 +214,13 @@ MonoBehaviour:
   playerEffect:
   - {fileID: 8300000, guid: 6d18efc634924e744bd68e13ca6ced27, type: 3}
   - {fileID: 8300000, guid: a55c1d248bed6ef4fa1afcdae3b16880, type: 3}
+  - {fileID: 8300000, guid: c1d498c79b6a1474cb90f55fabf5554c, type: 3}
   itemEffect:
   - {fileID: 8300000, guid: 4ec6376bb10e2da4ebd2c92663a70302, type: 3}
   - {fileID: 8300000, guid: a85e8ff43a7d36d4e8af1d09d2ca12ab, type: 3}
   - {fileID: 8300000, guid: a395b12b8cd0cca448ff233c44f40f80, type: 3}
   - {fileID: 8300000, guid: 9be719b662e1dcf4b996a8d034e02b4a, type: 3}
+  - {fileID: 8300000, guid: 56f9a38de0606fe4aac9ea5eafbb73cf, type: 3}
 --- !u!4 &209374432
 Transform:
   m_ObjectHideFlags: 0
@@ -1290,13 +1294,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameTimer: 0
+  levelTimer: 0
   currentLevel: 1
   playerScore: 0
   isPlayerDead: 0
+  playerAlive: 0
   spawnXAxis: 0
   spawnYAxis: 1
   soundfadeTime: 0.25
   spawnItem: 0
+  reviveSpotLight: {fileID: 0}
+  greyScale: {fileID: 0}
 --- !u!4 &433903645
 Transform:
   m_ObjectHideFlags: 0
@@ -1419,7 +1427,6 @@ MonoBehaviour:
   yAxisMissilePrefab: {fileID: 4702976934742720838, guid: 8fc4ccd0f013de54aa42e869c9b6ca73, type: 3}
   xAxisMissilePrefab: {fileID: 4606004508970681605, guid: 8aaa6a727f4a9fe4a9e4550bb3c62770, type: 3}
   gamePlatform: {fileID: 0}
-  transparentMaterial: {fileID: 2100000, guid: 26780d64a844fbc47a7dabdb882eaa13, type: 2}
   yMissileSetting: {fileID: 11400000, guid: be223b7d6a28d0b4c85bf71b1e0d6385, type: 2}
   xMissileSetting: {fileID: 11400000, guid: 34c9f8929c8b6b643af5a428a835986e, type: 2}
   xAxismissileSpawnPoints: []
@@ -1431,6 +1438,7 @@ MonoBehaviour:
   missileCycle: 0
   baseMissileSpeed: 3.5
   coroutineActive: 0
+  yAxisQueueSize: 0
 --- !u!4 &471068745
 Transform:
   m_ObjectHideFlags: 0
@@ -1648,7 +1656,7 @@ MonoBehaviour:
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
-  m_ScreenMatchMode: 0
+  m_ScreenMatchMode: 1
   m_MatchWidthOrHeight: 1
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
@@ -4181,7 +4189,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e90157bbaba12543aef965f4e57c77a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GoogleMobileAdsController
-  testModeEnabled: 0
+  testModeEnabled: 1
+  finishinterstitialAd: 0
+  finishRewardedAd: 0
 --- !u!1 &1901502719
 GameObject:
   m_ObjectHideFlags: 0
