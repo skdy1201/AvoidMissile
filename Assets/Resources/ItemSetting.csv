@@ -1,6 +1,7 @@
-﻿item,type,value,time
-buffspeed,Speed,2.5,10
-nerfspeed,Speed,1.5,10
-buffslide,Slide,0,20
-controlreverse,Control,0,10
-revive,GameOver,0,0
+﻿item,percent,value,time
+BuffSpeed,35,2,10
+NerfSpeed,35,-1.5,10
+PowerJump,9,0,20
+ControlReverse,9,0,10
+LockItem,9,0,5
+Revive,3,0,0
