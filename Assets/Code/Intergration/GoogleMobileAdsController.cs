@@ -3,6 +3,7 @@ using GoogleMobileAds.Api;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// Google AdMob 외부 SDK를 사용할 수 있도록 도와주는 컨트롤러
@@ -22,6 +23,8 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     [SerializeField] private bool finishinterstitialAd = false;
     [SerializeField] private bool finishRewardedAd = false;
 
+    [SerializeField] private bool closeRewardAd = false;
+
     #endregion
 
     #region Private/Protected Fields
@@ -33,7 +36,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     // 광고 로딩 실패시, 로드횟수 제한
     private int currentRetryCount = 0;
     private const int maxRetryCount = 3;
-       
+     
     #endregion
 
     #region Unity Lifecycle
@@ -277,7 +280,10 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
             Debug.Log("[GoogleMobileAds] Rewarded ad closed.");
             ReleaseRewardedAd();
             LoadRewardedAd(); // 다음 시청을 위해 재로드
-            UIController.Instance.ReviveUIController();
+
+            closeRewardAd = true;
+            EventSystem.current.enabled = false;
+
 
         };
 
@@ -321,6 +327,13 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
 
                 Time.timeScale = 0f;
                 finishRewardedAd = false;
+
+            }
+            else if(closeRewardAd == true)
+            {
+                closeRewardAd = false;
+                UIController.Instance.ReviveUIController();
+                EventSystem.current.enabled = true;
 
             }
         }
