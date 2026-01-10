@@ -13,12 +13,10 @@ public class ButtonCooltime : MonoBehaviour
 {
     #region Serialized Fields
 
-    [FormerlySerializedAs("targetButton")]
     [SerializeField] private Button button;
 
     [SerializeField] private float cooldown = 3f;
 
-    [FormerlySerializedAs("cooldownGray")]
     [SerializeField] private Image grayImage;
 
     #endregion

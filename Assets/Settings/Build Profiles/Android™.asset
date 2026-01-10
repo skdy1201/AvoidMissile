@@ -165,7 +165,7 @@ MonoBehaviour:
     - line: '|   loadStoreDebugModeEnabled: 0'
     - line: '|   visionOSBundleVersion: 1.0'
     - line: '|   tvOSBundleVersion: 1.0'
-    - line: '|   bundleVersion: 0.0'
+    - line: '|   bundleVersion: 0.5'
     - line: '|   preloadedAssets:'
     - line: '|   - {instanceID: 0}'
     - line: '|   - {instanceID: 0}'
@@ -202,7 +202,7 @@ MonoBehaviour:
     - line: '|     iPhone: 0'
     - line: '|     tvOS: 0'
     - line: '|   overrideDefaultApplicationIdentifier: 0'
-    - line: '|   AndroidBundleVersionCode: 3'
+    - line: '|   AndroidBundleVersionCode: 6'
     - line: '|   AndroidMinSdkVersion: 23'
     - line: '|   AndroidTargetSdkVersion: 35'
     - line: '|   AndroidPreferredInstallLocation: 1'
@@ -288,7 +288,7 @@ MonoBehaviour:
     - line: '|   useCustomMainManifest: 0'
     - line: '|   useCustomLauncherManifest: 0'
     - line: '|   useCustomMainGradleTemplate: 1'
-    - line: '|   useCustomLauncherGradleManifest: 0'
+    - line: '|   useCustomLauncherGradleManifest: 1'
     - line: '|   useCustomBaseGradleTemplate: 0'
     - line: '|   useCustomGradlePropertiesTemplate: 1'
     - line: '|   useCustomGradleSettingsTemplate: 1'
@@ -969,7 +969,7 @@ MonoBehaviour:
     - line: '|   qnxGraphicConfPath: '
     - line: '|   apiCompatibilityLevel: 6'
     - line: '|   captureStartupLogs: {}'
-    - line: '|   activeInputHandler: 1'
+    - line: '|   activeInputHandler: 2'
     - line: '|   windowsGamepadBackendHint: 0'
     - line: '|   cloudProjectId: 32048809-6bd1-4a94-a8ec-32b0048a3d50'
     - line: '|   framebufferDepthMemorylessMode: 0'
@@ -992,7 +992,7 @@ MonoBehaviour:
     - rid: 4887837466889289816
       type: {class: AndroidPlatformBuildSettings, ns: UnityEditor.Android, asm: UnityEditor.Android.Extensions}
       data:
-        m_Development: 0
+        m_Development: 1
         m_ConnectProfiler: 0
         m_BuildWithDeepProfilingSupport: 0
         m_AllowDebugging: 0
@@ -1011,8 +1011,8 @@ MonoBehaviour:
         m_DebugSymbolLevel: 2
         m_DebugSymbolFormat: 5
         m_CurrentDeploymentTargetId: __builtin__target_default
-        m_BuildType: 2
+        m_BuildType: 1
         m_LinkTimeOptimization: 0
-        m_BuildAppBundle: 0
+        m_BuildAppBundle: 1
         m_IPAddressToConnect: 
         m_SymlinkSources: 0

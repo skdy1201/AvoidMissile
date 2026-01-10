@@ -17,8 +17,30 @@ public class ButtonUI : BaseUI, InterfaceUI
     /// 버튼 종류에 대한 열거형
     /// </summary>
     [SerializeField] private ButtonType type;
+    #endregion
+
+    #region Property
+
+    public ButtonType buttonType => type;
+
+    public bool Cooldown
+    {
+        get { return inCooldown; }
+        set { inCooldown = value; }
+    }
+
+    public float RemainCooldown
+    {
+        get { return remainCooldown; }
+        set { remainCooldown = value; }
+    }
 
     #endregion
+
+    private GameObject lockUI;
+
+    private bool inCooldown = false;
+    private float remainCooldown = 0f;
 
     #region Unity Lifecycle
 
@@ -33,6 +55,14 @@ public class ButtonUI : BaseUI, InterfaceUI
     {
         base.Awake();
         Init();
+    }
+
+    private void OnEnable()
+    {
+        if (type == ButtonType.Revive && GameProgress.Instance.PlayerAlive)
+            gameObject.SetActive(false);
+        else if (type == ButtonType.Slide && inCooldown == true && remainCooldown > 0f)
+            AdReviveinCooldown();
     }
 
     #endregion
@@ -55,14 +85,17 @@ public class ButtonUI : BaseUI, InterfaceUI
             switch (type)
             {
                 case ButtonType.Retry:
-                    button.onClick.AddListener(() => ButtonFunction.Instance.RestartPlayScene(this.gameObject));
+                    button.onClick.AddListener(() => SceneController.Instance.RestartPlayScene(this.gameObject));
                     break;
                 case ButtonType.RetryTest:
-                    button.onClick.AddListener(() => ButtonFunction.Instance.RestartTestScene(this.gameObject));
+                    button.onClick.AddListener(() => SceneController.Instance.RestartTestScene());
                     break;
                 case ButtonType.Title:
                 case ButtonType.Play:
-                    button.onClick.AddListener(() => ButtonFunction.Instance.ChangeScene(this.gameObject));
+                    button.onClick.AddListener(() => SceneController.Instance.ChangeScene());
+                    break;
+                case ButtonType.Edit:
+                    button.onClick.AddListener(() => SceneController.Instance.ChnageTestScnen());
                     break;
                 case ButtonType.Exit:
                     button.onClick.AddListener(() => ButtonFunction.Instance.ExitGame());
@@ -88,10 +121,41 @@ public class ButtonUI : BaseUI, InterfaceUI
                 case ButtonType.ParticleSpawn:
                     button.onClick.AddListener(() => ButtonFunction.Instance.SpawnParticle());
                     break;
+                case ButtonType.Revive:
+                    button.onClick.AddListener(() => ButtonFunction.Instance.ReviveAdvertise());
+                    break;
             }
         }
+
+        if(buttonType == ButtonType.Slide)
+        {
+            Player.OnSkillLockOff.AddListener(() => OffLock());
+            Player.OnSkilllockOn.AddListener(() => ActiveLock());
+        }
+
     }
 
     #endregion
 
+    public void RegisterLock(GameObject ui)
+    {
+        lockUI = ui;
+    }
+    public void ActiveLock()
+    {
+        lockUI.SetActive(true);
+    }
+
+    public void OffLock()
+    {
+        LockUI lockui = lockUI.GetComponent<LockUI>();
+        lockui.OffLockUI();
+    }
+
+    public void AdReviveinCooldown()
+    {
+        if (remainCooldown > 0 && inCooldown == true)
+            ButtonFunction.Instance.ActiveRemainCooldown();
+           
+    }
 }

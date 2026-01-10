@@ -13,11 +13,21 @@ public enum SoundType
     BombSound,
 }
 
-public enum PlayerEffectSound
+public enum PlayerEffectSFX
 {
     Slide,
+    Jump,
+    Respawn,
 }
 
+public enum ItemEffectSFX
+{
+    Buff,
+    Nerf,
+    Reverse,
+    Lock,
+    Revive,
+}
 
 // TODO : 사운드 감소 연결 안해둠.
 
@@ -44,6 +54,7 @@ public class AudioController : Singleton<AudioController>
     [Header("Effect Sound")]
     [SerializeField] AudioClip[] boomEffect;
     [SerializeField] AudioClip[] playerEffect;
+    [SerializeField] AudioClip[] itemEffect;
 
     #endregion
 
@@ -140,6 +151,15 @@ public class AudioController : Singleton<AudioController>
 
         effectAudioInstance.GetComponent<AudioSource>().PlayOneShot(boomEffect[randomIndex], GameData.Instance.GetSettingValue(OptionType.EffectSound));
 
+    }
+
+    /// <summary>
+    /// 아이템 이펙트 사운드 재생
+    /// </summary>
+    /// <param name="effectSoundidx"></param>
+    public void PlayItemSound(int effectSoundidx)
+    {
+        effectAudioInstance.GetComponent<AudioSource>().PlayOneShot(itemEffect[effectSoundidx], GameData.Instance.GetSettingValue(OptionType.EffectSound));
     }
 
     /// <summary>

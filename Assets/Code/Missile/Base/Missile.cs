@@ -13,6 +13,7 @@ public class Missile : MonoBehaviour
 
     [SerializeField] private int missileNumber;
     [SerializeField] private bool missileReturn;
+    [SerializeField] private int spawnTime;
 
     #endregion
 
@@ -34,6 +35,12 @@ public class Missile : MonoBehaviour
 
     public bool MissileReturn { get => missileReturn; set => missileReturn = value; }
 
+    public int SpawnTime
+    {
+        get => spawnTime;
+        set => spawnTime = value;
+    }
+
     #endregion
 
     #region Unity Lifecycle
@@ -48,12 +55,54 @@ public class Missile : MonoBehaviour
 
     #endregion
 
+    #region Public Methods
+
+    /// <summary>
+    /// 충돌 지점의 폭발 효과를 동작시키기 위한 함수
+    /// </summary>
+    /// <param name="targetPosition"> 충돌한 지점 </param>
+    public void ActiveBombEffect(Vector3 targetPosition)
+    {
+        // 폭발 이펙트 빌려와서 동작
+        GameObject boomEffect = BoomEffectSpawner.Instance.RentSpawner(BoomParticle.Normal);
+
+        boomEffect.transform.position = targetPosition;
+        boomEffect.SetActive(true);
+
+        AudioController.Instance.PlayExploreSound();
+    }
+
+    #endregion
+
     #region Private/Protected Methods
 
     /// <summary>
-    /// 추후 구현사항이 생길 수 있어, 지우지 않고 남겨둠
+    /// PowerJump 상태의 Player와 충돌했을때, 미사일은 파괴
     /// </summary>
-    protected virtual void OnCollisionEnter(Collision collision) { }
+    protected virtual void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Player"))
+        {
+            Player player = collision.gameObject.GetComponent<Player>();
+
+            if(player.ActivePowerJump)
+            {
+                GameProgress.Instance.Score = GameProgress.Instance.Score;
+
+                // 폭발 이펙트를 정확한 충돌 위치에 표시하기 위해 접점 저장
+                Vector3 contact = collision.contacts[0].point;
+
+                ActiveBombEffect(contact);
+
+                this.gameObject.SetActive(false);
+
+                if(this.gameObject.GetComponent<MissileYAxis>() != null)
+                MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, this.gameObject);
+                else
+                    Destroy(this.gameObject);
+            }
+        }
+    }
 
     #endregion
 

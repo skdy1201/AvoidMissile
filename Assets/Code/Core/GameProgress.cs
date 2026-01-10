@@ -1,7 +1,8 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+
 
 // TODO : UPDATE LELVEL을 좀 더 간소화 시킬 방법을 찾아야 할 것 같다.
 // 이름을 매번 update에서 캐싱하는게 별로일수도
@@ -20,11 +21,16 @@ public class GameProgress : Singleton<GameProgress>
 
     [SerializeField] private float gameTimer = 0f;
 
+    [SerializeField] private float levelTimer = 0f;
+
     [SerializeField] private float currentLevel = 1f;
 
     [SerializeField] private int playerScore = 0;
 
     [SerializeField] private bool isPlayerDead = false;
+
+    // 광고 부활과 부활 아이템의 중복 사용을 막기 위한 변수
+    [SerializeField] private bool playerAlive = false;
 
     [SerializeField] private bool spawnXAxis = false;
 
@@ -32,6 +38,13 @@ public class GameProgress : Singleton<GameProgress>
 
     [SerializeField] private float soundfadeTime = 1f;
 
+    [SerializeField] private bool spawnItem = false;
+
+    // 부활 효과 스포트라이트 객체
+    [SerializeField] private GameObject reviveSpotLight;
+
+    // 그레이 스케일 효과 객체
+    [SerializeField] private GreyScaleTrigger greyScale;
     #endregion
 
     #region Properties
@@ -41,6 +54,12 @@ public class GameProgress : Singleton<GameProgress>
     {
         get { return playerScore; }
         set { playerScore++; }
+    }
+
+    public bool PlayerAlive
+    {
+        get { return playerAlive; }
+        set { playerAlive = value; }
     }
 
     public bool IsPlaying => !isPlayerDead;
@@ -61,6 +80,7 @@ public class GameProgress : Singleton<GameProgress>
         Application.targetFrameRate = 60;
 
         Player.OnPlayerDead.AddListener(EndGame);
+        Player.ActiveEffect.AddListener(ActiveReviveEffect);
         StartScene.AddListener(StartProtocol);
         EndLevel.AddListener(EndProtocol);
 
@@ -75,30 +95,63 @@ public class GameProgress : Singleton<GameProgress>
     /// </remarks>
     void Update()
     {
+        gameTimer += Time.deltaTime;
+
         if (SceneManager.GetActiveScene().name == GlobalData.Instance.PlayScene)
         {
-            gameTimer += Time.deltaTime;
+            levelTimer += Time.deltaTime;
         }
 
-        if (gameTimer >= 5f)
+        if (levelTimer >= 5f)
         {
             ++currentLevel;
 
             UpdateLevel();
 
-            gameTimer = 0f;
+            levelTimer = 0f;
 
-            if (spawnXAxis == false && currentLevel >= 10)
-            {
-                spawnXAxis = true;
-                MissileSpawner.Instance.StartCoroutine("XAxisMissileSpawnLoop");
-            }
         }
     }
 
     #endregion
 
     #region Public Methods
+
+    public void AddCustomScore(int value) => playerScore += value;
+
+    public void RegisterReviveLight(GameObject spotLight) => reviveSpotLight = spotLight;
+
+    public void RegisterGreyScaleTrigger(GreyScaleTrigger greyScaleTrigger) => greyScale = greyScaleTrigger;
+
+    /// <summary>
+    /// 보상형 광고 이후 게임 재시작
+    /// </summary>
+    /// <remarks>
+    /// 게임 오버일때 나오는 GreyScale을 다시 초기화
+    /// 기존 진행 상태에 따른 스폰 재개
+    /// </remarks>
+    public void AdRevive()
+    {
+        
+        GlobalData.Instance.Player.GetComponent<Player>().ActiveRevive();
+        greyScale.ResetGreyScale();
+
+        MissileSpawner.Instance.StartCoroutine("MissileSpawnLoop");
+
+        if (currentLevel >= 10)
+            MissileSpawner.Instance.StartCoroutine("XAxisMissileSpawnLoop");
+        else
+            spawnXAxis = false;
+
+        if (currentLevel >= 20)
+            ItemSpawner.Instance.StartCoroutine("ItemSpawnLoop");
+        else
+            spawnItem = false;
+
+        Time.timeScale = 1f;
+
+    }
+
     #endregion
 
     #region Private/Protected Methods
@@ -111,12 +164,15 @@ public class GameProgress : Singleton<GameProgress>
     /// </remarks>
     protected override void StartProtocol()
     {
+        EventSystem.current.enabled = true;
+
         if (Time.timeScale == 0f)
             Time.timeScale = 1f;
 
         if (SceneManager.GetActiveScene().name == GlobalData.Instance.PlayScene)
         {
             gameTimer = 0f;
+            levelTimer = 0f;
             currentLevel = 1f;
 
             playerScore = 0;
@@ -124,11 +180,16 @@ public class GameProgress : Singleton<GameProgress>
             isPlayerDead = false;
 
             spawnXAxis = false;
+
+            playerAlive = false;
         }
     }
 
     protected override void EndProtocol()
     {
+        spawnXAxis = false;
+        spawnItem = false;
+        reviveSpotLight = null;
     }
 
     /// <summary>
@@ -143,7 +204,8 @@ public class GameProgress : Singleton<GameProgress>
     /// </remarks>
     private void UpdateLevel()
     {
-        int nextLimitMissileCount = Mathf.FloorToInt(Mathf.Exp(currentLevel));
+        // 제곱근 방식으로 레벨 증가하도록 수정(25 레벨에 50 도달)
+        int nextLimitMissileCount = Mathf.FloorToInt(Mathf.Sqrt(currentLevel * 100));
 
         // Y축 미사일 스폰시
         if (spawnYAxis)
@@ -160,7 +222,7 @@ public class GameProgress : Singleton<GameProgress>
                 MissileSpawner.Instance.CurMaxMissileCount = MissileSpawner.Instance.limitMinMissileCount;
                 nextLimitMissileCount = MissileSpawner.Instance.limitMissileCount;
             }
-            
+
             // 최소 미사일 개수 설정
             MissileSpawner.Instance.LimitMinMissileCount = nextLimitMissileCount / 2;
         }
@@ -177,12 +239,24 @@ public class GameProgress : Singleton<GameProgress>
 
         MissileSpawner.Instance.MissileBaseSpeed = nextMissileSpeed;
 
+        if (spawnXAxis == false && currentLevel >= 10)
+        {
+            spawnXAxis = true;
+            MissileSpawner.Instance.StartCoroutine("XAxisMissileSpawnLoop");
+        }
+
         // X축 미사일 스폰 상태라면
         if (spawnXAxis)
         {
             MissileSpawner.Instance.UpdateSetting();
         }
 
+
+        if (!spawnItem && currentLevel >= 20)
+        {
+            spawnItem = true;
+            ItemSpawner.Instance.StartCoroutine("ItemSpawnLoop");
+        }
     }
 
     /// <summary>
@@ -193,9 +267,17 @@ public class GameProgress : Singleton<GameProgress>
         Time.timeScale = 0f;
         isPlayerDead = true;
 
+        // 부활이 아닐때만 점수 기록
+        if(PlayerAlive == false)
         GameData.Instance.SaveScore(playerScore);
-        GoogleMobileAdsController.Instance.DisplayAd();
 
+        GoogleMobileAdsController.Instance.DisplayInterstitialAd();
+
+    }
+
+    private void ActiveReviveEffect()
+    {
+        reviveSpotLight.SetActive(true);
     }
 
     #endregion
@@ -213,7 +295,7 @@ public class GameProgress : Singleton<GameProgress>
     public static UnityEvent EndLevel = new UnityEvent();
 
     #endregion
-  
+
 }
 
 

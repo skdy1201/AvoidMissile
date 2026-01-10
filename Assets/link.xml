@@ -24,5 +24,12 @@
 	<type fullname="Singleton`1[GameData]" preserve="all"/>
 	<type fullname="Singleton`1[GlobalData]" preserve="all"/>
 	<type fullname="Singleton`1[AudioController]" preserve="all"/>
+	<type fullname="MissileSpawner" preserve="all"/>
+	<type fullname="Missile" preserve="all"/>
+	<type fullname="MissileYAxis" preserve="all"/>
+	<type fullname="MissileXAxis" preserve="all"/>
+	<type fullname="Platform" preserve="all"/>
+	<type fullname="CameraController" preserve="all"/>
+	<type fullname="SafeArea" preserve="all"/>
   </assembly>
 </linker>

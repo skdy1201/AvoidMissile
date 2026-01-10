@@ -15,7 +15,10 @@ EditorBuildSettings:
     path: Assets/Scene/Main/PlayScene.unity
     guid: 28ef6ac27fe18994fbe18be10efcd681
   - enabled: 0
-    path: Assets/Scene/Test/TestScene.unity
+    path: Assets/Scene/Test/DevTestScene.unity
+    guid: a16d2bae188b19c43a929b4a70bedf58
+  - enabled: 0
+    path: Assets/Scene/Test/ParticleTestScene.unity
     guid: d1912664cd08b4f4cb40dea32ef21539
   m_configObjects:
     com.unity.adaptiveperformance.google.android.provider_settings: {fileID: 11400000, guid: 14d0128b3a0d45245be62cb81b4f4da5, type: 2}
