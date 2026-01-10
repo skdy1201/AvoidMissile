@@ -29,8 +29,7 @@
 	<type fullname="MissileYAxis" preserve="all"/>
 	<type fullname="MissileXAxis" preserve="all"/>
 	<type fullname="Platform" preserve="all"/>
-	<type fullname="GlobalData" preserve="all"/>
-	<type fullname="GameData" preserve="all"/>
-	<type fullname="GameProgress" preserve="all"/>
+	<type fullname="CameraController" preserve="all"/>
+	<type fullname="SafeArea" preserve="all"/>
   </assembly>
 </linker>
