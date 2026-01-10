@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.google.ads.mobile": "10.5.0",
+    "com.google.ads.mobile": "10.6.0",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.adaptiveperformance": "5.1.6",
     "com.unity.adaptiveperformance.google.android": "5.1.6",
