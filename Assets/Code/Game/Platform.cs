@@ -2,6 +2,7 @@ using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 게임 플랫폼을 생성하고 관리하는 클래스
@@ -74,6 +75,9 @@ public class Platform : MonoBehaviour
 
         // 미사일 스포너에 플랫폼 등록
         MissileSpawner.Instance.gamePlatform = this;
+        
+        ItemSpawner.Instance.SetPlatform(this);
+       
     }
 
     #endregion

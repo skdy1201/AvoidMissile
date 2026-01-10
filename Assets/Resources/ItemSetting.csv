@@ -1,0 +1,7 @@
+﻿item,percent,value,time
+BuffSpeed,35,2,10
+NerfSpeed,35,-1.5,10
+PowerJump,9,0,20
+ControlReverse,9,0,10
+LockItem,9,0,5
+Revive,3,0,0

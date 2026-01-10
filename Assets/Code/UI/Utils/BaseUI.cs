@@ -17,6 +17,12 @@ public class BaseUI : MonoBehaviour
 
     #endregion
 
+    #region Properties
+
+    public int ActiveFlag => activeFlag;
+
+    #endregion
+
     #region Unity Lifecycle
 
     /// <summary>
@@ -51,5 +57,6 @@ public class BaseUI : MonoBehaviour
     }
 
     #endregion
+
 
 }

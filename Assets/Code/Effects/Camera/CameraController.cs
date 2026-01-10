@@ -1,5 +1,8 @@
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
+
+//TODO : SetResolutioin을 안썼던 이유 찾아보기
 
 /// <summary>
 /// 화면 비율을 16:9로 고정하고, 다른 비율의 화면에는 레터박스를 추가.
@@ -21,13 +24,13 @@ public class CameraController : MonoBehaviour
     private void Awake()
     {
         Camera mainCamera = GetComponent<Camera>();
-
+        
         // 종현재 화면 비율과 목표 비율(16:9)을 비교하여 스케일 계산
         Rect cameraRect = mainCamera.rect;
-
+        
         float heightScale = ((float)Screen.width / Screen.height) / TargetAspectRatio;
         float widthScale = 1f / heightScale;
-
+        
         // 화면이 16:9보다 세로로 긴 경우 상하에, 가로로 긴 경우 좌우에 레터박스 추가
         if (heightScale < 1)
         {
@@ -39,10 +42,21 @@ public class CameraController : MonoBehaviour
             cameraRect.width = widthScale;
             cameraRect.x = (1f - widthScale) / 2f;
         }
-
+        
         mainCamera.rect = cameraRect;
-
+     
     }
+
+    private void Start()
+    {
+        SetSafeArea.Invoke();
+    }
+
+    #endregion
+
+    #region Event Handlers
+
+    static public UnityEvent SetSafeArea = new UnityEvent();
 
     #endregion
 

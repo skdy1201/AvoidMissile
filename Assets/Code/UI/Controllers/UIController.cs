@@ -1,8 +1,8 @@
-using NUnit.Framework;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
+using UnityEngine.EventSystems;
 
 public enum ButtonType
 {
@@ -19,6 +19,8 @@ public enum ButtonType
     LeaderBoardClose,
     ParticleSpawn,
     RetryTest,
+    Edit,
+    Revive,
 };
 
 public enum UIStateEnum
@@ -43,6 +45,7 @@ public class UIController : Singleton<UIController>
     /// </summary>
     [FormerlySerializedAs("L_CurUI")]
     [SerializeField] private List<BaseUI> currentUIs = new List<BaseUI>();
+
 
     #endregion
 
@@ -145,6 +148,11 @@ public class UIController : Singleton<UIController>
     /// <returns>현재 UI 상태를 나타내는 비트 플래그 값</returns>
     public int GetCurrentUIState() => uiState;
 
+    public void ReviveUIController()
+    {
+        StartCoroutine(AdRewardRevive());
+    }
+
     #endregion
 
     #region Private/Protected Methods
@@ -154,6 +162,9 @@ public class UIController : Singleton<UIController>
     /// </summary>
     protected override void StartProtocol()
     {
+        if (EventSystem.current.enabled == false)
+            EventSystem.current.enabled = true;
+
         UpdateUIStates(uiState);
     }
 
@@ -167,4 +178,26 @@ public class UIController : Singleton<UIController>
 
     #endregion
 
+    #region Coroutine
+
+    /// <summary>
+    /// UiState를 전환 준비 및
+    /// PlayScene의 주요 흐름을 관리하는 GameProgress의 revive 진행
+    /// </summary>
+    private IEnumerator AdRewardRevive()
+    {
+
+        Debug.Log("in UIController's Revive Game");
+        
+        yield return null;
+        yield return null;
+
+        DisableUIState((int)UIStateEnum.GameOver);
+        EnableUIState((int)UIStateEnum.Main);
+        UpdateUIStates(uiState);
+
+        GameProgress.Instance.AdRevive();
+    }
+
+    #endregion
 }
