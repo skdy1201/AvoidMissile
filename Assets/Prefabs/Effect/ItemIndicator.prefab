@@ -28,7 +28,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -100,25 +100,16 @@ LineRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 1
-        inSlope: 0
-        outSlope: 0
+        value: 0.04884529
+        inSlope: 0.015468128
+        outSlope: 0.015468128
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 0.10694893
-        value: 0.893976
-        inSlope: -0.38061777
-        outSlope: -0.38061777
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
+        outWeight: 0.6092314
       - serializedVersion: 3
         time: 1
-        value: 0.52264726
+        value: 0.046276093
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -181,6 +172,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 363186a135f8b90458830ced11f527ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemIndicator
-  rotateSpeed: 3
+  rotateSpeed: 180
   rotateAngle: 180
   radius: 3
