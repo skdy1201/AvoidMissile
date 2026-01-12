@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4789686061542385274}
   - component: {fileID: 541998190504732040}
   - component: {fileID: 907966312323691795}
-  - component: {fileID: 4701307635602589672}
+  - component: {fileID: 4029417941467202869}
   m_Layer: 5
   m_Name: ReviveButton
   m_TagString: Untagged
@@ -121,7 +121,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &4701307635602589672
+--- !u!114 &4029417941467202869
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -130,8 +130,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 8915196069528099343}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3a854a1ca1b19eb4e85944095b16e4ad, type: 3}
+  m_Script: {fileID: 11500000, guid: cb185c2d250c7e14f86425d26e6bde6b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ButtonUI
-  activeFlag: 0
-  type: 0
+  m_EditorClassIdentifier: Assembly-CSharp::ReviveButton
+  activeFlag: 4
+  type: 14

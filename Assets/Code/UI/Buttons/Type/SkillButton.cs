@@ -15,12 +15,12 @@ public class SkillButton : ButtonUI
     [Header("CoolTime Setting")]
     [SerializeField] private float cooldown = 3f;
     [SerializeField] private float remainCooldown = 0f;
+    [SerializeField] private Image grayImage;
 
     #endregion
 
     #region Private/Protected Fields
 
-    private Image grayImage;
 
     private bool inCooldown = false;
 
