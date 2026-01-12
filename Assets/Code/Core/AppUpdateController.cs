@@ -10,15 +10,40 @@ using System.Collections;
 /// Google Play에서 제공해주는 매니저를 이용해
 /// 업데이트 여부를 체크한 뒤, 상황에 따른 조치 수행
 /// </remarks>
-public class AppUpdateController : MonoBehaviour
+public class AppUpdateController : Singleton<AppUpdateController>
 {
     #region Private/Protected Fields
-   
-    private AppUpdateManager appUpdateManager = new AppUpdateManager();
+
+    private AppUpdateManager appUpdateManager = null;
 
     private AppUpdateInfo appUpdateInfo = null;
 
     private AppUpdateOptions appUpdateOptions = null;
+
+    #endregion
+
+    #region Unity Lifecycle
+
+    protected override void Awake()
+    {
+        base.Awake();
+
+#if UNITY_ANDROID
+
+        Debug.Log("Check Update");
+        appUpdateManager = new AppUpdateManager();
+        StartCoroutine(CheckForUpdate());
+
+#endif
+    }
+
+    #endregion
+
+    #region Private/Protected Methods
+
+    protected override void StartProtocol() {}
+
+    protected override void EndProtocol() {}
 
     #endregion
 
@@ -53,12 +78,12 @@ public class AppUpdateController : MonoBehaviour
                 Debug.Log("possible but, no Update");
             }
             // to start an in-app update.
-            StartCoroutine(CheckForUpdate());
+            StartCoroutine(StartImmediateUpdate());
         }
         else
         {
             // Log appUpdateInfoOperation.Error.
-            Debug.Log($"{appUpdateInfoOperation.Error}");
+            Debug.Log($" update fail about {appUpdateInfoOperation.Error}");
         }
     }
 
