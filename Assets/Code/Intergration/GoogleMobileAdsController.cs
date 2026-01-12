@@ -4,6 +4,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
+using UnityEngine.Events;
 
 /// <summary>
 /// Google AdMob 외부 SDK를 사용할 수 있도록 도와주는 컨트롤러
@@ -36,8 +37,9 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     // 광고 로딩 실패시, 로드횟수 제한
     private int currentRetryCount = 0;
     private const int maxRetryCount = 3;
-     
+
     #endregion
+
 
     #region Unity Lifecycle
 
@@ -223,7 +225,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
 
                 Debug.Log("in reward");
 
-                if(reward.Type == "Reward" && reward.Amount == 10)
+                if(reward.Type == "Revive" && reward.Amount == 1)
                 {
                     Debug.Log("Reward Check Sucesses");
                     finishRewardedAd = true;
@@ -282,8 +284,6 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
             LoadRewardedAd(); // 다음 시청을 위해 재로드
 
             closeRewardAd = true;
-            EventSystem.current.enabled = false;
-
 
         };
 
@@ -296,8 +296,17 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
 
     #endregion
 
+    #region Event Handlers
+
+    /// <summary>
+    /// 광고 이후, 부활 시간 전까지, Title, Retry 버튼의 상호작용 방지 이벤트
+    /// </summary>
+    public static UnityEvent AfterRewardFinished = new UnityEvent();
+
+    #endregion
+
     #region Coroutine
-    
+
     /// <summary>
     /// Admob이 임의로 TimeScale을 조종하기 때문에, 코루틴으로 검사하며, 상황마다 TimeScale을 의도대로 통제
     /// </summary>
@@ -333,7 +342,6 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
             {
                 closeRewardAd = false;
                 UIController.Instance.ReviveUIController();
-                EventSystem.current.enabled = true;
 
             }
         }
