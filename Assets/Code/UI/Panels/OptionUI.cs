@@ -15,7 +15,6 @@ public class OptionUI : BaseUI, InterfaceUI
 {
     #region Serialized Fields
 
-    [FormerlySerializedAs("ActiveTime")]
     [SerializeField] private float activeTime;
 
     /// <summary>
@@ -26,34 +25,23 @@ public class OptionUI : BaseUI, InterfaceUI
     /// <summary>
     /// UI 상태가 옵션일때, 배경을 검은색으로 채워줄 객체
     /// </summary>
-    [FormerlySerializedAs("OptionBackGround")]
     [SerializeField] private GameObject optionBackGround;
 
-    [FormerlySerializedAs("TargetSize")]
     [SerializeField] private Vector2 targetSize;
 
     /// <summary>
     /// 옵션 UI들이 들어갈 창
     /// </summary>
-    [FormerlySerializedAs("OptionWindow")]
     [SerializeField] private GameObject optionWindow;
 
     /// <summary>
     /// 옵션 상태일때, 작동할 관련 오브젝트 리스트
     /// </summary>
-    [FormerlySerializedAs("OptionUIItem")]
     [SerializeField] private List<GameObject> optionUIItem = new List<GameObject>();
 
     #endregion
 
-    #region Private/Protected Fields
-    #endregion
-
-    #region Properties
-    #endregion
-
     #region Unity Lifecycle
-
 
     protected override void Awake()
     {
@@ -80,11 +68,6 @@ public class OptionUI : BaseUI, InterfaceUI
         }
     }
 
-    /* TODO :
-       문자열 비교: 이름 기반 매칭은 오타에 취약하고 유지보수가 어렵습니다
-       중복 GetComponent: 동일한 컴포넌트를 여러 번 가져옴 
-       null 체크 누락: Button 컴포넌트가 없을 경우 에러 발생 가능
-     */
     /// <summary>
     /// 인터페이스 함수. 옵션 UI가 초반에 필요한 것들을 설정
     /// </summary>
@@ -103,18 +86,17 @@ public class OptionUI : BaseUI, InterfaceUI
             Debug.Break();
         }
 
-        // 이름에 따라 버튼 함수 매칭
+        // 옵션을 바꾸든, 바꾸지 않든, CloseOption으로 결정과 동시에 옵션 종료
         foreach (var item in optionUIItem)
         {
-            if (item.name == "OptionEndButton" || item.name == "OptionAcceptButton")
-            {
-                if (item.name == "OptionEndButton")
-                    item.GetComponent<Button>().onClick.AddListener(() => ButtonFunction.Instance.CloseSetting());
+            OptionButton optionButton = item.GetComponent<OptionButton>();
 
+            if(optionButton != null)
+            {
                 item.GetComponent<Button>().onClick.AddListener(() => CloseOption());
+
             }
         }
-
     }
 
     #endregion

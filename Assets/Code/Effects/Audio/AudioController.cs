@@ -87,7 +87,7 @@ public class AudioController : Singleton<AudioController>
 
         // 이벤트 등록
         GameProgress.StartScene.AddListener(() => StartProtocol());
-        GameProgress.EndLevel.AddListener(() => EndProtocol());
+        GameProgress.EndScene.AddListener(() => EndProtocol());
 
         // 프리팹을 인스턴스화 해서 저장
         for (int i = 0; i < bgmSounds.Length; ++i)

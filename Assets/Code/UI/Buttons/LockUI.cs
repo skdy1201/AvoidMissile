@@ -48,11 +48,11 @@ public class LockUI : MonoBehaviour
 
         parentButton = this.transform.parent.GetComponent<Button>();
 
-        ButtonUI parent = this.transform.parent.GetComponent<ButtonUI>();
+        SkillButton parent = this.transform.parent.GetComponent<SkillButton>();
 
         if (parent != null)
         {
-            parent.RegisterLock(this.gameObject);
+           parent.RegisterLock(this.gameObject);
         }
 
         this.gameObject.SetActive(false);

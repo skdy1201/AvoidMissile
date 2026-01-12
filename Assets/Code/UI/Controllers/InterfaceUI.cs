@@ -5,5 +5,5 @@ using UnityEngine;
 /// </summary>
 public interface InterfaceUI
 {
-    void Init();
+    public void Init();
 }

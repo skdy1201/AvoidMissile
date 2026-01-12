@@ -82,7 +82,7 @@ public class GameProgress : Singleton<GameProgress>
         Player.OnPlayerDead.AddListener(EndGame);
         Player.ActiveEffect.AddListener(ActiveReviveEffect);
         StartScene.AddListener(StartProtocol);
-        EndLevel.AddListener(EndProtocol);
+        EndScene.AddListener(EndProtocol);
 
     }
 
@@ -149,7 +149,7 @@ public class GameProgress : Singleton<GameProgress>
             spawnItem = false;
 
         Time.timeScale = 1f;
-
+        
     }
 
     #endregion
@@ -292,7 +292,7 @@ public class GameProgress : Singleton<GameProgress>
     /// <summary>
     /// 씬을 종료할 때, 할 일들을 관리하는 이벤트
     /// </summary>
-    public static UnityEvent EndLevel = new UnityEvent();
+    public static UnityEvent EndScene = new UnityEvent();
 
     #endregion
 
