@@ -78,7 +78,7 @@ public class UIController : Singleton<UIController>
 
         GameProgress.StartScene.AddListener(StartProtocol);
 
-        GameProgress.EndLevel.AddListener(EndProtocol);
+        GameProgress.EndScene.AddListener(EndProtocol);
 
         Player.OnPlayerDead.AddListener(OnPlayerDeath);
 
@@ -162,9 +162,6 @@ public class UIController : Singleton<UIController>
     /// </summary>
     protected override void StartProtocol()
     {
-        if (EventSystem.current.enabled == false)
-            EventSystem.current.enabled = true;
-
         UpdateUIStates(uiState);
     }
 
@@ -188,7 +185,7 @@ public class UIController : Singleton<UIController>
     {
 
         Debug.Log("in UIController's Revive Game");
-        
+
         yield return null;
         yield return null;
 

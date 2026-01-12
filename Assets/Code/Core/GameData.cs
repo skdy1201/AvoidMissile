@@ -66,7 +66,7 @@ public class GameData : Singleton<GameData>
         base.Awake();
 
         GameProgress.StartScene.AddListener(() => StartProtocol());
-        GameProgress.EndLevel.AddListener(() => EndProtocol());
+        GameProgress.EndScene.AddListener(() => EndProtocol());
 
         for (int i = 0; i < 5; ++i)
         {

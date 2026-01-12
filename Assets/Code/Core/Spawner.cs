@@ -29,7 +29,7 @@ public abstract class Spawner<TEnum> : Singleton<Spawner<TEnum>>
 
         // 이벤트 등록
         GameProgress.StartScene.AddListener(StartProtocol);
-        GameProgress.EndLevel.AddListener(EndProtocol);
+        GameProgress.EndScene.AddListener(EndProtocol);
 
         // 열거형 개수만큼 큐 초기화
         int queueCount = System.Enum.GetValues(typeof(TEnum)).Length;

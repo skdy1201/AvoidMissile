@@ -7,33 +7,13 @@ using UnityEngine.EventSystems;
 /// <summary>
 /// 씬 전환을 관리하는 스크립트
 /// </summary>
-/// <remarks>
-/// 
-/// </remarks>
 public class SceneController : Singleton<SceneController>
 {
-
-    #region Private/Protected Methods
-
-    protected override void StartProtocol()
-    {
-    }
-
-    protected override void EndProtocol()
-    {
-    }
-
-    #endregion
-
     #region Unity Lifecycle
 
     protected override void Awake()
     {
         base.Awake();
-
-        GameProgress.StartScene.AddListener(StartProtocol);
-
-        GameProgress.EndLevel.AddListener(EndProtocol);
 
     }
 
@@ -51,13 +31,14 @@ public class SceneController : Singleton<SceneController>
     /// </remarks>
     public void ChangeScene()
     {
+        // 전환 함수에 들어오고 나서 바로 UI 상호작용 차단
+        EventSystem.current.enabled = false;
+
+        GameProgress.EndScene?.Invoke();
+
         Time.timeScale = 1.0f;
         UIController.Instance.DisableUIState((int)UIStateEnum.GameOver);
         UIController.Instance.EnableUIState((int)UIStateEnum.Main);
-
-        EventSystem.current.enabled = false;
-
-        GameProgress.EndLevel?.Invoke();
 
         if (SceneManager.GetActiveScene().name == GlobalData.Instance.TitleScene)
             StartCoroutine(SceneTransition(GameProgress.Instance.SoundFadeTime, GlobalData.Instance.PlayScene));
@@ -72,7 +53,7 @@ public class SceneController : Singleton<SceneController>
         UIController.Instance.DisableUIState((int)UIStateEnum.GameOver);
         UIController.Instance.EnableUIState((int)UIStateEnum.Main);
 
-        GameProgress.EndLevel?.Invoke();
+        GameProgress.EndScene?.Invoke();
 
         StartCoroutine(SceneTransition(GameProgress.Instance.SoundFadeTime, GlobalData.Instance.DevTestScene));
     }
@@ -81,10 +62,8 @@ public class SceneController : Singleton<SceneController>
     /// PlayScene 재시작 함수
     /// </summary>
     /// <param name="buttonObject"> 재시작 버튼 </param>
-    public void RestartPlayScene(GameObject buttonObject)
+    public void RestartPlayScene()
     {
-        GameProgress.EndLevel?.Invoke();
-
         // 플레이어 사망시 timescale이 0
         Time.timeScale = 1.0f;
 
@@ -92,12 +71,13 @@ public class SceneController : Singleton<SceneController>
         UIController.Instance.EnableUIState((int)UIStateEnum.Main);
         UIController.Instance.DisableUIState((int)UIStateEnum.GameOver);
 
+        GameProgress.EndScene?.Invoke();
+
         // PlayScene 예약
         StartCoroutine(reserveProtocol(GlobalData.Instance.PlayScene));
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 
-        buttonObject.GetComponent<Button>().enabled = false;
 
     }
 
@@ -113,6 +93,18 @@ public class SceneController : Singleton<SceneController>
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 
+    }
+
+    #endregion
+
+    #region Private/Protected Methods
+
+    protected override void StartProtocol()
+    {
+    }
+
+    protected override void EndProtocol()
+    {
     }
 
     #endregion
