@@ -47,6 +47,8 @@ public class ItemSpawner : Spawner<ItemType>
 
     [SerializeField] private LinkedList<GameObject> activeItems = new LinkedList<GameObject>();
 
+    [SerializeField] private List<int> ItemPercent = new List<int>();
+
     [SerializeField] private List<int> itemNamingNumber = Enumerable.Repeat(0, System.Enum.GetValues(typeof(ItemType)).Length).ToList();
 
     [Header("Test")]
@@ -214,7 +216,7 @@ public class ItemSpawner : Spawner<ItemType>
         itemScript = ItemPrefabs[(int)ItemType.Revive].GetComponent<Item>();
         itemScript.Percent = 0;
 
-        ReCalculateCumulativePercent();
+        CalculatePercentBoundary();
     }
 
     public override void OnPlayerDeath()
@@ -272,7 +274,6 @@ public class ItemSpawner : Spawner<ItemType>
            if(int.TryParse(dataPercent, out int percentint))
            {
                 curItem.Percent = percentint;
-                curItem.CumulativePercent = (percentint + curpercent);
                 curpercent += percentint;
            }
 
@@ -283,14 +284,22 @@ public class ItemSpawner : Spawner<ItemType>
                curItem.SetValue(valuefloat);
            }
 
-           
            if(float.TryParse(dataTime, out float timefloat))
            {
                curItem.SetTime(timefloat);
            }
+
+            ItemPercent[i] = curItem.Percent;
        }
+
+        CalculatePercentBoundary();
     }
 
+    /// <summary>
+    /// 아이템 스폰시 확률을 구하는 함수
+    /// </summary>
+    /// <param name="value"> 랜덤 추출 값</param>
+    /// <returns> 확률 계산으로 선택된 아이템 index </returns>
     private int CalculatePercent(int value)
     {
         int itemIndex = 0;
@@ -307,9 +316,9 @@ public class ItemSpawner : Spawner<ItemType>
                 Debug.LogError("Not Item in ItemPrefabs");
             }
 
-            percentEnd = currentItem.CumulativePercent;
+            percentEnd = percentStart + ItemPercent[i];
 
-            if (percentStart < value && value <= percentEnd)
+            if (percentStart <= value && value < percentEnd)
             {
                 itemIndex = i;
                 break;
@@ -324,13 +333,14 @@ public class ItemSpawner : Spawner<ItemType>
     }
 
     /// <summary>
-    /// 확률 재계산 함수
+    /// 확률 범위 계산 함수
     /// </summary>
     /// <remarks>
+    /// 부활 이후 확률 계산은,
     /// 부활 아이템을 한 번 먹으면 확률을 0으로 만들어야 한다.
     /// 이후 랜덤 선택시 범위에 들어가지 않도록 누적확률을 조정
     /// </remarks>
-    private void ReCalculateCumulativePercent()
+    private void CalculatePercentBoundary()
     {
         // 누적 확률
         int percentStart = 0;
@@ -338,17 +348,16 @@ public class ItemSpawner : Spawner<ItemType>
         for (int i = 0; i < ItemPrefabs.Count; ++i)
         {
             Item currentItem = ItemPrefabs[i].GetComponent<Item>();
+            
+            int percentEnd = percentStart + currentItem.Percent;
 
-            currentItem.CumulativePercent = percentStart + currentItem.Percent;
+            ItemPercent[i] = percentEnd;
 
             // 스폰확률이 0이면, Random.Value에서 나오지 않도록 누적확률 조정(0 ~ 100)
             if (currentItem.Percent == 0)
-                currentItem.CumulativePercent = 101;
-            else
-                percentStart = currentItem.CumulativePercent;
+                ItemPercent[i] = 101;
 
-            Debug.Log($"item cumulativePercent is {currentItem.CumulativePercent}");
-
+            percentStart = percentEnd;
         }
     }
 

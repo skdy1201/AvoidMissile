@@ -332,7 +332,6 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
                 Player player = GlobalData.Instance.Player.GetComponent<Player>();
                 player.Revive = true;
                 GameProgress.Instance.PlayerAlive = true;
-                ItemSpawner.Instance.TakeRevive();
 
                 Time.timeScale = 0f;
                 finishRewardedAd = false;
