@@ -1,9 +1,4 @@
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Serialization;
-
-// TODO : 
 
 /// <summary>
 /// 전반적으로 공유되면 좋을 데이터들을 관리하는 스크립트
@@ -71,8 +66,8 @@ public class GlobalData : Singleton<GlobalData>
     {
         base.Awake();
 
-        GameProgress.EndLevel.AddListener(EndProtocol);
-
+        GameProgress.EndScene.AddListener(EndProtocol);
+      
         tileSize = tilePrefab.GetComponent<MeshFilter>().sharedMesh.bounds.size;
 
         prevSceneStr = TitleSceneStr;
