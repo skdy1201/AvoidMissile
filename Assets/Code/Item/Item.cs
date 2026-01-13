@@ -32,8 +32,6 @@ public abstract class Item : MonoBehaviour
 
     protected Material itemMaterial;
 
-    private int cumulativePercent;
-
     #endregion
 
     #region Properties
@@ -53,12 +51,6 @@ public abstract class Item : MonoBehaviour
     {
         get { return percent; }
         set { percent = value; }
-    }
-
-    public int CumulativePercent
-    {
-        get { return cumulativePercent; }
-        set { cumulativePercent = value; }
     }
 
     #endregion
