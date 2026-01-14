@@ -132,7 +132,6 @@ public class GameProgress : Singleton<GameProgress>
     /// </remarks>
     public void AdRevive()
     {
-        
         GlobalData.Instance.Player.GetComponent<Player>().ActiveRevive();
         greyScale.ResetGreyScale();
 
@@ -148,8 +147,9 @@ public class GameProgress : Singleton<GameProgress>
         else
             spawnItem = false;
 
+        ItemSpawner.Instance.TakeRevive();
+
         Time.timeScale = 1f;
-        
     }
 
     #endregion
