@@ -58,6 +58,9 @@ public class GlobalData : Singleton<GlobalData>
         get { return tilePrefab; }
         set { tilePrefab = value; }
     }
+
+    public float PlatformY => 0f;
+
     #endregion
 
     #region Unity Lifecycle
