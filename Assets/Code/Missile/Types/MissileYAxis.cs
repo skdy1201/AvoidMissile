@@ -14,9 +14,19 @@ public class MissileYAxis : Missile
     [SerializeField] public Vector2 XZCoord = new Vector2();
     [SerializeField] private Material missileMaterial;
 
+    [SerializeField] private GameObject warningDecal;
+
     #endregion
 
     #region Private/Protected Fields
+
+    private RaycastHit[] raycastResult = new RaycastHit[1];
+
+    private float dropPoint;
+
+    private int layerMask;
+
+    [SerializeField] private Vector3 tileScale = Vector3.zero;
     #endregion
 
     #region Properties
@@ -38,6 +48,61 @@ public class MissileYAxis : Missile
 
         if (missileMaterial == null)
             Debug.LogError("missile material is null");
+
+        if (warningDecal == null)
+            Debug.LogError("missile Decal missing");
+
+    }
+
+    private void Start()
+    {
+        dropPoint = GlobalData.Instance.MissileDropPoint;
+        layerMask = 1 << LayerMask.NameToLayer("Platform");
+        tileScale = new Vector3(GlobalData.Instance.TileXScale, 1f, GlobalData.Instance.TileZScale);
+    }
+
+    private void FixedUpdate()
+    {
+        Vector3 position = transform.position;
+
+        Vector3 downDirection = Vector3.down;
+
+        Debug.DrawRay(position, downDirection, Color.yellow);
+
+
+        int hitCount = Physics.RaycastNonAlloc(this.gameObject.transform.position, downDirection, raycastResult, 999, layerMask, QueryTriggerInteraction.Collide);
+
+        float missileheight = gameObject.transform.position.y;
+
+
+        if (hitCount > 0)
+        {
+            Debug.Log("collider in tile");
+
+            Vector3 decalPoint = raycastResult[0].point;
+            decalPoint.y += 0.15f;
+            warningDecal.transform.position = decalPoint;
+
+            float ratio = 100 - (transform.position.y / dropPoint * 100);
+
+            float scalevalue = ratio * (1f / 100f);
+            scalevalue = Mathf.Floor(scalevalue * 100f) / 100f;
+            scalevalue = Mathf.Clamp(scalevalue, 0, 1);
+
+            Vector3 parentLossyScale = transform.lossyScale;
+
+            warningDecal.transform.localScale = new Vector3(
+                (tileScale.x * scalevalue) / parentLossyScale.x,  // X 독립 보정
+                1f,                                                // Y 고정
+                (tileScale.z * scalevalue) / parentLossyScale.z   // Z 독립 보정
+            );
+
+        }
+        else
+        {
+            // Y축 미사일이 없으면 데칼 제거
+            warningDecal.transform.localScale = Vector3.zero;
+        }
     }
 
     private void OnEnable()
