@@ -437,7 +437,6 @@ public class MissileSpawner : Spawner<MissileType>
                     missileObject.transform.parent = this.transform;
                     missileObject.SetActive(false);
 
-                    missileObject.GetComponent<Missile>().MissileNumber = missileNumber;
                     missileObject.name = $"{missileObject.name}{missileNumber}";
 
                     missileNumber++;
