@@ -267,8 +267,6 @@ public class GameProgress : Singleton<GameProgress>
         Time.timeScale = 0f;
         isPlayerDead = true;
 
-        // 부활이 아닐때만 점수 기록
-        if(PlayerAlive == false)
         GameData.Instance.SaveScore(playerScore);
 
         GoogleMobileAdsController.Instance.DisplayInterstitialAd();
