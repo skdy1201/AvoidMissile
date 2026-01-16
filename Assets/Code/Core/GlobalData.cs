@@ -58,6 +58,7 @@ public class GlobalData : Singleton<GlobalData>
         get { return tilePrefab; }
         set { tilePrefab = value; }
     }
+
     #endregion
 
     #region Unity Lifecycle
