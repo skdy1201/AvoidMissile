@@ -358,6 +358,9 @@ public class ItemSpawner : Spawner<ItemType>
                 ItemPercent[i] = 101;
 
             percentStart = percentEnd;
+
+            Debug.Log($"{i}'s time Percent is {ItemPercent[i]}");
+
         }
     }
 

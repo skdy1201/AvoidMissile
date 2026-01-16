@@ -76,8 +76,6 @@ public class MissileYAxis : Missile
         scalevalue = Mathf.Floor(scalevalue);
         scalevalue = Mathf.Clamp(scalevalue, 0f, 100f);
 
-        Debug.Log($"cur missile is {this.name} scalevalue is {scalevalue}");
-
         decal.size = new Vector3(
             tileScale.x * (scalevalue / 100f),
             tileScale.z * (scalevalue / 100f),
