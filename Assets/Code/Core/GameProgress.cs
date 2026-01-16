@@ -132,7 +132,6 @@ public class GameProgress : Singleton<GameProgress>
     /// </remarks>
     public void AdRevive()
     {
-        
         GlobalData.Instance.Player.GetComponent<Player>().ActiveRevive();
         greyScale.ResetGreyScale();
 
@@ -148,8 +147,9 @@ public class GameProgress : Singleton<GameProgress>
         else
             spawnItem = false;
 
+        ItemSpawner.Instance.TakeRevive();
+
         Time.timeScale = 1f;
-        
     }
 
     #endregion
@@ -267,8 +267,6 @@ public class GameProgress : Singleton<GameProgress>
         Time.timeScale = 0f;
         isPlayerDead = true;
 
-        // 부활이 아닐때만 점수 기록
-        if(PlayerAlive == false)
         GameData.Instance.SaveScore(playerScore);
 
         GoogleMobileAdsController.Instance.DisplayInterstitialAd();

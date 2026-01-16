@@ -10,12 +10,15 @@ public class ReviveItem : Item
     {
         Debug.Log("Take Revive");
 
-        AudioController.Instance.PlayItemSound((int)ItemEffectSFX.Revive);
+        if(GameProgress.Instance.PlayerAlive == false)
+        {
+            AudioController.Instance.PlayItemSound((int)ItemEffectSFX.Revive);
 
-        ItemSpawner.Instance.TakeRevive();
+            ItemSpawner.Instance.TakeRevive();
 
-        // 부활여부 체크 갱신
-        GlobalData.Instance.Player.GetComponent<Player>().Revive = true;
+            // 부활여부 체크 갱신
+            GlobalData.Instance.Player.GetComponent<Player>().Revive = true;
+        }
     }
 
 }

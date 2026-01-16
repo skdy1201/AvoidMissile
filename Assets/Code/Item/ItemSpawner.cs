@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// ¾ÆÀÌÅÛ µ¥ÀÌÅÍ µ¿±âÈ­ ±¸Á¶Ã¼
+/// ì•„ì´í…œ ë°ì´í„° ì§ë ¬í™” êµ¬ì¡°ì²´
 /// </summary>
 public struct ItemData
 {
@@ -15,7 +15,7 @@ public struct ItemData
 }
 
 /// <summary>
-/// ¾ÆÀÌÅÛ Å¸ÀÔ ¿­°ÅÇü
+/// ì•„ì´í…œ íƒ€ì… ì—´ê±°í˜•
 /// </summary>
 public enum ItemType
 {
@@ -28,24 +28,26 @@ public enum ItemType
 };
 
 /// <summary>
-/// ¾ÆÀÌÅÛ °ü·Ã ½ºÆ÷³Ê
+/// ì•„ì´í…œ ìƒì„± ë§¤ë‹ˆì €
 /// </summary>
 /// <remarks>
-/// ¾ÆÀÌÅÛµéÀ» °ü¸® ¹× °ÔÀÓ ³» ½ºÆùÀ» ´ã´ç
+/// ì•„ì´í…œë“¤ì„ ìƒì„± ë° ê´€ë¦¬ ë° ë°˜í™˜ì„ ë‹´ë‹¹
 /// </remarks>
 public class ItemSpawner : Spawner<ItemType>
 {
     #region Serialized Fields
 
-    // ¾ÆÀÌÅÛµéÀÇ ÇÁ¸®ÆÕÀ» °ü¸®
+    // ì•„ì´í…œë“¤ì„ í”„ë¦¬íŒ¹ìœ¼ë¡œ ê´€ë¦¬
     [SerializeField] List<GameObject> ItemPrefabs;
-    
-    // Å¸ÀÏµéÀ» ·£´ıÀ¸·Î ÃßÃâÇÏ°í ½ºÆùÇÏ±â À§ÇÑ ÇÃ·§Æû
+
+    // íƒ€ì¼ë“¤ì˜ ì¢Œí‘œê°’ì„ ì €ì¥í•˜ê³  ì‚¬ìš©í•˜ê¸° ìœ„í•œ í”Œë«í¼
     [SerializeField] private Platform gamePlatform;
 
     [SerializeField] private int maxItemSpawn = 4;
 
     [SerializeField] private LinkedList<GameObject> activeItems = new LinkedList<GameObject>();
+
+    [SerializeField] private List<int> ItemPercent = new List<int>();
 
     [SerializeField] private List<int> itemNamingNumber = Enumerable.Repeat(0, System.Enum.GetValues(typeof(ItemType)).Length).ToList();
 
@@ -57,7 +59,7 @@ public class ItemSpawner : Spawner<ItemType>
 
     private List<bool> itemSpawnTies = Enumerable.Repeat(false, 100).ToList();
 
-    // ºÎÈ° ¾ÆÀÌÅÛÀ» ¸Ô¾ú´ÂÁö Ã¼Å©
+    // ë¶€í™œ ì•„ì´í…œì„ ë¨¹ì—ˆëŠ”ì§€ ì²´í¬
     private bool activeRevive = false;
 
     #endregion
@@ -74,7 +76,7 @@ public class ItemSpawner : Spawner<ItemType>
     #region Unity Lifecycle
 
     /// <summary>
-    /// »ç¸Á ÀÌº¥Æ® µî·Ï ¹× ¾ÆÀÌÅÛ Ç® ÃÊ±âÈ­
+    /// ì‚¬ë§ ì´ë²¤íŠ¸ ë“±ë¡ ë° ì˜¤ë¸Œì íŠ¸ í’€ ì´ˆê¸°í™”
     /// </summary>
     protected override void Awake()
     {
@@ -83,7 +85,7 @@ public class ItemSpawner : Spawner<ItemType>
 
         SyncItemData();
 
-        // ¾ÆÀÌÅÛ ÇÁ¸®ÆÕµéÀ» ÇÏ³ª¾¿ »ı¼ºÇØ ½ºÆ÷³Ê¿¡ Áı¾î³Ö±â
+        // ì•„ì´í…œ ìŠ¤í¬ë„ˆë“¤ì„ í•˜ë‚˜ì”© ì˜¤ë¸Œì íŠ¸ ìŠ¤í¬ë„ˆì— ë„£ì–´ë‘ê¸°
         int itemcount = System.Enum.GetValues(typeof(ItemType)).Length;
 
         Debug.Log($"item count is {itemcount}");
@@ -100,7 +102,7 @@ public class ItemSpawner : Spawner<ItemType>
             spawners[i].Enqueue(item);
         }
 
-        // ¿¡µğÅÍ¿¡¼­ÀÇ ·¹ÀÌ¾î ¼³Á¤ÀÌ ÀÌ»óÇØ, ÄÚµå·Î Á÷Á¢ ¼³Á¤
+        // ìŠ¤í¬ë„ˆì—ì„œëŠ” ë ˆì´ì–´ ì¶©ëŒì„ ë¯¸ì‚¬ì¼, ì•„ì´í…œ ê°„ì— ë¬´ì‹œ
         Physics.IgnoreLayerCollision(LayerMask.NameToLayer("GameItem"), LayerMask.NameToLayer("Missile"), true);
 
     }
@@ -115,7 +117,7 @@ public class ItemSpawner : Spawner<ItemType>
 
     #region Public Methods
 
-    // item Type¿¡ µû¶ó, Spawner¸¦ È®ÀÎÇØº¸°í, ÀÖÀ¸¸é ¹İÈ¯ ¾øÀ¸¸é »ı¼º
+    // item Typeì— ë”°ë¼, Spawnerì—ì„œ í™•ì¸í•´ë³´ê³ , ì—†ìœ¼ë©´ ìƒì„± ì•„ë‹ˆë©´ ë°˜í™˜
     public override GameObject RentSpawner(ItemType type)
     {
         GameObject item = null;
@@ -141,7 +143,7 @@ public class ItemSpawner : Spawner<ItemType>
         return item;
     }
 
-    // ´Ù½Ã Å¥¿¡ µÇµ¹·Á³õ±â
+    // ë‹¤ì‹œ íì— ë˜ëŒë ¤ì£¼ê¸°
     public override void ReturnSpawner(ItemType type, GameObject item)
     {
         item.SetActive(false);
@@ -150,7 +152,7 @@ public class ItemSpawner : Spawner<ItemType>
         itemcomponent.ResetItemAlpha();
 
 
-        // ¾ÆÀÌÅÛ ½ºÆù Ã¼Å© ¸®½ºÆ® °»½Å
+        // ì•„ì´í…œ ìŠ¤í° ì²´í¬ ë¦¬ìŠ¤íŠ¸ ê°±ì‹ 
         if(itemcomponent != null)
         {
             int spawnidx = itemcomponent.SpawnTile;
@@ -168,14 +170,14 @@ public class ItemSpawner : Spawner<ItemType>
 
     }
 
-    // ÇÃ·§Æû µî·Ï ÇÔ¼ö
+    // í”Œë«í¼ ë“±ë¡ í•¨ìˆ˜
     public void SetPlatform(Platform platform)
     {
         gamePlatform = platform;
     }
 
     /// <summary>
-    /// È®·ü´ë·Î ³ª¿À´ÂÁö ¾ÆÀÌÅÛ 100¹ø ½Ã¹Ä·¹ÀÌ¼Ç
+    /// í™•ë¥ ê³„ì‚° ì •ìƒì‘ë™ í™•ì¸ìš© 100ë²ˆ ì‹œë®¬ë ˆì´ì…˜
     /// </summary>
     public void TestPercent()
     {
@@ -189,11 +191,11 @@ public class ItemSpawner : Spawner<ItemType>
     }
 
     /// <summary>
-    /// ºÎÈ° ¾ÆÀÌÅÛÀ» ¸Ô°í È®·üÀ» ÀçÁ¶Á¤ ÇÏ±â À§ÇÑ ÇÔ¼ö
+    /// ë¶€í™œ ì•„ì´í…œì„ ë¨¹ê³  í™•ë¥ ì„ ì¬ë¶„ë°° í•˜ê¸° ìœ„í•œ í•¨ìˆ˜
     /// </summary>
     /// <remarks>
-    /// ½ºÅ³ ¶ô, ¸®¹ö½º ÄÁÆ®·Ñ, ÆÄ¿ö Á¡ÇÁ¿¡°Ô °¢°¢ 1% ¾¿ ºĞ¹è ÈÄ,
-    /// ´©Àû È®·ü Àç°è»ê
+    /// Control, Slide, Lock ì•„ì´í…œì—ê²Œ ê° 1%ì”© ë¶„ë°° í›„,
+    /// Revive í™•ë¥  ì œê±°
     /// </remarks>
     public void TakeRevive()
     {
@@ -214,7 +216,7 @@ public class ItemSpawner : Spawner<ItemType>
         itemScript = ItemPrefabs[(int)ItemType.Revive].GetComponent<Item>();
         itemScript.Percent = 0;
 
-        ReCalculateCumulativePercent();
+        CalculatePercentBoundary();
     }
 
     public override void OnPlayerDeath()
@@ -246,10 +248,10 @@ public class ItemSpawner : Spawner<ItemType>
     }
 
     /// <summary>
-    /// ¹ÙÀÌ³Ê¸® µ¥ÀÌÅÍ·Î µ¿±âÈ­ ÇØµĞ ¾ÆÀÌÅÛ ¼³Á¤ °ªÀ», ½ÇÁ¦ ÇÁ¸®ÆÕ°ú ¿¬°á
+    /// ë°”ì´ë„ˆë¦¬ ë°ì´í„°ë¡œ ì§ë ¬í™” í•´ë„ ë°ì´í„° ìœ ì§€ ì•ˆë¨, ì§ì ‘ í”„ë¦¬íŒ¹ê³¼ ì—°ë™
     /// </summary>
     /// <remarks>
-    /// ¾ÆÀÌÅÛÀÇ ÀÌ¸§À» ÅëÇØ °ªÀ» ¿¬°á
+    /// í”„ë¦¬íŒ¹ì˜ ì´ë¦„ì„ í†µí•´ ì—°ê²° ì‹œë„
     /// </remarks>
     private void SyncItemData()
     {
@@ -272,7 +274,6 @@ public class ItemSpawner : Spawner<ItemType>
            if(int.TryParse(dataPercent, out int percentint))
            {
                 curItem.Percent = percentint;
-                curItem.CumulativePercent = (percentint + curpercent);
                 curpercent += percentint;
            }
 
@@ -283,33 +284,34 @@ public class ItemSpawner : Spawner<ItemType>
                curItem.SetValue(valuefloat);
            }
 
-           
            if(float.TryParse(dataTime, out float timefloat))
            {
                curItem.SetTime(timefloat);
            }
+
+            ItemPercent[i] = curItem.Percent;
        }
+
+        CalculatePercentBoundary();
     }
 
+    /// <summary>
+    /// ëœë¤ê°’ì— ë”°ë¥¸ í™•ë¥ ì„ ê³„ì‚°í•˜ëŠ” í•¨ìˆ˜
+    /// </summary>
+    /// <param name="value">ëœë¤ ìƒì„±ëœ ê°’</param>
+    /// <returns>í™•ë¥  ê³„ì‚°ìœ¼ë¡œ ì„ íƒëœ ì•„ì´í…œ index</returns>
     private int CalculatePercent(int value)
     {
         int itemIndex = 0;
 
         int percentStart = 0;
-        int percentEnd = 0;
 
         for(int i = 0; i < ItemPrefabs.Count; ++i)
         {
-            Item currentItem = ItemPrefabs[i].GetComponent<Item>();
+            // ItemPercent[i]ëŠ” ì´ë¯¸ ëˆ„ì  ê²½ê³„ê°’
+            int percentEnd = ItemPercent[i];
 
-            if(currentItem == null)
-            {
-                Debug.LogError("Not Item in ItemPrefabs");
-            }
-
-            percentEnd = currentItem.CumulativePercent;
-
-            if (percentStart < value && value <= percentEnd)
+            if (percentStart <= value && value < percentEnd)
             {
                 itemIndex = i;
                 break;
@@ -324,30 +326,30 @@ public class ItemSpawner : Spawner<ItemType>
     }
 
     /// <summary>
-    /// È®·ü Àç°è»ê ÇÔ¼ö
+    /// ì•„ì´í…œ í™•ë¥  ê³„ì‚°
     /// </summary>
     /// <remarks>
-    /// ºÎÈ° ¾ÆÀÌÅÛÀ» ÇÑ ¹ø ¸ÔÀ¸¸é È®·üÀ» 0À¸·Î ¸¸µé¾î¾ß ÇÑ´Ù.
-    /// ÀÌÈÄ ·£´ı ¼±ÅÃ½Ã ¹üÀ§¿¡ µé¾î°¡Áö ¾Êµµ·Ï ´©ÀûÈ®·üÀ» Á¶Á¤
+    /// 
     /// </remarks>
-    private void ReCalculateCumulativePercent()
+    private void CalculatePercentBoundary()
     {
-        // ´©Àû È®·ü
         int percentStart = 0;
 
         for (int i = 0; i < ItemPrefabs.Count; ++i)
         {
             Item currentItem = ItemPrefabs[i].GetComponent<Item>();
+            
+            int percentEnd = percentStart + currentItem.Percent;
 
-            currentItem.CumulativePercent = percentStart + currentItem.Percent;
+            ItemPercent[i] = percentEnd;
 
-            // ½ºÆùÈ®·üÀÌ 0ÀÌ¸é, Random.Value¿¡¼­ ³ª¿ÀÁö ¾Êµµ·Ï ´©ÀûÈ®·ü Á¶Á¤(0 ~ 100)
+            // í™•ë¥ ì´ 0 ~ 100ê¹Œì§€ì´ê¸° ë•Œë¬¸ì—, ì‚¬ìš©í•˜ì§€ ì•ŠëŠ” ì•„ì´í…œì€ 101ë¡œ ë§Œë“¬
             if (currentItem.Percent == 0)
-                currentItem.CumulativePercent = 101;
-            else
-                percentStart = currentItem.CumulativePercent;
+                ItemPercent[i] = 101;
 
-            Debug.Log($"item cumulativePercent is {currentItem.CumulativePercent}");
+            percentStart = percentEnd;
+
+            Debug.Log($"{i}'s time Percent is {ItemPercent[i]}");
 
         }
     }
@@ -357,7 +359,7 @@ public class ItemSpawner : Spawner<ItemType>
     #region Coroutines
 
     /// <summary>
-    /// ¾ÆÀÌÅÛ ½ºÆù ·çÇÁ
+    /// ì•„ì´í…œ ìŠ¤í° ë£¨í”„
     /// </summary>
     IEnumerator ItemSpawnLoop()
     {
@@ -371,7 +373,7 @@ public class ItemSpawner : Spawner<ItemType>
 
                 bool researchFail = false;
 
-                // 3¹ø ´Ù½Ã Ã£´Âµ¥ Áßº¹ÀÌ¶ó¸é ±×³É ³Ñ¾î°¡±â
+                // 3ï¿½ï¿½ ï¿½Ù½ï¿½ Ã£ï¿½Âµï¿½ ï¿½ßºï¿½ï¿½Ì¶ï¿½ï¿½ ï¿½×³ï¿½ ï¿½Ñ¾î°¡ï¿½ï¿½
                 if (itemSpawnTies[randomrange] == true)
                 {
                     int count = 3;
@@ -389,13 +391,13 @@ public class ItemSpawner : Spawner<ItemType>
                 if (researchFail)
                     continue;
 
-                // Å¸ÀÏ Ã¼Å©
+                // íƒ€ì¼ ì²´í¬
                 itemSpawnTies[randomrange] = true;
 
                 int itemPercent = (int)(Random.value * 100);
                 int itemType = CalculatePercent(itemPercent);
 
-                // ½ºÆù À§Ä¡ ÀçÁ¶Á¤
+                // ìŠ¤í° ìœ„ì¹˜ ê³„ì‚°ìš©
                 Vector3 tilePos = gamePlatform.GetTile(randomrange).transform.position;
                 tilePos.y += 2f;
                 tilePos.x -= GlobalData.Instance.TileXScale / 2f;
