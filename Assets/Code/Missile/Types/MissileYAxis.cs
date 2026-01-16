@@ -1,32 +1,29 @@
-using NUnit.Framework;
-using System.Collections;
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 /// <summary>
-/// YÃà ¹Ì»çÀÏ ½ºÅ©¸³Æ®
+/// Yì¶• ë¯¸ì‚¬ì¼ ìŠ¤í¬ë¦½íŠ¸
 /// </summary>
 public class MissileYAxis : Missile
 {
     #region Serialized Fields
-    
+
     [SerializeField] public Vector2 XZCoord = new Vector2();
     [SerializeField] private Material missileMaterial;
 
     [SerializeField] private GameObject warningDecal;
+    [SerializeField] private DecalProjector decal;
+    [SerializeField] private float platformY;
 
     #endregion
 
     #region Private/Protected Fields
 
-    private RaycastHit[] raycastResult = new RaycastHit[1];
-
     private float dropPoint;
 
-    private int layerMask;
-
     [SerializeField] private Vector3 tileScale = Vector3.zero;
+
+    private const float decalYOffset = 1.1f;
     #endregion
 
     #region Properties
@@ -38,7 +35,7 @@ public class MissileYAxis : Missile
     #region Unity Lifecycle
 
     /// <summary>
-    /// Äİ¶óÀÌ´õ ÄÄÆ÷³ÍÆ® ÃÊ±âÈ­. Ãæµ¹ °¨Áö¸¦ À§ÇØ Awake¿¡¼­ Ä³½Ì
+    /// ì½œë¼ì´ë” ì»´í¬ë„ŒíŠ¸ ì´ˆê¸°í™”. ì¶©ëŒ íŒì •ì„ ìœ„í•´ Awakeì—ì„œ ìºì‹±
     /// </summary>
     protected override void Awake()
     {
@@ -52,62 +49,46 @@ public class MissileYAxis : Missile
         if (warningDecal == null)
             Debug.LogError("missile Decal missing");
 
+        decal = warningDecal.GetComponent<DecalProjector>();
+
     }
 
     private void Start()
     {
-        dropPoint = GlobalData.Instance.MissileDropPoint;
-        layerMask = 1 << LayerMask.NameToLayer("Platform");
+        dropPoint = GlobalData.Instance.MissileDropPoint - decalYOffset;
+        platformY = MissileSpawner.Instance.gamePlatform.transform.position.y;
         tileScale = new Vector3(GlobalData.Instance.TileXScale, 1f, GlobalData.Instance.TileZScale);
     }
 
     private void FixedUpdate()
     {
-        Vector3 position = transform.position;
+        // ë°ì¹¼ ìœ„ì¹˜: ìŠ¤í°ëœ íƒ€ì¼ XZ ì¢Œí‘œ + íƒ€ì¼ ë†’ì´
+        Vector3 decalPoint = new Vector3(
+            XZCoord.x,
+            platformY + decalYOffset,
+            XZCoord.y
+        );
+        warningDecal.transform.position = decalPoint;
 
-        Vector3 downDirection = Vector3.down;
+        // ë†’ì´ ê¸°ë°˜ ìŠ¤ì¼€ì¼ ê³„ì‚° (0~100)
+        float currentHeight = transform.position.y - (platformY + decalYOffset);
+        float scalevalue = 100f - (currentHeight / dropPoint * 100f);
+        scalevalue = Mathf.Floor(scalevalue);
+        scalevalue = Mathf.Clamp(scalevalue, 0f, 100f);
 
-        Debug.DrawRay(position, downDirection, Color.yellow);
+        Debug.Log($"cur missile is {this.name} scalevalue is {scalevalue}");
 
-
-        int hitCount = Physics.RaycastNonAlloc(this.gameObject.transform.position, downDirection, raycastResult, 999, layerMask, QueryTriggerInteraction.Collide);
-
-        float missileheight = gameObject.transform.position.y;
-
-
-        if (hitCount > 0)
-        {
-            Debug.Log("collider in tile");
-
-            Vector3 decalPoint = raycastResult[0].point;
-            decalPoint.y += 0.15f;
-            warningDecal.transform.position = decalPoint;
-
-            float ratio = 100 - (transform.position.y / dropPoint * 100);
-
-            float scalevalue = ratio * (1f / 100f);
-            scalevalue = Mathf.Floor(scalevalue * 100f) / 100f;
-            scalevalue = Mathf.Clamp(scalevalue, 0, 1);
-
-            Vector3 parentLossyScale = transform.lossyScale;
-
-            warningDecal.transform.localScale = new Vector3(
-                (tileScale.x * scalevalue) / parentLossyScale.x,  // X µ¶¸³ º¸Á¤
-                1f,                                                // Y °íÁ¤
-                (tileScale.z * scalevalue) / parentLossyScale.z   // Z µ¶¸³ º¸Á¤
+        decal.size = new Vector3(
+            tileScale.x * (scalevalue / 100f),
+            tileScale.z * (scalevalue / 100f),
+            0.5f
             );
-
-        }
-        else
-        {
-            // YÃà ¹Ì»çÀÏÀÌ ¾øÀ¸¸é µ¥Ä® Á¦°Å
-            warningDecal.transform.localScale = Vector3.zero;
-        }
     }
 
     private void OnEnable()
     {
         this.CollisionOther = false;
+        decal.size = Vector3.zero;
     }
 
     private void OnDestroy()
@@ -122,9 +103,9 @@ public class MissileYAxis : Missile
     public float GetMissileAlpha() => missileMaterial.color.a;
 
     /// <summary>
-    /// ¹Ì»çÀÏÀÇ ÀçÁúÀ» ¹Ù²Ş
+    /// ë¯¸ì‚¬ì¼ì˜ ë¨¸í‹°ë¦¬ì–¼ ë³€ê²½
     /// </summary>
-    /// <param name="transparent"> ÀÎÀÚ·Î µé¾î¿Â ÀçÁú</param>
+    /// <param name="transparent">íˆ¬ëª… ë¨¸í‹°ë¦¬ì–¼</param>
     public void ChangeMaterial(Material transparent)
     {
         MeshRenderer missileRenderer = this.gameObject.GetComponent<MeshRenderer>();
@@ -135,13 +116,13 @@ public class MissileYAxis : Missile
         MissileTransparent = true;
     }
 
-   /// <summary>
-   /// ¾ËÆÄ °ª º¯°æ ÇÔ¼ö
-   /// </summary>
-   /// <param name="alphaValue"> º¯°æÇÒ ¾ËÆÄ °ª</param>
+    /// <summary>
+    /// ì•ŒíŒŒ ê°’ ë³€ê²½ í•¨ìˆ˜
+    /// </summary>
+    /// <param name="alphaValue">ë³€ê²½í•  ì•ŒíŒŒ ê°’</param>
     public void ChangeAlpha(float alphaValue)
     {
-        // ÀçÁú ¿¬°áÀ» ¾ÆÁ÷ ÇÏÁö ¾Ê¾ÒÀ¸¹Ç·Î,
+        // ì•„ì§ ë¨¸í‹°ë¦¬ì–¼ì´ ì„¤ì •ë˜ì§€ ì•Šì•˜ìœ¼ë¯€ë¡œ
         if (missileMaterial == null)
             return;
 
@@ -153,25 +134,25 @@ public class MissileYAxis : Missile
     #region Private/Protected Methods
 
     /// <summary>
-    /// YÃà ¹Ì»çÀÏ Ãæµ¹
+    /// Yì¶• ë¯¸ì‚¬ì¼ ì¶©ëŒ
     /// </summary>
-    /// <param name="collision"> Ãæµ¹ÇÑ ¿ÀºêÁ§Æ® Äİ¶óÀÌ´õ </param>
+    /// <param name="collision">ì¶©ëŒí•œ ì˜¤ë¸Œì íŠ¸ ì½œë¼ì´ë”</param>
     protected override void OnCollisionEnter(Collision collision)
     {
-        // ÀÌ¹Ì Ãæµ¹ÀÎÁö È®ÀÎ
+        // ì´ë¯¸ ì¶©ëŒí–ˆëŠ”ì§€ í™•ì¸
         if (this.CollisionOther)
         {
-            return;  // ÀÌ¹Ì Ã³¸®µÊ
+            return;  // ì´ë¯¸ ì²˜ë¦¬ë¨
         }
 
         base.OnCollisionEnter(collision);
 
-        // Æø¹ß ÀÌÆåÆ®¸¦ Á¤È®ÇÑ Ãæµ¹ À§Ä¡¿¡ Ç¥½ÃÇÏ±â À§ÇØ Á¢Á¡ ÀúÀå
+        // í­ë°œ ì´í™íŠ¸ë¥¼ ì •í™•í•œ ì¶©ëŒ ìœ„ì¹˜ì— í‘œì‹œí•˜ê¸° ìœ„í•´ ì¢Œí‘œ ì €ì¥
         Vector3 contact = collision.contacts[0].point;
 
         ActiveBombEffect(contact);
 
-        // Ãæµ¹Ã¼ÀÇ ·¹ÀÌ¾î¿¡ µû¸¥ Á¶Ä¡
+        // ì¶©ëŒì²´ì˜ ë ˆì´ì–´ì— ë”°ë¼ ë¶„ê¸°
         if (collision.gameObject.layer == LayerMask.NameToLayer("Platform"))
         {
             this.CollisionOther = true;
@@ -182,21 +163,24 @@ public class MissileYAxis : Missile
         }
         else if (collision.gameObject.layer == LayerMask.NameToLayer("Missile"))
         {
-            // YÃà ¹Ì»çÀÏ°ú Ãæµ¹ÇÑ´Ù¸é, µÎ ¹Ì»çÀÏÀÇ Y °ª¿¡ µû¶ó¼­ °è¼Ó ¶³¾îÁúÁö, ¾ø¾îÁúÁö °áÁ¤ 
-            // ¾Æ·¡¿¡ ÀÖ´Â ¹Ì»çÀÏÀº ´õ °¡¼ÓÀ» ¹Ş°í ¶³¾îÁö¸ç, À§¿¡ ÀÖ´Â ¹Ì»çÀÏÀº Ç®·Î µ¹¾Æ°£´Ù.
-            // È¤½Ã³ª YÃàÀÌ ¼ø°£ÀûÀ¸·Î °¡±î¿î °æ¿ì°¡ ÀÖ´Ù¸é ÀÎ½ºÅÏ½º ID¸¦ ÅëÇÑ ºñ±³
+            // Yì¶• ë¯¸ì‚¬ì¼ê³¼ ì¶©ëŒí•œë‹¤ë©´, ë‘ ë¯¸ì‚¬ì¼ì˜ Y ê°’ì„ ë¹„êµí•´ ìœ„ì— ìˆìœ¼ë©´ í’€ì— ë°˜í™˜
+            // ë‚®ì€ ë†’ì´ì˜ ë¯¸ì‚¬ì¼ì´ë¼ë©´ ë” ë¹¨ë¦¬ ë–¨ì–´ì§
             if (collision.gameObject.GetComponent<MissileYAxis>() != null)
             {
                 float otherMissileY = collision.gameObject.transform.position.y;
 
                 if (this.gameObject.transform.position.y > otherMissileY)
                 {
-                    // ¹Ì»çÀÏ ¼Óµµ Á¶Á¤
                     Rigidbody lowerRigidBody = collision.gameObject.GetComponent<Rigidbody>();
-                    lowerRigidBody.linearDamping = Mathf.Max(lowerRigidBody.linearDamping - 0.05f,1.5f);
+
+                    // XZ ì†ë„ ì œê±° (ìˆ˜ì§ ë‚™í•˜ ìœ ì§€)
+                    lowerRigidBody.linearVelocity = new Vector3(0, lowerRigidBody.linearVelocity.y, 0);
+
+                    // ë‚™í•˜ ì†ë„ ì¦ê°€
+                    lowerRigidBody.linearDamping = Mathf.Max(lowerRigidBody.linearDamping - 0.05f, 1.5f);
+
                     this.gameObject.GetComponent<Missile>().CollisionOther = true;
 
-                    // ÀÌ ¹Ì»çÀÏÀº Ç®·Î ¹İÈ¯
                     MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, this.gameObject);
                 }
             }
@@ -208,5 +192,5 @@ public class MissileYAxis : Missile
     }
 
     #endregion
- 
+
 }
