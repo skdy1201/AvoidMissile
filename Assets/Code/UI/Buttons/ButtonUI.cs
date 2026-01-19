@@ -1,20 +1,20 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 
 
 /// <summary>
-/// ¹öÆ° Å¸ÀÔ¿¡ µû¶ó ÀûÀıÇÑ ±â´ÉÀ» ÀÚµ¿À¸·Î ¿¬°á
+/// ë²„íŠ¼ íƒ€ì…ì— ë”°ë¼ ì ì ˆí•œ ê¸°ëŠ¥ì„ ìë™ìœ¼ë¡œ ì—°ê²°
 /// </summary>
 /// <remarks>
-/// Awake¿¡¼­ ÀÚµ¿À¸·Î ButtonType ¿­°ÅÇü¿¡ µû¸¥ onClick ÀÌº¥Æ®¸¦ µî·Ï
-/// ButtonFunction ½Ì±ÛÅæÀ» ÅëÇØ °ÔÀÓ Àü¹İÀÇ ¹öÆ° µ¿ÀÛÀ» Ã³¸®
+/// Awakeì—ì„œ ìë™ìœ¼ë¡œ ButtonType ì—´ê±°í˜•ì— ë”°ë¥¸ onClick ì´ë²¤íŠ¸ë¥¼ ë“±ë¡
+/// ButtonFunction ì‹±ê¸€í†¤ì„ í†µí•´ ê²Œì„ ì „ë°˜ì˜ ë²„íŠ¼ ë™ì‘ì„ ì²˜ë¦¬
 /// </remarks>
 public class ButtonUI : BaseUI, InterfaceUI
 {
     #region Serialized Fields
 
     /// <summary>
-    /// ¹öÆ° Á¾·ù¿¡ ´ëÇÑ ¿­°ÅÇü
+    /// ë²„íŠ¼ ì¢…ë¥˜ì— ëŒ€í•œ ì—´ê±°í˜•
     /// </summary>
     [SerializeField] protected ButtonType type;
     #endregion
@@ -30,11 +30,11 @@ public class ButtonUI : BaseUI, InterfaceUI
     #region Unity Lifecycle
 
     /// <summary>
-    /// ºÎ¸ğ Å¬·¡½ºÀÇ UI µî·Ï ÈÄ ¹öÆ° ÀÌº¥Æ®¸¦ ÃÊ±âÈ­ÇÕ´Ï´Ù.
+    /// ë¶€ëª¨ í´ë˜ìŠ¤ì˜ UI ë“±ë¡ í›„ ë²„íŠ¼ ì´ë²¤íŠ¸ë¥¼ ì´ˆê¸°í™”í•©ë‹ˆë‹¤.
     /// </summary>
     /// <remarks>
-    /// base.Awake()¿¡¼­ UI ¸®½ºÆ® µî·ÏÀÌ ¸ÕÀú ¼öÇà
-    /// Init()Àº ¹İµå½Ã base.Awake() È£Ãâ ÀÌÈÄ¿¡ ½ÇÇà.
+    /// base.Awake()ì—ì„œ UI ë¦¬ìŠ¤íŠ¸ ë“±ë¡ì´ ë¨¼ì € ìˆ˜í–‰
+    /// Init()ì€ ë°˜ë“œì‹œ base.Awake() í˜¸ì¶œ ì´í›„ì— ì‹¤í–‰.
     /// </remarks>
     protected override void Awake()
     {
@@ -48,11 +48,11 @@ public class ButtonUI : BaseUI, InterfaceUI
     #region Public Methods
 
     /// <summary>
-    /// ¹öÆ° Å¸ÀÔ¿¡ µû¶ó onClick ÀÌº¥Æ® ¸®½º³Ê¸¦ µî·Ï.
+    /// ë²„íŠ¼ íƒ€ì…ì— ë”°ë¼ onClick ì´ë²¤íŠ¸ ë¦¬ìŠ¤ë„ˆë¥¼ ë“±ë¡.
     /// </summary>
     /// <remarks>
-    /// Button ÄÄÆ÷³ÍÆ®°¡ ¾øÀ» °æ¿ì ¾Æ¹« µ¿ÀÛ x.
-    /// °¢ ButtonType¿¡ ´ëÀÀÇÏ´Â ButtonFunction ¸Ş¼­µå¸¦ ÀÚµ¿À¸·Î ¿¬°á.
+    /// Button ì»´í¬ë„ŒíŠ¸ê°€ ì—†ì„ ê²½ìš° ì•„ë¬´ ë™ì‘ x.
+    /// ê° ButtonTypeì— ëŒ€ì‘í•˜ëŠ” ButtonFunction ë©”ì„œë“œë¥¼ ìë™ìœ¼ë¡œ ì—°ê²°.
     /// </remarks>
     public virtual void Init()
     {

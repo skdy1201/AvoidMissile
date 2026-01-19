@@ -1,14 +1,14 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-//TODO : SetResolutioinÀ» ¾È½è´ø ÀÌÀ¯ Ã£¾Æº¸±â
+//TODO : SetResolutioinì„ ì•ˆì¼ë˜ ì´ìœ  ì°¾ì•„ë³´ê¸°
 
 /// <summary>
-/// È­¸é ºñÀ²À» 16:9·Î °íÁ¤ÇÏ°í, ´Ù¸¥ ºñÀ²ÀÇ È­¸é¿¡´Â ·¹ÅÍ¹Ú½º¸¦ Ãß°¡.
+/// í™”ë©´ ë¹„ìœ¨ì„ 16:9ë¡œ ê³ ì •í•˜ê³ , ë‹¤ë¥¸ ë¹„ìœ¨ì˜ í™”ë©´ì—ëŠ” ë ˆí„°ë°•ìŠ¤ë¥¼ ì¶”ê°€.
 /// </summary>
 /// <remarks>
-/// È­¸éÀÌ 16:9º¸´Ù ³ĞÀ¸¸é ÁÂ¿ì¿¡, Á¼À¸¸é »óÇÏ¿¡ °ËÀº ¿©¹é »ı¼º
+/// í™”ë©´ì´ 16:9ë³´ë‹¤ ë„“ìœ¼ë©´ ì¢Œìš°ì—, ì¢ìœ¼ë©´ ìƒí•˜ì— ê²€ì€ ì—¬ë°± ìƒì„±
 /// </remarks>
 public class CameraController : MonoBehaviour
 {
@@ -25,13 +25,13 @@ public class CameraController : MonoBehaviour
     {
         Camera mainCamera = GetComponent<Camera>();
         
-        // Á¾ÇöÀç È­¸é ºñÀ²°ú ¸ñÇ¥ ºñÀ²(16:9)À» ºñ±³ÇÏ¿© ½ºÄÉÀÏ °è»ê
+        // ì¢…í˜„ì¬ í™”ë©´ ë¹„ìœ¨ê³¼ ëª©í‘œ ë¹„ìœ¨(16:9)ì„ ë¹„êµí•˜ì—¬ ìŠ¤ì¼€ì¼ ê³„ì‚°
         Rect cameraRect = mainCamera.rect;
         
         float heightScale = ((float)Screen.width / Screen.height) / TargetAspectRatio;
         float widthScale = 1f / heightScale;
         
-        // È­¸éÀÌ 16:9º¸´Ù ¼¼·Î·Î ±ä °æ¿ì »óÇÏ¿¡, °¡·Î·Î ±ä °æ¿ì ÁÂ¿ì¿¡ ·¹ÅÍ¹Ú½º Ãß°¡
+        // í™”ë©´ì´ 16:9ë³´ë‹¤ ì„¸ë¡œë¡œ ê¸´ ê²½ìš° ìƒí•˜ì—, ê°€ë¡œë¡œ ê¸´ ê²½ìš° ì¢Œìš°ì— ë ˆí„°ë°•ìŠ¤ ì¶”ê°€
         if (heightScale < 1)
         {
             cameraRect.height = heightScale;

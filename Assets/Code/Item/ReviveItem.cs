@@ -1,10 +1,10 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.Events;
 
 public class ReviveItem : Item
 {
     /// <summary>
-    /// ºÎÈ°Àº °ÔÀÓ ´ç ÇÑ¹ø ¸¸ ÀÛµ¿ÇÏ°Ô ÇÏ±â À§ÇØ, ¾ÆÀÌÅÛÀ» ¸ÔÀ¸¸é È®·üÀ» ÀçÁ¶Á¤
+    /// ë¶€í™œì€ ê²Œì„ ë‹¹ í•œë²ˆ ë§Œ ì‘ë™í•˜ê²Œ í•˜ê¸° ìœ„í•´, ì•„ì´í…œì„ ë¨¹ìœ¼ë©´ í™•ë¥ ì„ ì¬ì¡°ì •
     /// </summary>
     public override void EffectItem()
     {
@@ -16,7 +16,7 @@ public class ReviveItem : Item
 
             ItemSpawner.Instance.TakeRevive();
 
-            // ºÎÈ°¿©ºÎ Ã¼Å© °»½Å
+            // ë¶€í™œì—¬ë¶€ ì²´í¬ ê°±ì‹ 
             GlobalData.Instance.Player.GetComponent<Player>().Revive = true;
         }
     }

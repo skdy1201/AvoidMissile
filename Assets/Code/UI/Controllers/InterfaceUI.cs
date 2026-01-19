@@ -1,7 +1,7 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 /// <summary>
-/// UIµéÀÌ °¢ÀÚÀÇ Init ÇÔ¼ö¸¦ °®°Ô ÇÏ±â À§ÇÑ ÀÎÅÍÆäÀÌ½º
+/// UIë“¤ì´ ê°ìì˜ Init í•¨ìˆ˜ë¥¼ ê°–ê²Œ í•˜ê¸° ìœ„í•œ ì¸í„°í˜ì´ìŠ¤
 /// </summary>
 public interface InterfaceUI
 {

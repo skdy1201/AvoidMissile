@@ -1,13 +1,13 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// ½ºÅ³ Àá±İÀ» Ç¥½ÃÇØÁÖ´Â UI¾Ö´Ï¸ŞÀÌ¼Ç
+/// ìŠ¤í‚¬ ì ê¸ˆì„ í‘œì‹œí•´ì£¼ëŠ” UIì• ë‹ˆë©”ì´ì…˜
 /// </summary>
 /// <remarks>
-/// Canvas¿¡¼­´Â SpriteRender¸¦ »ç¿ëÇÏÁö ¸øÇØ ÇÏ³ª¾¿ Á÷Á¢ º¯°æ
+/// Canvasì—ì„œëŠ” SpriteRenderë¥¼ ì‚¬ìš©í•˜ì§€ ëª»í•´ í•˜ë‚˜ì”© ì§ì ‘ ë³€ê²½
 /// </remarks>
 public class LockUI : MonoBehaviour
 {
@@ -15,7 +15,7 @@ public class LockUI : MonoBehaviour
     #region Serialized Fields
 
     /// <summary>
-    /// ¾Ö´Ï¸ŞÀÌ¼ÇÀ» Àç»ıÇÒ ½ºÇÁ¶óÀÌÆ® 
+    /// ì• ë‹ˆë©”ì´ì…˜ì„ ì¬ìƒí•  ìŠ¤í”„ë¼ì´íŠ¸ 
     /// </summary>
     [SerializeField] private List<Sprite> Sprites = new List<Sprite>();
 
@@ -23,12 +23,12 @@ public class LockUI : MonoBehaviour
 
     #region Private/Protected Fields
 
-    // ÇöÀç UI°¡ Ãâ·ÂÇÏ´Â ÀÌ¹ÌÁö
+    // í˜„ì¬ UIê°€ ì¶œë ¥í•˜ëŠ” ì´ë¯¸ì§€
     private Image image;
 
     private Button parentButton;
 
-    // ¿¡´Ï¸ŞÀÌ¼Ç °ü·Ã º¯¼ö
+    // ì—ë‹ˆë©”ì´ì…˜ ê´€ë ¨ ë³€ìˆ˜
     private bool animFinish = false;
     private int animIndex = 0;
 
@@ -40,7 +40,7 @@ public class LockUI : MonoBehaviour
     #region Unity Lifecycle
 
     /// <summary>
-    /// private º¯¼ö ¿¬°á ¹× Àá±İ½ÃÅ³ UI¿Í ¿¬°á
+    /// private ë³€ìˆ˜ ì—°ê²° ë° ì ê¸ˆì‹œí‚¬ UIì™€ ì—°ê²°
     /// </summary>
     private void Awake()
     {
@@ -60,7 +60,7 @@ public class LockUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ½ºÅ³ »ç¿ëÀÌ ±İÁö µÉµ¿¾È, »óÈ£ÀÛ¿ë ¹× ¹öÆ° »ö º¯°æÀ» ¹æÁö
+    /// ìŠ¤í‚¬ ì‚¬ìš©ì´ ê¸ˆì§€ ë ë™ì•ˆ, ìƒí˜¸ì‘ìš© ë° ë²„íŠ¼ ìƒ‰ ë³€ê²½ì„ ë°©ì§€
     /// </summary>
     private void OnEnable()
     {
@@ -74,7 +74,7 @@ public class LockUI : MonoBehaviour
     #region Public Methods
 
     /// <summary>
-    /// ¿¬°áÇÑ ¹öÆ°¿¡¼­ Àá±İ ¾Ö´Ï¸ŞÀÌ¼ÇÀ» È°¼ºÈ­ ½ÃÅ°±â À§ÇÑ public ÇÔ¼ö
+    /// ì—°ê²°í•œ ë²„íŠ¼ì—ì„œ ì ê¸ˆ ì• ë‹ˆë©”ì´ì…˜ì„ í™œì„±í™” ì‹œí‚¤ê¸° ìœ„í•œ public í•¨ìˆ˜
     /// </summary>
     public void OnLockUI()
     {
@@ -82,15 +82,15 @@ public class LockUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Àá±İ ¾Ö´Ï¸ŞÀÌ¼ÇÀÌ ³¡³ª°í, ¼³Á¤À» µÇµ¹¸®±â
+    /// ì ê¸ˆ ì• ë‹ˆë©”ì´ì…˜ì´ ëë‚˜ê³ , ì„¤ì •ì„ ë˜ëŒë¦¬ê¸°
     /// </summary>
     public void OffLockUI()
     {
-        // ¹öÆ° ÃÊ±â ¼³Á¤À¸·Î º¹±¸
+        // ë²„íŠ¼ ì´ˆê¸° ì„¤ì •ìœ¼ë¡œ ë³µêµ¬
         parentButton.interactable = true;
         parentButton.transition = Selectable.Transition.ColorTint;
 
-        // ¾Ö´Ï¸ŞÀÌ¼Ç ÃÊ±âÈ­
+        // ì• ë‹ˆë©”ì´ì…˜ ì´ˆê¸°í™”
         animIndex = 0;
         image.sprite = Sprites[animIndex];
         animFinish = false;
@@ -104,7 +104,7 @@ public class LockUI : MonoBehaviour
     #region Coroutines
 
     /// <summary>
-    /// Àá±İ ¾Ö´Ï¸ŞÀÌ¼Ç ÄÚ·çÆ¾
+    /// ì ê¸ˆ ì• ë‹ˆë©”ì´ì…˜ ì½”ë£¨í‹´
     /// </summary>
     IEnumerator LockAnimation()
     {

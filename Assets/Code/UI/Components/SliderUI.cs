@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;   
 
@@ -10,16 +10,16 @@ public enum OptionType
     EffectSound,
 }
 
-//TODO : OnEnable , ½½¶óÀÌ´õ ½Ç½Ã°£ ½ÌÅ©?
-// Project °ËÅä Âü°í
+//TODO : OnEnable , ìŠ¬ë¼ì´ë” ì‹¤ì‹œê°„ ì‹±í¬?
+// Project ê²€í†  ì°¸ê³ 
 
 
 /// <summary>
-/// ½½¶óÀÌ´õ UI
+/// ìŠ¬ë¼ì´ë” UI
 /// </summary>
 /// <remarks>
-/// ¿­°ÅÇü Å¸ÀÔ°ú ½½¶óÀÌ´õÀÇ °ªÀ» ¿¬°á
-/// ½½¶óÀÌ´õÀÇ º¯È­¸¦ °ü¸®
+/// ì—´ê±°í˜• íƒ€ì…ê³¼ ìŠ¬ë¼ì´ë”ì˜ ê°’ì„ ì—°ê²°
+/// ìŠ¬ë¼ì´ë”ì˜ ë³€í™”ë¥¼ ê´€ë¦¬
 /// </remarks>
 public class SliderUI : BaseUI, InterfaceUI
 {
@@ -31,7 +31,7 @@ public class SliderUI : BaseUI, InterfaceUI
     [Header("Slider Value")]
 
     /// <summary>
-    /// µğ¹ö±×¿ë Á÷·ÄÈ­ º¯¼ö ¹× GameData¿Í Slider¸¦ ¿¬°áÇØÁÖ´Â Áß°£ º¯¼ö
+    /// ë””ë²„ê·¸ìš© ì§ë ¬í™” ë³€ìˆ˜ ë° GameDataì™€ Sliderë¥¼ ì—°ê²°í•´ì£¼ëŠ” ì¤‘ê°„ ë³€ìˆ˜
     /// </summary>
     [SerializeField] float sliderValue;
 
@@ -48,7 +48,7 @@ public class SliderUI : BaseUI, InterfaceUI
     #region Private/Protected Fields
 
     /// <summary>
-    /// ½½¶óÀÌ´õ °ª°ú fvalue¸¦ µ¿±âÈ­ ½ÃÅ°±â À§ÇÑ º¯¼ö
+    /// ìŠ¬ë¼ì´ë” ê°’ê³¼ fvalueë¥¼ ë™ê¸°í™” ì‹œí‚¤ê¸° ìœ„í•œ ë³€ìˆ˜
     /// </summary>
     private bool isInitialized = false;
 
@@ -63,7 +63,7 @@ public class SliderUI : BaseUI, InterfaceUI
     }
 
     /// <summary>
-    /// Ã³À½ µ¿ÀÛÀÌ µÈ´Ù¸é, ½½¶óÀÌ´õÀÇ °ªÀ» GameData¿¡¼­ ¹Ş¾Æ¿Í¼­ µ¿±âÈ­ ½ÃÅ´.
+    /// ì²˜ìŒ ë™ì‘ì´ ëœë‹¤ë©´, ìŠ¬ë¼ì´ë”ì˜ ê°’ì„ GameDataì—ì„œ ë°›ì•„ì™€ì„œ ë™ê¸°í™” ì‹œí‚´.
     /// </summary>
     void Update()
     {
@@ -79,8 +79,8 @@ public class SliderUI : BaseUI, InterfaceUI
     #region Public Methods
 
     /// <summary>
-    /// ½½¶óÀÌ´õ Å¸ÀÔ¿¡¼­ °ªÀ» ¹Ş¾Æ¿À°í,
-    /// ÀúÀå ¹öÆ°°ú Ãë¼Ò ¹öÆ°ÀÇ ÀÌº¥Æ® µî·Ï
+    /// ìŠ¬ë¼ì´ë” íƒ€ì…ì—ì„œ ê°’ì„ ë°›ì•„ì˜¤ê³ ,
+    /// ì €ì¥ ë²„íŠ¼ê³¼ ì·¨ì†Œ ë²„íŠ¼ì˜ ì´ë²¤íŠ¸ ë“±ë¡
     /// </summary>
     public void Init()
     {
@@ -101,7 +101,7 @@ public class SliderUI : BaseUI, InterfaceUI
     #region Private/Protected Methods
 
     /// <summary>
-    /// ¹Ù²Û ½½¶óÀÌ´õ °ªÀ» ÀúÀå.
+    /// ë°”ê¾¼ ìŠ¬ë¼ì´ë” ê°’ì„ ì €ì¥.
     /// </summary>
     private void SaveChnageValue()
     {
@@ -113,7 +113,7 @@ public class SliderUI : BaseUI, InterfaceUI
     }
 
     /// <summary>
-    /// Ãë¼Ò ¹öÆ°À» ´­·µÀ» ¶§, °ªÀ» ±âÁ¸°ªÀ» ±×´ë·Î À¯Áö.
+    /// ì·¨ì†Œ ë²„íŠ¼ì„ ëˆŒëŸ¿ì„ ë•Œ, ê°’ì„ ê¸°ì¡´ê°’ì„ ê·¸ëŒ€ë¡œ ìœ ì§€.
     /// </summary>
     private void CancelChanges()
     {
@@ -124,7 +124,7 @@ public class SliderUI : BaseUI, InterfaceUI
     }
 
     /// <summary>
-    /// ½½¶óÀÌ´õÀÇ °ªÀ» ±âÁ¸¿¡ ÀúÀåÇß´ø °ª°ú µ¿±âÈ­ ½ÃÅ´.
+    /// ìŠ¬ë¼ì´ë”ì˜ ê°’ì„ ê¸°ì¡´ì— ì €ì¥í–ˆë˜ ê°’ê³¼ ë™ê¸°í™” ì‹œí‚´.
     /// </summary>
     private void SyncSlider()
     {

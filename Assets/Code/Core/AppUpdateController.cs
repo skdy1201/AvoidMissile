@@ -1,14 +1,14 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using Google.Play.AppUpdate;
 using Google.Play.Common;
 using System.Collections;
 
 /// <summary>
-/// ÀÎ ¾Û ¾÷µ¥ÀÌÆ®¸¦ ´ã´çÇÏ´Â ÄÁÆ®·Ñ·¯
+/// ì¸ ì•± ì—…ë°ì´íŠ¸ë¥¼ ë‹´ë‹¹í•˜ëŠ” ì»¨íŠ¸ë¡¤ëŸ¬
 /// </summary>
 /// <remarks>
-/// Google Play¿¡¼­ Á¦°øÇØÁÖ´Â ¸Å´ÏÀú¸¦ ÀÌ¿ëÇØ
-/// ¾÷µ¥ÀÌÆ® ¿©ºÎ¸¦ Ã¼Å©ÇÑ µÚ, »óÈ²¿¡ µû¸¥ Á¶Ä¡ ¼öÇà
+/// Google Playì—ì„œ ì œê³µí•´ì£¼ëŠ” ë§¤ë‹ˆì €ë¥¼ ì´ìš©í•´
+/// ì—…ë°ì´íŠ¸ ì—¬ë¶€ë¥¼ ì²´í¬í•œ ë’¤, ìƒí™©ì— ë”°ë¥¸ ì¡°ì¹˜ ìˆ˜í–‰
 /// </remarks>
 public class AppUpdateController : Singleton<AppUpdateController>
 {

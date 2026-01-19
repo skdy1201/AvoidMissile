@@ -1,20 +1,20 @@
-using System.Runtime.CompilerServices;
+ï»¿using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
-/// PlayerÀÇ ÀÌµ¿¼Óµµ¸¦ Á¶Á¤ÇÏ´Â ¾ÆÀÌÅÛ
+/// Playerì˜ ì´ë™ì†ë„ë¥¼ ì¡°ì •í•˜ëŠ” ì•„ì´í…œ
 /// </summary>
 /// <remakrs>
-/// ¹öÇÁ, ³ÊÇÁ »ó°ü ¾øÀÌ »ç¿ëÇÒ ¼ö ÀÖµµ·Ï ¼öÄ¡¸¦ ÅëÇØ ±¸º°
-/// °¢ ÀÌµ¿¼Óµµ °ü·Ã ¾ÆÀÌÅÛÀº ÇØ´ç ½ºÅ©¸³Æ®¸¦ °¡Áü
+/// ë²„í”„, ë„ˆí”„ ìƒê´€ ì—†ì´ ì‚¬ìš©í•  ìˆ˜ ìˆë„ë¡ ìˆ˜ì¹˜ë¥¼ í†µí•´ êµ¬ë³„
+/// ê° ì´ë™ì†ë„ ê´€ë ¨ ì•„ì´í…œì€ í•´ë‹¹ ìŠ¤í¬ë¦½íŠ¸ë¥¼ ê°€ì§
 /// </remakrs>
 public class MoveFast : Item
 {
     #region Public Methods
 
     /// <summary>
-    /// PlayerÀÇ ¼Óµµ¸¦ Á¶Àı
+    /// Playerì˜ ì†ë„ë¥¼ ì¡°ì ˆ
     /// </summary>
     public override void EffectItem()
     {

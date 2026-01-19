@@ -1,13 +1,13 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections.Generic;
 
 
 /// <summary>
-/// °ÔÀÓ ³» ÇÃ·¹ÀÌ¾î ¼øÀ§¸¦ Ç¥½ÃÇÏ´Â ¸®´õº¸µå UI °ü¸®
+/// ê²Œì„ ë‚´ í”Œë ˆì´ì–´ ìˆœìœ„ë¥¼ í‘œì‹œí•˜ëŠ” ë¦¬ë”ë³´ë“œ UI ê´€ë¦¬
 /// </summary>
 /// <remarks>
-/// UI È°¼ºÈ­ ½Ã ÀÚµ¿À¸·Î ÃÖ½Å ¼øÀ§ Á¤º¸¸¦ °»½Å.
-/// RankUI ÄÄÆ÷³ÍÆ®µéÀ» °ü¸®
+/// UI í™œì„±í™” ì‹œ ìë™ìœ¼ë¡œ ìµœì‹  ìˆœìœ„ ì •ë³´ë¥¼ ê°±ì‹ .
+/// RankUI ì»´í¬ë„ŒíŠ¸ë“¤ì„ ê´€ë¦¬
 /// </remarks>
 public class LeaderBoardUI : BaseUI, InterfaceUI
 {
@@ -20,7 +20,7 @@ public class LeaderBoardUI : BaseUI, InterfaceUI
     #region Private/Protected Fields
 
     /// <summary>
-    /// rank UI ¿ÀºêÁ§Æ®µéÀ» ´ã´Â ¸®½ºÆ®
+    /// rank UI ì˜¤ë¸Œì íŠ¸ë“¤ì„ ë‹´ëŠ” ë¦¬ìŠ¤íŠ¸
     /// </summary>
     /// <remarks>
     /// 
@@ -32,21 +32,21 @@ public class LeaderBoardUI : BaseUI, InterfaceUI
     #region Unity Lifecycle
 
     /// <summary>
-    /// ¸®´õº¸µå UI ½ºÅ©¸³Æ®ÀÇ Awake
+    /// ë¦¬ë”ë³´ë“œ UI ìŠ¤í¬ë¦½íŠ¸ì˜ Awake
     /// </summary>
     /// <remarks>
-    /// ÇöÀç UI ¸®½ºÆ®¿¡ µî·ÏÇØµĞ´Ù.
-    /// ÀÚ½Ä ¿ÀºêÁ§Æ®·Î Á¸ÀçÇÏ´Â RankUIµéÀ» ¸®½ºÆ®·Î Á¤·ÄÇØ¼­ °ü¸®ÇØµĞ´Ù.
-    /// getname mainthread ¹ö±×·Î ÀÎÇØ º¯°æµÈ ±¸Á¶
+    /// í˜„ì¬ UI ë¦¬ìŠ¤íŠ¸ì— ë“±ë¡í•´ë‘”ë‹¤.
+    /// ìì‹ ì˜¤ë¸Œì íŠ¸ë¡œ ì¡´ì¬í•˜ëŠ” RankUIë“¤ì„ ë¦¬ìŠ¤íŠ¸ë¡œ ì •ë ¬í•´ì„œ ê´€ë¦¬í•´ë‘”ë‹¤.
+    /// getname mainthread ë²„ê·¸ë¡œ ì¸í•´ ë³€ê²½ëœ êµ¬ì¡°
     /// </remarks>
     protected override void Awake()
     {
         base.Awake();
 
-        // ÀÚ½Ä RankUI ÄÄÆ÷³ÍÆ® ¸ğµÎ Ã£±â
+        // ìì‹ RankUI ì»´í¬ë„ŒíŠ¸ ëª¨ë‘ ì°¾ê¸°
         rankUIs = new List<RankUI>(GetComponentsInChildren<RankUI>());
 
-        // rankIndex ¼ø¼­´ë·Î Á¤·Ä (1~5¶ó¸é)
+        // rankIndex ìˆœì„œëŒ€ë¡œ ì •ë ¬ (1~5ë¼ë©´)
         rankUIs.Sort((a, b) => a.Rank.CompareTo(b.Rank));
 
     }
@@ -56,21 +56,21 @@ public class LeaderBoardUI : BaseUI, InterfaceUI
     #region Public Methods
 
     /// <summary>
-    /// UI ÃÊ±âÈ­ ÀÛ¾÷À» ¼öÇà.
+    /// UI ì´ˆê¸°í™” ì‘ì—…ì„ ìˆ˜í–‰.
     /// </summary>
     /// <remarks>
-    /// InterfaceUI ÀÎÅÍÆäÀÌ½º ±¸ÇöÀ» À§ÇØ Á¸Àç. 
-    /// ÇöÀç´Â Awake¿¡¼­ ÃÊ±âÈ­°¡ ¿Ï·á.
+    /// InterfaceUI ì¸í„°í˜ì´ìŠ¤ êµ¬í˜„ì„ ìœ„í•´ ì¡´ì¬. 
+    /// í˜„ì¬ëŠ” Awakeì—ì„œ ì´ˆê¸°í™”ê°€ ì™„ë£Œ.
     /// </remarks>
     public void Init()
     {
     }
 
     /// <summary>
-    /// È°¼ºÈ­ »óÅÂ¶ó¸é, ·©Å© ¸®½ºÆ®µéÀÌ ·©Å©¸¦ °»½ÅÇÏµµ·Ï ÇÑ´Ù.
+    /// í™œì„±í™” ìƒíƒœë¼ë©´, ë­í¬ ë¦¬ìŠ¤íŠ¸ë“¤ì´ ë­í¬ë¥¼ ê°±ì‹ í•˜ë„ë¡ í•œë‹¤.
     /// </summary>
-    /// <param name="uiFlag"> UI »óÅÂ¸¦ ³ªÅ¸³»´Â ÇÃ·¡±× °ª </param>
-    /// <param name="active"> UI È°¼ºÈ­ ¿©ºÎ </param>
+    /// <param name="uiFlag"> UI ìƒíƒœë¥¼ ë‚˜íƒ€ë‚´ëŠ” í”Œë˜ê·¸ ê°’ </param>
+    /// <param name="active"> UI í™œì„±í™” ì—¬ë¶€ </param>
     public override void CheckActiveCondition(int uiFlag, bool active)
     {
         base.CheckActiveCondition(uiFlag, active);
@@ -91,7 +91,7 @@ public class LeaderBoardUI : BaseUI, InterfaceUI
     #region Private/Protected Methods
 
     /// <summary>
-    /// ¸ğµç RankUI ÄÄÆ÷³ÍÆ®ÀÇ ¼øÀ§ Á¤º¸¸¦ °»½ÅÇÕ´Ï´Ù
+    /// ëª¨ë“  RankUI ì»´í¬ë„ŒíŠ¸ì˜ ìˆœìœ„ ì •ë³´ë¥¼ ê°±ì‹ í•©ë‹ˆë‹¤
     /// </summary>
     private void RenewRank()
     {

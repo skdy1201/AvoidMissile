@@ -1,11 +1,11 @@
-using Unity.IntegerTime;
+ï»¿using Unity.IntegerTime;
 using UnityEngine;
 
 /// <summary>
-/// MissileµéÀÇ ÃÖ»óÀ§ ½ºÅ©¸³Æ®
+/// Missileë“¤ì˜ ìµœìƒìœ„ ìŠ¤í¬ë¦½íŠ¸
 /// </summary>
 /// <remarks>
-/// ¹Ì»çÀÏ Äİ¶óÀÌ´õ
+/// ë¯¸ì‚¬ì¼ ì½œë¼ì´ë”
 /// </remarks>
 public class Missile : MonoBehaviour
 {
@@ -46,7 +46,7 @@ public class Missile : MonoBehaviour
     #region Unity Lifecycle
 
     /// <summary>
-    /// Ãæµ¹ ·¹ÀÌ¾î ¼³Á¤
+    /// ì¶©ëŒ ë ˆì´ì–´ ì„¤ì •
     /// </summary>
     protected virtual void Awake()
     {
@@ -58,12 +58,12 @@ public class Missile : MonoBehaviour
     #region Public Methods
 
     /// <summary>
-    /// Ãæµ¹ ÁöÁ¡ÀÇ Æø¹ß È¿°ú¸¦ µ¿ÀÛ½ÃÅ°±â À§ÇÑ ÇÔ¼ö
+    /// ì¶©ëŒ ì§€ì ì˜ í­ë°œ íš¨ê³¼ë¥¼ ë™ì‘ì‹œí‚¤ê¸° ìœ„í•œ í•¨ìˆ˜
     /// </summary>
-    /// <param name="targetPosition"> Ãæµ¹ÇÑ ÁöÁ¡ </param>
+    /// <param name="targetPosition"> ì¶©ëŒí•œ ì§€ì  </param>
     public void ActiveBombEffect(Vector3 targetPosition)
     {
-        // Æø¹ß ÀÌÆåÆ® ºô·Á¿Í¼­ µ¿ÀÛ
+        // í­ë°œ ì´í™íŠ¸ ë¹Œë ¤ì™€ì„œ ë™ì‘
         GameObject boomEffect = BoomEffectSpawner.Instance.RentSpawner(BoomParticle.Normal);
 
         boomEffect.transform.position = targetPosition;
@@ -77,7 +77,7 @@ public class Missile : MonoBehaviour
     #region Private/Protected Methods
 
     /// <summary>
-    /// PowerJump »óÅÂÀÇ Player¿Í Ãæµ¹ÇßÀ»¶§, ¹Ì»çÀÏÀº ÆÄ±«
+    /// PowerJump ìƒíƒœì˜ Playerì™€ ì¶©ëŒí–ˆì„ë•Œ, ë¯¸ì‚¬ì¼ì€ íŒŒê´´
     /// </summary>
     protected virtual void OnCollisionEnter(Collision collision)
     {
@@ -89,7 +89,7 @@ public class Missile : MonoBehaviour
             {
                 GameProgress.Instance.Score = GameProgress.Instance.Score;
 
-                // Æø¹ß ÀÌÆåÆ®¸¦ Á¤È®ÇÑ Ãæµ¹ À§Ä¡¿¡ Ç¥½ÃÇÏ±â À§ÇØ Á¢Á¡ ÀúÀå
+                // í­ë°œ ì´í™íŠ¸ë¥¼ ì •í™•í•œ ì¶©ëŒ ìœ„ì¹˜ì— í‘œì‹œí•˜ê¸° ìœ„í•´ ì ‘ì  ì €ì¥
                 Vector3 contact = collision.contacts[0].point;
 
                 ActiveBombEffect(contact);

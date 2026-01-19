@@ -1,7 +1,7 @@
-using UnityEngine;
+О╩©using UnityEngine;
 
 /// <summary>
-/// ©и╪г ╨╞╟Ф ╟Э╥ц гт╪Ж©м ©╛╟А╣г╢б ╧Жф╟UI
+/// Л≤╣Л┘≤ КЁ─Й╡╫ Й╢─К═╗ М∙╗Л┬≤Л≥─ Л≈╟Й╡╟К░≤К┼■ К╡└М┼╪UI
 /// </summary>
 public class OptionButton : ButtonUI
 {
@@ -41,7 +41,7 @@ public class OptionButton : ButtonUI
     #region Private/Protected Methods
 
     /// <summary>
-    /// UI ╩Себ╦╕ ╟╩╫его╟М, UI даф╝╥я╥╞©║╟т UI гЖюГ х╟╪╨х╜ UI╦╕ ╟╩╫е
+    /// UI Л┐│М┐°К╔╪ Й╟╠Л▀═М∙≤ЙЁ═, UI Л╩╗М┼╦К║╓К÷╛Л≈░Й╡▄ UI М≤└Л·╛ М≥°Л└╠М≥■ UIК╔╪ Й╟╠Л▀═
     /// </summary>
     private void SettingGame()
     {
@@ -53,10 +53,10 @@ public class OptionButton : ButtonUI
     }
 
     /// <summary>
-    /// ╪Ёа╓ю╩ ╢щ╢б гт╪Ж
+    /// Л└╓Л═∙Л²└ К▀╚К┼■ М∙╗Л┬≤
     /// </summary>
     /// <remarks>
-    /// UI ╩Себ╦╕ ╟╩╫его╟М, е╦юс ╫╨диюою╩ 1╥н ╣╧╥аЁУю╫ 
+    /// UI Л┐│М┐°К╔╪ Й╟╠Л▀═М∙≤ЙЁ═, М┐─Л·└ Л┼╓Л╪─Л²╪Л²└ 1К║° К▐▄К═╓К├⌠Л²▄ 
     /// </remarks>
     private void CloseSetting()
     {
@@ -70,10 +70,10 @@ public class OptionButton : ButtonUI
     }
 
     /// <summary>
-    /// ©и╪г ╨╞╟Ф гт╪Ж
+    /// Л≤╣Л┘≤ КЁ─Й╡╫ М∙╗Л┬≤
     /// </summary>
     /// <remarks>
-    /// ╨╞╟Фгя ©и╪гю╩ ╪Ёа╓го╟М, ╢щ╢б гт╪Ж
+    /// КЁ─Й╡╫М∙° Л≤╣Л┘≤Л²└ Л└╓Л═∙М∙≤ЙЁ═, К▀╚К┼■ М∙╗Л┬≤
     /// </remarks>
     private void AcceptOption()
     {

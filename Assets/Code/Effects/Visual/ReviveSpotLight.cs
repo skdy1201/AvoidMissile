@@ -1,8 +1,8 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
 
 /// <summary>
-/// ºÎÈ°½Ã, ÀÛµ¿ÇÏ´Â ½ºÆ÷Æ®¶óÀÌÆ®
+/// ë¶€í™œì‹œ, ì‘ë™í•˜ëŠ” ìŠ¤í¬íŠ¸ë¼ì´íŠ¸
 /// </summary>
 public class ReviveSpotLight : MonoBehaviour
 {
@@ -33,7 +33,7 @@ public class ReviveSpotLight : MonoBehaviour
     #region Unity Lifecycle
 
     /// <summary>
-    /// ÃÊ±â ¼³Á¤ ÈÄ, ºñÈ°¼ºÈ­
+    /// ì´ˆê¸° ì„¤ì • í›„, ë¹„í™œì„±í™”
     /// </summary>
     private void Awake()
     {
@@ -44,14 +44,14 @@ public class ReviveSpotLight : MonoBehaviour
         this.gameObject.SetActive(false);
     }
 
-    //È°¼ºÈ­ÇÒ¶§, ÀÌÆåÆ® ÄÚ·çÆ¾ µ¿ÀÛ
+    //í™œì„±í™”í• ë•Œ, ì´í™íŠ¸ ì½”ë£¨í‹´ ë™ì‘
     private void OnEnable()
     {
         StartCoroutine(ReviveEffect());
     }
 
     /// <summary>
-    /// Player¿Í È¿°úÀÇ À§Ä¡¸¦ µ¿±âÈ­
+    /// Playerì™€ íš¨ê³¼ì˜ ìœ„ì¹˜ë¥¼ ë™ê¸°í™”
     /// </summary>
     private void FixedUpdate()
     {
@@ -62,7 +62,7 @@ public class ReviveSpotLight : MonoBehaviour
     }
 
     /// <summary>
-    /// È¿°ú Á¾·á Ã¼Å©
+    /// íš¨ê³¼ ì¢…ë£Œ ì²´í¬
     /// </summary>
     private void Update()
     {
@@ -78,8 +78,8 @@ public class ReviveSpotLight : MonoBehaviour
     #region Coroutines
 
     /// <summary>
-    /// È¿°ú°¡ ½ÃÀÛÇÒ¶©, ºûÀÌ ÆÛÁö°í,
-    /// ±ôºı°Å¸®¸ç »ç¶óÁ® È¿°ú°¡ ³¡³²À» ¾Ë¸²
+    /// íš¨ê³¼ê°€ ì‹œì‘í• ë•, ë¹›ì´ í¼ì§€ê³ ,
+    /// ê¹œë¹¡ê±°ë¦¬ë©° ì‚¬ë¼ì ¸ íš¨ê³¼ê°€ ëë‚¨ì„ ì•Œë¦¼
     /// </summary>
     IEnumerator ReviveEffect()
     {
@@ -93,7 +93,7 @@ public class ReviveSpotLight : MonoBehaviour
 
             float ratio = duration / effectTimer;
 
-            // ¼±Çü Áõ°¡¸¦ À§ÇÑ ºñÀ²°ú °¢µµ ÃøÁ¤
+            // ì„ í˜• ì¦ê°€ë¥¼ ìœ„í•œ ë¹„ìœ¨ê³¼ ê°ë„ ì¸¡ì •
             float fianlIntensity = Mathf.Lerp(0, targetIntensity, ratio);
             float finalAngle = Mathf.Lerp(0, targetAngle, ratio);
 
@@ -108,10 +108,10 @@ public class ReviveSpotLight : MonoBehaviour
         {
             duration += Time.deltaTime;
 
-            // 0 ~ 1 »çÀÌ ¿Õº¹ (±ôºıÀÓ ºñÀ²)
+            // 0 ~ 1 ì‚¬ì´ ì™•ë³µ (ê¹œë¹¡ì„ ë¹„ìœ¨)
             float blinkRatio = Mathf.PingPong(duration * pingpongSpeed, 1f);
 
-            // targetIntensityÀÇ 50% ~ 100% »çÀÌ ±ôºıÀÓ
+            // targetIntensityì˜ 50% ~ 100% ì‚¬ì´ ê¹œë¹¡ì„
             targetLight.intensity = targetIntensity * (0.5f + blinkRatio * 0.5f);
             yield return null;
         }

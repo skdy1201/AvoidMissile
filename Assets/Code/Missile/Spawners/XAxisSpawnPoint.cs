@@ -1,4 +1,4 @@
-using Unity.VisualScripting;
+ï»¿using Unity.VisualScripting;
 using UnityEngine;
 
 public class XAxisSpawnPoint : MonoBehaviour
@@ -7,7 +7,7 @@ public class XAxisSpawnPoint : MonoBehaviour
     #region Unity Lifecycle
 
     /// <summary>
-    /// ¾ÀÀÌ ½ÃÀÛÇÏ¸é ÀÚ½ÅÀÇ À§Ä¡¸¦ ¹Ì»çÀÏ ½ºÆ÷³Ê¿¡ µî·ÏÇÑ´Ù.
+    /// ì”¬ì´ ì‹œì‘í•˜ë©´ ìì‹ ì˜ ìœ„ì¹˜ë¥¼ ë¯¸ì‚¬ì¼ ìŠ¤í¬ë„ˆì— ë“±ë¡í•œë‹¤.
     /// </summary>
     void Start()
     {

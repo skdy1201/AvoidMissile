@@ -1,7 +1,7 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 /// <summary>
-/// º¸»óÇü ±¤°í ½ÃÃ»°ú ¿¬°áµÇ´Â ButtonUI
+/// ë³´ìƒí˜• ê´‘ê³  ì‹œì²­ê³¼ ì—°ê²°ë˜ëŠ” ButtonUI
 /// </summary>
 public class ReviveButton : ButtonUI
 {
@@ -41,7 +41,7 @@ public class ReviveButton : ButtonUI
     #region Private/Protected Methods
 
     /// <summary>
-    /// º¸»óÇü ±¤°í Àç»ı Àü »çÀü ÁØºñ ¹× ±¤°í ½ÃÃ»
+    /// ë³´ìƒí˜• ê´‘ê³  ì¬ìƒ ì „ ì‚¬ì „ ì¤€ë¹„ ë° ê´‘ê³  ì‹œì²­
     /// </summary>
     public void ReviveAdvertise()
     {

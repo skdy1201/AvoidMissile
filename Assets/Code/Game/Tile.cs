@@ -1,7 +1,7 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 /// <summary>
-/// ¹Ì»çÀÏ ÃßÀû ¹× °æ°í µ¥Ä® Ç¥½Ã¸¦ ´ã´çÇÏ´Â Å¸ÀÏ ½ºÅ©¸³Æ®
+/// ë¯¸ì‚¬ì¼ ì¶”ì  ë° ê²½ê³  ë°ì¹¼ í‘œì‹œë¥¼ ë‹´ë‹¹í•˜ëŠ” íƒ€ì¼ ìŠ¤í¬ë¦½íŠ¸
 /// </summary>
 public class Tile : MonoBehaviour
 {
@@ -35,11 +35,11 @@ public class Tile : MonoBehaviour
     #region Unity Lifecycle
 
     /// <summary>
-    /// µ¥Ä® »çÀÌÁî¸¦ 0À¸·Î º¯°æ
+    /// ë°ì¹¼ ì‚¬ì´ì¦ˆë¥¼ 0ìœ¼ë¡œ ë³€ê²½
     /// </summary>
     void Start()
     {
-        // Å¸ÀÏ »çÀÌÁî Ã¼Å©
+        // íƒ€ì¼ ì‚¬ì´ì¦ˆ ì²´í¬
         worldSize = Vector3.Scale(this.gameObject.GetComponent<MeshFilter>().sharedMesh.bounds.size, transform.lossyScale);
 
         float tilex = worldSize.x;

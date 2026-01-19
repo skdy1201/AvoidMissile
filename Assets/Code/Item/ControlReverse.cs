@@ -1,12 +1,12 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 /// <summary>
-/// ÇÃ·¹ÀÌ¾îÀÇ Á¶ÀÛÀ» ¹İÀü½ÃÅ°´Â µğ¹öÇÁ ¾ÆÀÌÅÛ
+/// í”Œë ˆì´ì–´ì˜ ì¡°ì‘ì„ ë°˜ì „ì‹œí‚¤ëŠ” ë””ë²„í”„ ì•„ì´í…œ
 /// </summary>
 public class ControlReverse : Item
 {
     /// <summary>
-    /// ÁöÁ¤µÈ ½Ã°£µ¿¾È ÀÔ·Â°ªÀ» ¹İÀü
+    /// ì§€ì •ëœ ì‹œê°„ë™ì•ˆ ì…ë ¥ê°’ì„ ë°˜ì „
     /// </summary>
     public override void EffectItem()
     {

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 [CreateAssetMenu(fileName = "YAxisSetting", menuName = "Scriptable Objects/YAxisSetting")]
 public class YAxisSetting : ScriptableObject

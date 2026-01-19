@@ -1,15 +1,15 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.ParticleSystemJobs;
 using UnityEngine.Serialization;
 
 
 /// <summary>
-/// ��ƼŬ ������Ʈ�� �����ϱ� ���� ��Ʈ�ѷ�
+/// 파티클 오브젝트를 조정하기 위한 컨트롤러
 /// </summary>
 /// <remarks>
-/// ��Ʈ����ŷ�� ���� ���� ��ƼŬ �ý����� ���� ���� ����
-/// ��� ��ƼŬ�� ����Ǹ� �ڵ����� ������Ʈ Ǯ�� ��ȯ
+/// 비트마스킹을 통해 여러 파티클 시스템의 종료 상태 추적
+/// 모든 파티클이 종료되면 자동으로 오브젝트 풀에 반환
 /// </remarks>
 public class ParticleController : MonoBehaviour
 {
@@ -28,18 +28,18 @@ public class ParticleController : MonoBehaviour
     #region Private/Protected Fields
 
     /// <summary>
-    /// ��� ��ƼŬ�� ���� �ð��� üũ�ϴ� ����
+    /// 모든 파티클의 종료 시간을 체크하는 변수
     /// </summary>
     /// <remarks> 
-    /// ��Ʈ����ŷ�� ����ϴ� ����
+    /// 비트마스킹을 기록하는 변수
     /// </remarks>
     private int particleStatusBits = 0;
 
     /// <summary>
-    /// ��ƼŬ ���� üũ�� ���� Ÿ�� �ѹ�
+    /// 파티클 종료 체크를 위한 타겟 넘버
     /// </summary>
     /// <remarks>
-    /// ��Ʈ ����ŷ�� ���� üũ�� ����
+    /// 비트 마스킹을 통한 체크용 변수
     /// </remarks>
     private int targetNumber = 0;
 
@@ -48,7 +48,7 @@ public class ParticleController : MonoBehaviour
     #region Unity Lifecycle
 
     /// <summary>
-    /// Ÿ�� �ѹ� ����
+    /// 타겟 넘버 세팅
     /// </summary>
     private void Awake()
     {
@@ -57,23 +57,23 @@ public class ParticleController : MonoBehaviour
     }
 
    /// <summary>
-   /// ������ ��Ʈ�� ��ƼŬ�� ����ȴٸ�, ��ŷ
+   /// 지정된 비트의 파티클이 종료된다면, 마킹
    /// </summary>
    /// <remarks>
-   /// Ÿ�� �ѹ� ��ŷ�� �� ������, BoomEffectSpawner�� �ٽ� �������´�.
+   /// 타겟 넘버 마킹이 다 끝나면, BoomEffectSpawner로 다시 돌려놓는다.
    /// </remarks>
     private void Update()
     {
 
-        // �� ��ƼŬ�� ��� �Ϸ� ���¸� ��Ʈ����ũ�� ����
-        // ��� ��ƼŬ�� ����Ǿ����� ȿ�������� Ȯ���ϱ� ����
+        // 각 파티클의 재생 완료 상태를 비트마스크로 추적
+        // 모든 파티클이 종료되었는지 효율적으로 확인하기 위함
         for (int i = 0; i < particleObjects.Count; ++i)
         {
             if (particleObjects[i].isPlaying == false && (particleStatusBits & (1 << i)) == 0)
                 particleStatusBits |= 1 << i;
         }
 
-        // ��� ��ƼŬ ����� �Ϸ�Ǹ�(��Ʈ����ũ�� ��ǥ���� ��ġ) ������Ʈ Ǯ�� ��ȯ
+        // 모든 파티클 재생이 완료되면(비트마스크가 목표값과 일치) 오브젝트 풀로 반환
         if (particleStatusBits == targetNumber)
             BoomEffectSpawner.Instance.ReturnSpawner(BoomParticle.Normal, this.gameObject);
     }
@@ -83,11 +83,11 @@ public class ParticleController : MonoBehaviour
     #region Public Methods
 
     /// <summary>
-    /// ��ƼŬ ���� ��Ʈ�� �ʱ�ȭ�Ͽ� ���� �غ� ���·� ��ȯ
+    /// 파티클 상태 비트를 초기화하여 재사용 준비 상태로 전환
     /// </summary>
     /// <remarks>
-    /// ������Ʈ Ǯ���� ��ƼŬ�� ������ �� ȣ��
-    /// ���� ��� ���¸� �ʱ�ȭ�Ͽ� ���ο� ��ƼŬ ����� �غ�
+    /// 오브젝트 풀에서 파티클을 재사용할 때 호출
+    /// 이전 재생 상태를 초기화하여 새로운 파티클 재생을 준비
     /// </remarks>
     public void ResetParticleCheckBit() => particleStatusBits = 0;
 

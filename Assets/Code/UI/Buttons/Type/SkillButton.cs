@@ -1,12 +1,12 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
 /// <summary>
-/// ½ºÅ³ °ü·Ã ÇÔ¼ö¿Í ¿¬°áµÇ´Â ButtonUI
+/// ìŠ¤í‚¬ ê´€ë ¨ í•¨ìˆ˜ì™€ ì—°ê²°ë˜ëŠ” ButtonUI
 /// </summary>
 /// <remarks>
-/// ½ºÅ³ Àá±İ ÀÌ¹ÌÁö¿Í, ÄğÅ¸ÀÓ Ç¥½Ãµµ °°ÀÌ °ü¸®
+/// ìŠ¤í‚¬ ì ê¸ˆ ì´ë¯¸ì§€ì™€, ì¿¨íƒ€ì„ í‘œì‹œë„ ê°™ì´ ê´€ë¦¬
 /// </remarks>
 public class SkillButton : ButtonUI
 {
@@ -46,7 +46,7 @@ public class SkillButton : ButtonUI
     #region Unity Lifecycle
 
     /// <summary>
-    /// ÄğÅ¸ÀÓ ÀÌ¹ÌÁö´Â ºñÈ°¼ºÈ­
+    /// ì¿¨íƒ€ì„ ì´ë¯¸ì§€ëŠ” ë¹„í™œì„±í™”
     /// </summary>
     protected override void Awake()
     {
@@ -55,7 +55,7 @@ public class SkillButton : ButtonUI
         grayImage.enabled = false;
     }
     /// <summary>
-    /// ÄğÅ¸ÀÓ µµÁß »ç¸ÁÇØ¼­ ºÎÈ°ÇÏ¸é, ÄÚ·çÆ¾ÀÌ Áß´ÜµÇ¾ú±â ¶§¹®¿¡, ´Ù½Ã ³²Àº ÄğÅ¸ÀÓ¸¸Å­ ÄÚ·çÆ¾ ½ÃÀü
+    /// ì¿¨íƒ€ì„ ë„ì¤‘ ì‚¬ë§í•´ì„œ ë¶€í™œí•˜ë©´, ì½”ë£¨í‹´ì´ ì¤‘ë‹¨ë˜ì—ˆê¸° ë•Œë¬¸ì—, ë‹¤ì‹œ ë‚¨ì€ ì¿¨íƒ€ì„ë§Œí¼ ì½”ë£¨í‹´ ì‹œì „
     /// </summary>
     private void OnEnable()
     {
@@ -106,11 +106,11 @@ public class SkillButton : ButtonUI
     }
 
     /// <summary>
-    /// ÇÃ·¹ÀÌ¾î ½½¶óÀÌµå ÇÔ¼ö
+    /// í”Œë ˆì´ì–´ ìŠ¬ë¼ì´ë“œ í•¨ìˆ˜
     /// </summary>
     /// <remarks>
-    /// ÄğÅ¸ÀÓ µ¿¾È ¹öÆ°ÀÌ ºñÈ°¼ºÈ­µÇ¾î ¿¬¼Ó »ç¿ëÀ» ¹æÁöÇÕ´Ï´Ù.
-    /// ½ºÅ³ Àá±İ ¿©ºÎµµ °°ÀÌ Ã¼Å©
+    /// ì¿¨íƒ€ì„ ë™ì•ˆ ë²„íŠ¼ì´ ë¹„í™œì„±í™”ë˜ì–´ ì—°ì† ì‚¬ìš©ì„ ë°©ì§€í•©ë‹ˆë‹¤.
+    /// ìŠ¤í‚¬ ì ê¸ˆ ì—¬ë¶€ë„ ê°™ì´ ì²´í¬
     /// </remarks>
     public void ExecuteSlide()
     {
@@ -129,24 +129,24 @@ public class SkillButton : ButtonUI
     #region Coroutine
 
     /// <summary>
-    /// ÄğÅ¸ÀÓ µ¿ÀÛ ÇÔ¼ö
+    /// ì¿¨íƒ€ì„ ë™ì‘ í•¨ìˆ˜
     /// </summary>
-    /// <param name="targetButton"> ½½¶óÀÌµù ¹öÆ° </param>
-    /// <param name="cooldownBackground"> ½½¶óÀÌµù ¹öÆ° ÄğÅ¸ÀÓ ÀÌ¹ÌÁö </param>
-    /// <param name="cooldown"> ÀÜ¿© ÄğÅ¸ÀÓ or ÀüÃ¼ ÄğÅ¸ÀÓ </param>
+    /// <param name="targetButton"> ìŠ¬ë¼ì´ë”© ë²„íŠ¼ </param>
+    /// <param name="cooldownBackground"> ìŠ¬ë¼ì´ë”© ë²„íŠ¼ ì¿¨íƒ€ì„ ì´ë¯¸ì§€ </param>
+    /// <param name="cooldown"> ì”ì—¬ ì¿¨íƒ€ì„ or ì „ì²´ ì¿¨íƒ€ì„ </param>
     IEnumerator ActiveCooltime()
     {
 
         if (remainCooldown <= 0)
             remainCooldown = cooldown;
 
-            // ÄğÅ¸ÀÓ ¹è°æ È°¼ºÈ­ ¹× ½½¶óÀÌµù ¹öÆ° ºñÈ°¼ºÈ­
+            // ì¿¨íƒ€ì„ ë°°ê²½ í™œì„±í™” ë° ìŠ¬ë¼ì´ë”© ë²„íŠ¼ ë¹„í™œì„±í™”
             grayImage.enabled = true;
         unityButton.enabled = false;
 
         inCooldown = true;
 
-        // ÄÚ·çÆ¾ ³» while ¹®À¸·Î ½Ã°£°è»ê ¹× ÀÌ¹ÌÁö º¯È­
+        // ì½”ë£¨í‹´ ë‚´ while ë¬¸ìœ¼ë¡œ ì‹œê°„ê³„ì‚° ë° ì´ë¯¸ì§€ ë³€í™”
         while (remainCooldown >= 0f)
         {
 
@@ -165,7 +165,7 @@ public class SkillButton : ButtonUI
 
         inCooldown = false;
 
-        // ÀÌ¹ÌÁö ¹× ¹öÆ° ºñÈ°¼ºÈ­
+        // ì´ë¯¸ì§€ ë° ë²„íŠ¼ ë¹„í™œì„±í™”
         grayImage.enabled = false;
         grayImage.fillAmount = 1f;
         unityButton.enabled = true;

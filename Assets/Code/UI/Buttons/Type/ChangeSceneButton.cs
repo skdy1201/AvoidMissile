@@ -1,8 +1,8 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// ¾À º¯°æ °ü·Ã ÇÔ¼ö¿Í ¿¬°áµÇ´Â ¹öÆ°UI
+/// ì”¬ ë³€ê²½ ê´€ë ¨ í•¨ìˆ˜ì™€ ì—°ê²°ë˜ëŠ” ë²„íŠ¼UI
 /// </summary>
 public class ChangeSceneButton : ButtonUI
 {
@@ -15,7 +15,7 @@ public class ChangeSceneButton : ButtonUI
     }
 
     /// <summary>
-    /// º¸»óÇü ±¤°í ÀÌÈÄ, ºñÈ°¼ºÈ­µÈ ¹öÆ°À» ´Ù½Ã È°¼ºÈ­
+    /// ë³´ìƒí˜• ê´‘ê³  ì´í›„, ë¹„í™œì„±í™”ëœ ë²„íŠ¼ì„ ë‹¤ì‹œ í™œì„±í™”
     /// </summary>
     private void OnEnable()
     {
@@ -61,23 +61,23 @@ public class ChangeSceneButton : ButtonUI
     #region Private/Protected Methods
 
     /// <summary>
-    /// °ÔÀÓ Á¾·á ÇÔ¼ö
+    /// ê²Œì„ ì¢…ë£Œ í•¨ìˆ˜
     /// </summary>
     /// <remarks>
-    /// ¿¡µğÅÍ¿¡¼­ ½ÇÇà ÇÒ ¶©, play mode¸¦ Á¾·á ÇÏ°í,
-    /// ½ÇÁ¦ ¾îÇÃ¸®ÄÉÀÌ¼ÇÀÌ¶ó¸é Á¾·á
+    /// ì—ë””í„°ì—ì„œ ì‹¤í–‰ í•  ë•, play modeë¥¼ ì¢…ë£Œ í•˜ê³ ,
+    /// ì‹¤ì œ ì–´í”Œë¦¬ì¼€ì´ì…˜ì´ë¼ë©´ ì¢…ë£Œ
     /// </remarks>
     private void ExitGame()
     {
         #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false; // À¯´ÏÆ¼ ¿¡µğÅÍ¿¡¼­ ½ÇÇà ÁßÀÏ ¶§
+        UnityEditor.EditorApplication.isPlaying = false; // ìœ ë‹ˆí‹° ì—ë””í„°ì—ì„œ ì‹¤í–‰ ì¤‘ì¼ ë•Œ
         #else
-            Application.Quit(); // ÀÏ¹İ ºôµå¿¡¼­ ½ÇÇà ÁßÀÏ ¶§
+            Application.Quit(); // ì¼ë°˜ ë¹Œë“œì—ì„œ ì‹¤í–‰ ì¤‘ì¼ ë•Œ
         #endif
     }
 
     /// <summary>
-    /// GoogleAdmobÀÇ º¸»óÇü ±¤°í ÀÌÈÄ, ºÎÈ°±îÁöÀÇ ´ë±â½Ã°£ µ¿¾È ºñÈ°¼ºÈ­
+    /// GoogleAdmobì˜ ë³´ìƒí˜• ê´‘ê³  ì´í›„, ë¶€í™œê¹Œì§€ì˜ ëŒ€ê¸°ì‹œê°„ ë™ì•ˆ ë¹„í™œì„±í™”
     /// </summary>
     private void OffButton()
     {

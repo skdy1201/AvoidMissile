@@ -1,18 +1,18 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 
-// TODO : UPDATE LELVELÀ» Á» ´õ °£¼ÒÈ­ ½ÃÅ³ ¹æ¹ıÀ» Ã£¾Æ¾ß ÇÒ °Í °°´Ù.
-// ÀÌ¸§À» ¸Å¹ø update¿¡¼­ Ä³½ÌÇÏ´Â°Ô º°·ÎÀÏ¼öµµ
+// TODO : UPDATE LELVELì„ ì¢€ ë” ê°„ì†Œí™” ì‹œí‚¬ ë°©ë²•ì„ ì°¾ì•„ì•¼ í•  ê²ƒ ê°™ë‹¤.
+// ì´ë¦„ì„ ë§¤ë²ˆ updateì—ì„œ ìºì‹±í•˜ëŠ”ê²Œ ë³„ë¡œì¼ìˆ˜ë„
 
 /// <summary>
-/// °ÔÀÓÀÇ Àü¹İÀûÀÎ ÁøÇà»çÇ×À» ´Ù·ç´Â ½Ì±ÛÅæ
+/// ê²Œì„ì˜ ì „ë°˜ì ì¸ ì§„í–‰ì‚¬í•­ì„ ë‹¤ë£¨ëŠ” ì‹±ê¸€í†¤
 /// </summary>
 /// <remarks>
-/// PlaySceneÀÏ ¶§, ½Ã°£¿¡ µû¸¥ ³­ÀÌµµ Á¶Àı,
-/// ¾À ½ÃÀÛ ¹× Á¾·á ÀÌº¥Æ®
+/// PlaySceneì¼ ë•Œ, ì‹œê°„ì— ë”°ë¥¸ ë‚œì´ë„ ì¡°ì ˆ,
+/// ì”¬ ì‹œì‘ ë° ì¢…ë£Œ ì´ë²¤íŠ¸
 /// </remarks>
 public class GameProgress : Singleton<GameProgress>
 {
@@ -29,7 +29,7 @@ public class GameProgress : Singleton<GameProgress>
 
     [SerializeField] private bool isPlayerDead = false;
 
-    // ±¤°í ºÎÈ°°ú ºÎÈ° ¾ÆÀÌÅÛÀÇ Áßº¹ »ç¿ëÀ» ¸·±â À§ÇÑ º¯¼ö
+    // ê´‘ê³  ë¶€í™œê³¼ ë¶€í™œ ì•„ì´í…œì˜ ì¤‘ë³µ ì‚¬ìš©ì„ ë§‰ê¸° ìœ„í•œ ë³€ìˆ˜
     [SerializeField] private bool playerAlive = false;
 
     [SerializeField] private bool spawnXAxis = false;
@@ -40,16 +40,16 @@ public class GameProgress : Singleton<GameProgress>
 
     [SerializeField] private bool spawnItem = false;
 
-    // ºÎÈ° È¿°ú ½ºÆ÷Æ®¶óÀÌÆ® °´Ã¼
+    // ë¶€í™œ íš¨ê³¼ ìŠ¤í¬íŠ¸ë¼ì´íŠ¸ ê°ì²´
     [SerializeField] private GameObject reviveSpotLight;
 
-    // ±×·¹ÀÌ ½ºÄÉÀÏ È¿°ú °´Ã¼
+    // ê·¸ë ˆì´ ìŠ¤ì¼€ì¼ íš¨ê³¼ ê°ì²´
     [SerializeField] private GreyScaleTrigger greyScale;
     #endregion
 
     #region Properties
 
-    // ¹Ì»çÀÏÀÌ ¶³¾îÁú¶§¸¶´Ù Á¡¼ö +1
+    // ë¯¸ì‚¬ì¼ì´ ë–¨ì–´ì§ˆë•Œë§ˆë‹¤ ì ìˆ˜ +1
     public int Score
     {
         get { return playerScore; }
@@ -71,7 +71,7 @@ public class GameProgress : Singleton<GameProgress>
     #region Unity Lifecycle
 
     /// <summary>
-    /// °ÔÀÓ ÇÁ·¹ÀÓÀ» °íÁ¤ ¹× ÀÌº¥Æ® µî·Ï
+    /// ê²Œì„ í”„ë ˆì„ì„ ê³ ì • ë° ì´ë²¤íŠ¸ ë“±ë¡
     /// </summary>
     protected override void Awake()
     {
@@ -87,11 +87,11 @@ public class GameProgress : Singleton<GameProgress>
     }
 
     /// <summary>
-    /// PlaySceneÀÏ ¶§, Å¸ÀÌ¸Ó¸¦ ´õÇØÁÖ¸ç, 5ÃÊ°¡ Áö³¯¶§¸¶´Ù ·¹º§À» ÇÏ³ª¾¿ Áõ°¡
+    /// PlaySceneì¼ ë•Œ, íƒ€ì´ë¨¸ë¥¼ ë”í•´ì£¼ë©°, 5ì´ˆê°€ ì§€ë‚ ë•Œë§ˆë‹¤ ë ˆë²¨ì„ í•˜ë‚˜ì”© ì¦ê°€
     /// </summary>
     /// <remarks>
-    /// ·¹º§ÀÌ Áõ°¡ÇßÀ» ¶§, °ÔÀÓÀÇ ³­ÀÌµµ¸¦ UpdateLevel·Î ÀçÁ¶Á¤
-    /// 10 ·¹º§ ÀÌ»óÀÏ ¶§, XÃà ¹Ì»çÀÏ ½ºÆùÀ» ½ÃÀÛ
+    /// ë ˆë²¨ì´ ì¦ê°€í–ˆì„ ë•Œ, ê²Œì„ì˜ ë‚œì´ë„ë¥¼ UpdateLevelë¡œ ì¬ì¡°ì •
+    /// 10 ë ˆë²¨ ì´ìƒì¼ ë•Œ, Xì¶• ë¯¸ì‚¬ì¼ ìŠ¤í°ì„ ì‹œì‘
     /// </remarks>
     void Update()
     {
@@ -124,11 +124,11 @@ public class GameProgress : Singleton<GameProgress>
     public void RegisterGreyScaleTrigger(GreyScaleTrigger greyScaleTrigger) => greyScale = greyScaleTrigger;
 
     /// <summary>
-    /// º¸»óÇü ±¤°í ÀÌÈÄ °ÔÀÓ Àç½ÃÀÛ
+    /// ë³´ìƒí˜• ê´‘ê³  ì´í›„ ê²Œì„ ì¬ì‹œì‘
     /// </summary>
     /// <remarks>
-    /// °ÔÀÓ ¿À¹öÀÏ¶§ ³ª¿À´Â GreyScaleÀ» ´Ù½Ã ÃÊ±âÈ­
-    /// ±âÁ¸ ÁøÇà »óÅÂ¿¡ µû¸¥ ½ºÆù Àç°³
+    /// ê²Œì„ ì˜¤ë²„ì¼ë•Œ ë‚˜ì˜¤ëŠ” GreyScaleì„ ë‹¤ì‹œ ì´ˆê¸°í™”
+    /// ê¸°ì¡´ ì§„í–‰ ìƒíƒœì— ë”°ë¥¸ ìŠ¤í° ì¬ê°œ
     /// </remarks>
     public void AdRevive()
     {
@@ -157,10 +157,10 @@ public class GameProgress : Singleton<GameProgress>
     #region Private/Protected Methods
 
     /// <summary>
-    /// Å¸ÀÓ ½ºÄÉÀÏÀ» Á¶Á¤, PlayScene¶ó¸é, ÁøÇà¿¡ ÇÊ¿äÇÑ º¯¼öµéÀ» ÃÊ±âÈ­
+    /// íƒ€ì„ ìŠ¤ì¼€ì¼ì„ ì¡°ì •, PlaySceneë¼ë©´, ì§„í–‰ì— í•„ìš”í•œ ë³€ìˆ˜ë“¤ì„ ì´ˆê¸°í™”
     /// </summary>
     /// <remarks>
-    /// Å¸ÀÌ¸Ó, Á¡¼ö, ·¹º§, YÃà ¹Ì»çÀÏ ½ºÆù, ÇÃ·¹ÀÌ¾î »ç¸Á ¿©ºÎ
+    /// íƒ€ì´ë¨¸, ì ìˆ˜, ë ˆë²¨, Yì¶• ë¯¸ì‚¬ì¼ ìŠ¤í°, í”Œë ˆì´ì–´ ì‚¬ë§ ì—¬ë¶€
     /// </remarks>
     protected override void StartProtocol()
     {
@@ -193,26 +193,26 @@ public class GameProgress : Singleton<GameProgress>
     }
 
     /// <summary>
-    /// ³­ÀÌµµ º¯°æ ÇÔ¼ö
+    /// ë‚œì´ë„ ë³€ê²½ í•¨ìˆ˜
     /// </summary>
     /// <remarks>
-    /// ´ÙÀ½ ÃÖ¼Ò ¹Ì»çÀÏ °³¼ö,
-    /// ÇöÀç ÃÖ´ë ¹Ì»çÀÏ °³¼ö,
-    /// ¹Ì»çÀÏ ½ºÆù »çÀÌÅ¬,
-    /// ¹Ì»çÀÏ ±âº» ¼Óµµ,
-    /// XÃà ¹Ì»çÀÏ ¼¼ÆÃ,
+    /// ë‹¤ìŒ ìµœì†Œ ë¯¸ì‚¬ì¼ ê°œìˆ˜,
+    /// í˜„ì¬ ìµœëŒ€ ë¯¸ì‚¬ì¼ ê°œìˆ˜,
+    /// ë¯¸ì‚¬ì¼ ìŠ¤í° ì‚¬ì´í´,
+    /// ë¯¸ì‚¬ì¼ ê¸°ë³¸ ì†ë„,
+    /// Xì¶• ë¯¸ì‚¬ì¼ ì„¸íŒ…,
     /// </remarks>
     private void UpdateLevel()
     {
-        // Á¦°ö±Ù ¹æ½ÄÀ¸·Î ·¹º§ Áõ°¡ÇÏµµ·Ï ¼öÁ¤(25 ·¹º§¿¡ 50 µµ´Ş)
+        // ì œê³±ê·¼ ë°©ì‹ìœ¼ë¡œ ë ˆë²¨ ì¦ê°€í•˜ë„ë¡ ìˆ˜ì •(25 ë ˆë²¨ì— 50 ë„ë‹¬)
         int nextLimitMissileCount = Mathf.FloorToInt(Mathf.Sqrt(currentLevel * 100));
 
-        // YÃà ¹Ì»çÀÏ ½ºÆù½Ã
+        // Yì¶• ë¯¸ì‚¬ì¼ ìŠ¤í°ì‹œ
         if (spawnYAxis)
         {
             nextLimitMissileCount = Mathf.FloorToInt(Mathf.Clamp(nextLimitMissileCount, 1, (float)MissileSpawner.Instance.limitMissileCount - 1));
 
-            //ÃÖ´ë ¹Ì»çÀÏ °³¼ö ¼³Á¤
+            //ìµœëŒ€ ë¯¸ì‚¬ì¼ ê°œìˆ˜ ì„¤ì •
             if (nextLimitMissileCount > MissileSpawner.Instance.CurMaxMissileCount && nextLimitMissileCount < MissileSpawner.Instance.limitMissileCount)
             {
                 MissileSpawner.Instance.CurMaxMissileCount = nextLimitMissileCount;
@@ -223,17 +223,17 @@ public class GameProgress : Singleton<GameProgress>
                 nextLimitMissileCount = MissileSpawner.Instance.limitMissileCount;
             }
 
-            // ÃÖ¼Ò ¹Ì»çÀÏ °³¼ö ¼³Á¤
+            // ìµœì†Œ ë¯¸ì‚¬ì¼ ê°œìˆ˜ ì„¤ì •
             MissileSpawner.Instance.LimitMinMissileCount = nextLimitMissileCount / 2;
         }
 
-        // ¹Ì»çÀÏ »çÀÌÅ¬ ¼³Á¤
+        // ë¯¸ì‚¬ì¼ ì‚¬ì´í´ ì„¤ì •
         float missileCycle = MissileSpawner.Instance.MissileCycle - 0.05f;
         missileCycle = Mathf.Clamp(missileCycle, 1f, 3f);
 
         MissileSpawner.Instance.MissileCycle = missileCycle;
 
-        // ¹Ì»çÀÏ ±âÃÊ ¼Óµµ ¼³Á¤
+        // ë¯¸ì‚¬ì¼ ê¸°ì´ˆ ì†ë„ ì„¤ì •
         float nextMissileSpeed = MissileSpawner.Instance.MissileBaseSpeed - 0.05f;
         nextMissileSpeed = Mathf.Max(nextMissileSpeed, 2f);
 
@@ -245,7 +245,7 @@ public class GameProgress : Singleton<GameProgress>
             MissileSpawner.Instance.StartCoroutine("XAxisMissileSpawnLoop");
         }
 
-        // XÃà ¹Ì»çÀÏ ½ºÆù »óÅÂ¶ó¸é
+        // Xì¶• ë¯¸ì‚¬ì¼ ìŠ¤í° ìƒíƒœë¼ë©´
         if (spawnXAxis)
         {
             MissileSpawner.Instance.UpdateSetting();
@@ -260,7 +260,7 @@ public class GameProgress : Singleton<GameProgress>
     }
 
     /// <summary>
-    /// ÇÃ·¹ÀÌ¾î »ç¸Á ½Ã °ÔÀÓ Á¾·á Ã³¸® (Á¡¼ö ÀúÀå ¹× ±¤°í È£Ãâ)
+    /// í”Œë ˆì´ì–´ ì‚¬ë§ ì‹œ ê²Œì„ ì¢…ë£Œ ì²˜ë¦¬ (ì ìˆ˜ ì €ì¥ ë° ê´‘ê³  í˜¸ì¶œ)
     /// </summary>
     private void EndGame()
     {
@@ -283,12 +283,12 @@ public class GameProgress : Singleton<GameProgress>
     #region Event Handlers
 
     /// <summary>
-    /// ¾ÀÀÌ ½ÃÀÛÇßÀ» ¶§, ÇÒ ÀÏµéÀ» °ü¸®ÇÏ´Â ÀÌº¥Æ®
+    /// ì”¬ì´ ì‹œì‘í–ˆì„ ë•Œ, í•  ì¼ë“¤ì„ ê´€ë¦¬í•˜ëŠ” ì´ë²¤íŠ¸
     /// </summary>
     public static UnityEvent StartScene = new UnityEvent();
 
     /// <summary>
-    /// ¾ÀÀ» Á¾·áÇÒ ¶§, ÇÒ ÀÏµéÀ» °ü¸®ÇÏ´Â ÀÌº¥Æ®
+    /// ì”¬ì„ ì¢…ë£Œí•  ë•Œ, í•  ì¼ë“¤ì„ ê´€ë¦¬í•˜ëŠ” ì´ë²¤íŠ¸
     /// </summary>
     public static UnityEvent EndScene = new UnityEvent();
 

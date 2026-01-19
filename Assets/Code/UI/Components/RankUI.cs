@@ -1,12 +1,12 @@
-using TMPro;
+ï»¿using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 /// <summary>
-/// ÇÃ·¹ÀÌ¾îÀÇ ¼øÀ§º° Á¡¼ö¸¦ Ç¥½ÃÇÏ´Â UI ÄÄÆ÷³ÍÆ®
+/// í”Œë ˆì´ì–´ì˜ ìˆœìœ„ë³„ ì ìˆ˜ë¥¼ í‘œì‹œí•˜ëŠ” UI ì»´í¬ë„ŒíŠ¸
 /// </summary>
 /// <remarks>
-/// GameData¿¡¼­ º»ÀÎÀÌ °¡Áø ¼øÀ§¿¡ ¸Â°Ô, Á¡¼ö¸¦ °¡Á®¿È.
+/// GameDataì—ì„œ ë³¸ì¸ì´ ê°€ì§„ ìˆœìœ„ì— ë§ê²Œ, ì ìˆ˜ë¥¼ ê°€ì ¸ì˜´.
 /// </remarks>
 public class RankUI : BaseUI, InterfaceUI
 {
@@ -33,7 +33,7 @@ public class RankUI : BaseUI, InterfaceUI
     #region Unity Lifecycle
 
     /// <summary>
-    /// BaseUIÀÇ Awake¸¸ µ¿ÀÛ
+    /// BaseUIì˜ Awakeë§Œ ë™ì‘
     /// </summary>
     protected override void Awake()
     {
@@ -45,17 +45,17 @@ public class RankUI : BaseUI, InterfaceUI
     #region Public Methods
 
     /// <summary>
-    /// UI ÃÊ±âÈ­ ÀÎÅÍÆäÀÌ½º ±¸Çö. ÇöÀç RankUI´Â º°µµ ÃÊ±âÈ­ ·ÎÁ÷ÀÌ ÇÊ¿äÇÏÁö ¾ÊÀ½
+    /// UI ì´ˆê¸°í™” ì¸í„°í˜ì´ìŠ¤ êµ¬í˜„. í˜„ì¬ RankUIëŠ” ë³„ë„ ì´ˆê¸°í™” ë¡œì§ì´ í•„ìš”í•˜ì§€ ì•ŠìŒ
     /// </summary>
     public void Init()
     {
     }
 
     /// <summary>
-    /// ¼øÀ§¸¦ °»½Å
+    /// ìˆœìœ„ë¥¼ ê°±ì‹ 
     /// </summary>
     /// <remarks>
-    /// ¼øÀ§ ÀÎµ¦½º¸¦ ÅëÇØ¼­ GameData¿¡¼­ Á¡¼ö¸¦ ¹Ş¾Æ¿À°í ¼øÀ§¿Í Á¡¼ö·Î µ¥ÀÌÅÍ¸¦ ÀúÀå
+    /// ìˆœìœ„ ì¸ë±ìŠ¤ë¥¼ í†µí•´ì„œ GameDataì—ì„œ ì ìˆ˜ë¥¼ ë°›ì•„ì˜¤ê³  ìˆœìœ„ì™€ ì ìˆ˜ë¡œ ë°ì´í„°ë¥¼ ì €ì¥
     /// </remarks>
     public void RenewRank()
     {
@@ -70,9 +70,9 @@ public class RankUI : BaseUI, InterfaceUI
     #region Private/Protected Methods
 
     /// <summary>
-    /// rankIndex¸¦ ÅëÇØ¼­, ¼øÀ§¸¦ Ç¥±âÇÒ ¹®ÀÚ¿­À» Á¤ÇÔ
+    /// rankIndexë¥¼ í†µí•´ì„œ, ìˆœìœ„ë¥¼ í‘œê¸°í•  ë¬¸ìì—´ì„ ì •í•¨
     /// </summary>
-    /// <returns> ÀÎµ¦½º¸¦ ÅëÇÑ ¼øÀ§ </returns>
+    /// <returns> ì¸ë±ìŠ¤ë¥¼ í†µí•œ ìˆœìœ„ </returns>
     private string GetRankText()
     {
         string result = "";

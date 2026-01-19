@@ -1,21 +1,21 @@
-using UnityEditor;
+ï»¿using UnityEditor;
 using UnityEngine;
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
 
 /// <summary>
-/// ¿¡µğÅÍ¿¡¼­ csv ÆÄÀÏÀ» ÀÌ¿ëÇØ °ÔÀÓ »ó¿¡¼­ »ç¿ëÇÒ ¿É¼Ç ¼¼ÆÃÀ» ¹ÙÀÌ³Ê¸®ÆÄÀÏÈ­
+/// ì—ë””í„°ì—ì„œ csv íŒŒì¼ì„ ì´ìš©í•´ ê²Œì„ ìƒì—ì„œ ì‚¬ìš©í•  ì˜µì…˜ ì„¸íŒ…ì„ ë°”ì´ë„ˆë¦¬íŒŒì¼í™”
 /// </summary>
 /// <remarks>
-/// csv¸¦ È®ÀÎ, ¹ÙÀÌ³Ê¸® ÆÄÀÏÈ­, ¹ÙÀÌ³Ê¸® ÆÄÀÏ ÇØ¼®
-/// ReadCSV¿Í ChangeBinary´Â °°Àº ÄÚµå°¡ ¾²ÀÌÁö¸¸, Editor¿¡¼­ ¾²´Â ÇÔ¼öÀÎ Á¡,
-/// ReadCSVS´Â ·Î±ë¸¸ ÇÏÁö¸¸, Write´Â Ãß°¡ ÀÛ¾÷ÀÌ ÀÖ±â ¶§¹®¿¡, ÇÔ¼öÈ­¸¦ ÇÏÁö ¾ÊÀ½
+/// csvë¥¼ í™•ì¸, ë°”ì´ë„ˆë¦¬ íŒŒì¼í™”, ë°”ì´ë„ˆë¦¬ íŒŒì¼ í•´ì„
+/// ReadCSVì™€ ChangeBinaryëŠ” ê°™ì€ ì½”ë“œê°€ ì“°ì´ì§€ë§Œ, Editorì—ì„œ ì“°ëŠ” í•¨ìˆ˜ì¸ ì ,
+/// ReadCSVSëŠ” ë¡œê¹…ë§Œ í•˜ì§€ë§Œ, WriteëŠ” ì¶”ê°€ ì‘ì—…ì´ ìˆê¸° ë•Œë¬¸ì—, í•¨ìˆ˜í™”ë¥¼ í•˜ì§€ ì•ŠìŒ
 /// </remarks>
 public class ConvertBinary : EditorWindow
 {
     /// <summary>
-    /// csv ÆÄÀÏÀÇ ³»¿ëÀ» È®ÀÎ
+    /// csv íŒŒì¼ì˜ ë‚´ìš©ì„ í™•ì¸
     /// </summary>
     [MenuItem("Custom/Readcsv")]
     private static void ReadCSV()
@@ -78,10 +78,10 @@ public class ConvertBinary : EditorWindow
     }
 
     /// <summary>
-    /// ¹ÙÀÌ³Ê¸® ÆÄÀÏ º¯È¯ ÇÔ¼ö
+    /// ë°”ì´ë„ˆë¦¬ íŒŒì¼ ë³€í™˜ í•¨ìˆ˜
     /// </summary>
     /// <remarks>
-    /// ItemSetting.bytes ÆÄÀÏÀ» ¸¸µë
+    /// ItemSetting.bytes íŒŒì¼ì„ ë§Œë“¬
     /// </remarks>
     [MenuItem("Custom/WriteBinary")]
     private static void ChangeBinary()
@@ -164,7 +164,7 @@ public class ConvertBinary : EditorWindow
     }
 
     /// <summary>
-    /// ¸¸µç ¹ÙÀÌ³Ê¸® ÆÄÀÏÀ» È®ÀÎÇÏ´Â ÇÔ¼ö
+    /// ë§Œë“  ë°”ì´ë„ˆë¦¬ íŒŒì¼ì„ í™•ì¸í•˜ëŠ” í•¨ìˆ˜
     /// </summary>
     [MenuItem("Custom/ReadBinary")]
     private static void ReadBinary()

@@ -1,12 +1,12 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.Serialization;
 
 /// <summary>
-/// UI ½ºÅ©¸³Æ®ÀÇ °¡Àå ÃÖ»óÀ§ ½ºÅ©¸³Æ®
+/// UI ìŠ¤í¬ë¦½íŠ¸ì˜ ê°€ì¥ ìµœìƒìœ„ ìŠ¤í¬ë¦½íŠ¸
 /// </summary>
 /// <remarks>
-/// UI ÄÁÆ®·Ñ·¯ÀÇ È°¼ºÈ­ UI ¸®½ºÆ®¿¡ ÀÚµ¿ µî·Ï
-/// UI ÄÁÆ®·Ñ·¯°¡ °ü¸®ÇÏ´Â UI State¿¡ µû¶ó ¿ÀºêÁ§Æ® »óÅÂ °»½Å
+/// UI ì»¨íŠ¸ë¡¤ëŸ¬ì˜ í™œì„±í™” UI ë¦¬ìŠ¤íŠ¸ì— ìë™ ë“±ë¡
+/// UI ì»¨íŠ¸ë¡¤ëŸ¬ê°€ ê´€ë¦¬í•˜ëŠ” UI Stateì— ë”°ë¼ ì˜¤ë¸Œì íŠ¸ ìƒíƒœ ê°±ì‹ 
 /// </remarks>
 public class BaseUI : MonoBehaviour
 {
@@ -26,7 +26,7 @@ public class BaseUI : MonoBehaviour
     #region Unity Lifecycle
 
     /// <summary>
-    /// ºÎ¸ğ ¿ÀºêÁ§Æ®¿¡ Canvas°¡ ÀÖÀ¸¸é, UI ¿ÀºêÁ§Æ®ÀÌ±â ¶§¹®¿¡, UI ¸®½ºÆ®¿¡ µî·Ï
+    /// ë¶€ëª¨ ì˜¤ë¸Œì íŠ¸ì— Canvasê°€ ìˆìœ¼ë©´, UI ì˜¤ë¸Œì íŠ¸ì´ê¸° ë•Œë¬¸ì—, UI ë¦¬ìŠ¤íŠ¸ì— ë“±ë¡
     /// </summary>
     virtual protected void Awake()
     {
@@ -40,13 +40,13 @@ public class BaseUI : MonoBehaviour
     #region Public Methods
 
     /// <summary>
-    /// ÇÃ·¡±×¿Í È°¼ºÈ­ ¿©ºÎ¿¡ µû¶ó¼­, ¿ÀºêÁ§Æ®ÀÇ »óÅÂ¸¦ Á¶Á¤
+    /// í”Œë˜ê·¸ì™€ í™œì„±í™” ì—¬ë¶€ì— ë”°ë¼ì„œ, ì˜¤ë¸Œì íŠ¸ì˜ ìƒíƒœë¥¼ ì¡°ì •
     /// </summary>
-    /// <param name="uiFlag"> UI ÇÃ·¡±× </param>
-    /// <param name="shouldActivate"> È°¼ºÈ­ ¿©ºÎ </param>
+    /// <param name="uiFlag"> UI í”Œë˜ê·¸ </param>
+    /// <param name="shouldActivate"> í™œì„±í™” ì—¬ë¶€ </param>
     public virtual void CheckActiveCondition(int uiFlag, bool shouldActivate)
     {
-        //// ºñÆ® ÇÃ·¡±× ¿¬»êÀ¸·Î ´ÙÁß UI »óÅÂ °ü¸®
+        //// ë¹„íŠ¸ í”Œë˜ê·¸ ì—°ì‚°ìœ¼ë¡œ ë‹¤ì¤‘ UI ìƒíƒœ ê´€ë¦¬
         bool flagMatches = (uiFlag & activeFlag) != 0;
         bool shouldBeActive = shouldActivate ? flagMatches : !flagMatches;
 

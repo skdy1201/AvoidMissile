@@ -1,10 +1,10 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class DevTestController : MonoBehaviour
 {
 
-    // DevTestScene¿¡¼­ Å×½ºÆ® ÇÒ ¶§, ÇÑ ¹ø¸¸ µ¿ÀÛ½ÃÅ°±â À§ÇÑ º¯¼ö
+    // DevTestSceneì—ì„œ í…ŒìŠ¤íŠ¸ í•  ë•Œ, í•œ ë²ˆë§Œ ë™ì‘ì‹œí‚¤ê¸° ìœ„í•œ ë³€ìˆ˜
     private bool DevTestActive = false;
 
     #region Unity Lifecycle
@@ -21,7 +21,7 @@ public class DevTestController : MonoBehaviour
        // {
        //     Debug.Log("KeyDown ESC");
        //
-       //     // TODO : Á¤¸® ÇÔ¼ö¸¦ ¸¸µé¾î µÖ¾ß ÇÒµí?
+       //     // TODO : ì •ë¦¬ í•¨ìˆ˜ë¥¼ ë§Œë“¤ì–´ ë‘¬ì•¼ í• ë“¯?
        //     SceneController.Instance.ChangeScene();
        //
        // }
@@ -40,7 +40,7 @@ public class DevTestController : MonoBehaviour
         //}
         
 
-        // DevTest Scene¿¡¼­ Å×½ºÆ®
+        // DevTest Sceneì—ì„œ í…ŒìŠ¤íŠ¸
         //#if UNITY_EDITOR
         //        if (Input.GetKey(KeyCode.I) && DevTestActive == false)
         //        {

@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -31,17 +31,17 @@ public enum UIStateEnum
     LeaderBoard = 8,
 }
 
-//TODO : DISABLE°ú UPDATE UISTATE°¡ Á» ±â´ÉÀÌ °ãÄ¡´Â ´À³¦
+//TODO : DISABLEê³¼ UPDATE UISTATEê°€ ì¢€ ê¸°ëŠ¥ì´ ê²¹ì¹˜ëŠ” ëŠë‚Œ
 
 /// <summary>
-/// UIÀÇ »óÅÂ¸¦ °»½ÅÇÏ´Â ÄÁÆ®·Ñ·¯
+/// UIì˜ ìƒíƒœë¥¼ ê°±ì‹ í•˜ëŠ” ì»¨íŠ¸ë¡¤ëŸ¬
 /// </summary>
 public class UIController : Singleton<UIController>
 {
     #region Serialized Fields
 
     /// <summary>
-    /// ¾À¿¡ Á¸ÀçÇÏ´Â UI ¸®½ºÆ®
+    /// ì”¬ì— ì¡´ì¬í•˜ëŠ” UI ë¦¬ìŠ¤íŠ¸
     /// </summary>
     [FormerlySerializedAs("L_CurUI")]
     [SerializeField] private List<BaseUI> currentUIs = new List<BaseUI>();
@@ -52,10 +52,10 @@ public class UIController : Singleton<UIController>
     #region Private/Protected Fields
 
     /// <summary>
-    /// ÇöÀç UI »óÅÂ¸¦ ¼³¸íÇÏ´Â °ª
+    /// í˜„ì¬ UI ìƒíƒœë¥¼ ì„¤ëª…í•˜ëŠ” ê°’
     /// </summary>
     /// /// <remarks>
-    /// UI´Â ÇÑ »óÅÂ¿¡¸¸ °íÁ¤µÇÁö ¾Ê°í ¿©·¯ »óÈ²ÀÌ µ¿½Ã¿¡ È°¼ºÈ­µÉ ¼ö ÀÖ¾î ºñÆ® ÇÃ·¡±× ¹æ½Ä »ç¿ë
+    /// UIëŠ” í•œ ìƒíƒœì—ë§Œ ê³ ì •ë˜ì§€ ì•Šê³  ì—¬ëŸ¬ ìƒí™©ì´ ë™ì‹œì— í™œì„±í™”ë  ìˆ˜ ìˆì–´ ë¹„íŠ¸ í”Œë˜ê·¸ ë°©ì‹ ì‚¬ìš©
     /// </remarks>
     private int uiState = 0;
 
@@ -67,10 +67,10 @@ public class UIController : Singleton<UIController>
     #region Unity Lifecycle
 
     /// <summary>
-    /// °´Ã¼ »ı¼º½Ã ÇÊ¿äÇÑ, ÃÊ±âÈ­ ÀÛ¾÷ ¹× ÀÌº¥Æ® µî·Ï
+    /// ê°ì²´ ìƒì„±ì‹œ í•„ìš”í•œ, ì´ˆê¸°í™” ì‘ì—… ë° ì´ë²¤íŠ¸ ë“±ë¡
     /// </summary>
     /// <remarks>
-    /// Ã³À½ ½ÃÀÛÇÏ´Â ¾ÀÀº ¹«Á¶°Ç Å¸ÀÌÆ²ÀÌ±â ¶§¹®¿¡, MainÀ¸·Î ¼³Á¤ÇÑ´Ù.
+    /// ì²˜ìŒ ì‹œì‘í•˜ëŠ” ì”¬ì€ ë¬´ì¡°ê±´ íƒ€ì´í‹€ì´ê¸° ë•Œë¬¸ì—, Mainìœ¼ë¡œ ì„¤ì •í•œë‹¤.
     /// </remarks>
     protected override void Awake()
     {
@@ -86,7 +86,7 @@ public class UIController : Singleton<UIController>
     }
 
     /// <summary>
-    /// Ã³À½ °ÔÀÓÀ» ½ÇÇàÇÏ°í, Title¾ÀÀ¸·Î ÁøÀÔÇßÀ»¶§, UI »óÅÂ¸¦ °»½Å
+    /// ì²˜ìŒ ê²Œì„ì„ ì‹¤í–‰í•˜ê³ , Titleì”¬ìœ¼ë¡œ ì§„ì…í–ˆì„ë•Œ, UI ìƒíƒœë¥¼ ê°±ì‹ 
     /// </summary>
     private void Start()
     {
@@ -99,10 +99,10 @@ public class UIController : Singleton<UIController>
     #region Public Methods
 
     /// <summary>
-    /// ÇÃ·¹ÀÌ¾î »ç¸Á ½Ã UI¸¦ °ÔÀÓ¿À¹ö »óÅÂ·Î ÀüÈ¯.
+    /// í”Œë ˆì´ì–´ ì‚¬ë§ ì‹œ UIë¥¼ ê²Œì„ì˜¤ë²„ ìƒíƒœë¡œ ì „í™˜.
     /// </summary>
     /// <remarks>
-    /// Main »óÅÂ¸¦ ºñÈ°¼ºÈ­ÇÏ°í GameOver »óÅÂ¸¦ È°¼ºÈ­ÇÑ ÈÄ UI¸¦ °»½Å.
+    /// Main ìƒíƒœë¥¼ ë¹„í™œì„±í™”í•˜ê³  GameOver ìƒíƒœë¥¼ í™œì„±í™”í•œ í›„ UIë¥¼ ê°±ì‹ .
     /// </remarks>
     public void OnPlayerDeath()
     {
@@ -112,10 +112,10 @@ public class UIController : Singleton<UIController>
     }
 
     /// <summary>
-    /// ÇöÀç UI »óÅÂ¿¡ µû¶ó¼­, °¢ UI ¿ÀºêÁ§Æ®ÀÇ È°¼ºÈ­ ¿©ºÎ¸¦ °áÁ¤
+    /// í˜„ì¬ UI ìƒíƒœì— ë”°ë¼ì„œ, ê° UI ì˜¤ë¸Œì íŠ¸ì˜ í™œì„±í™” ì—¬ë¶€ë¥¼ ê²°ì •
     /// </summary>
-    /// <param name="uiFlag"> ÇöÀç UI »óÅÂ </param>
-    /// <param name="active"> È°¼ºÈ­, ºñÈ°¼ºÈ­ ¿©ºÎ </param>
+    /// <param name="uiFlag"> í˜„ì¬ UI ìƒíƒœ </param>
+    /// <param name="active"> í™œì„±í™”, ë¹„í™œì„±í™” ì—¬ë¶€ </param>
     public void UpdateUIStates(int uiFlag, bool active = true)
     {
         foreach (var ui in currentUIs)
@@ -125,27 +125,27 @@ public class UIController : Singleton<UIController>
     }
 
     /// <summary>
-    /// UI ¿ÀºêÁ§Æ®¸¦ UI °ü¸® ¸ñ·Ï¿¡ µî·Ï.
+    /// UI ì˜¤ë¸Œì íŠ¸ë¥¼ UI ê´€ë¦¬ ëª©ë¡ì— ë“±ë¡.
     /// </summary>
-    /// <param name="uiObject"> µî·ÏÇÒ UI °ÔÀÓ ¿ÀºêÁ§Æ® </param>
+    /// <param name="uiObject"> ë“±ë¡í•  UI ê²Œì„ ì˜¤ë¸Œì íŠ¸ </param>
     public void RegisterUIList(GameObject uiObject) => currentUIs.Add(uiObject.GetComponent<BaseUI>());
 
     /// <summary>
-    /// ÇØ´ç UI »óÅÂ ÇÃ·¡±×¸¦ È°¼ºÈ­ ÇÑ´Ù.
+    /// í•´ë‹¹ UI ìƒíƒœ í”Œë˜ê·¸ë¥¼ í™œì„±í™” í•œë‹¤.
     /// </summary>
-    /// <param name="flag"> È°¼ºÈ­ÇÒ UI ÇÃ·¡±×¸¦ intÇüÀ¸·Î º¯È¯ </param>
+    /// <param name="flag"> í™œì„±í™”í•  UI í”Œë˜ê·¸ë¥¼ intí˜•ìœ¼ë¡œ ë³€í™˜ </param>
     public void EnableUIState(int flag) => uiState |= flag;
 
     /// <summary>
-    /// ÇØ´ç UI »óÅÂ ÇÃ·¡±×¸¦ ºñÈ°¼ºÈ­ ÇÑ´Ù.
+    /// í•´ë‹¹ UI ìƒíƒœ í”Œë˜ê·¸ë¥¼ ë¹„í™œì„±í™” í•œë‹¤.
     /// </summary>
-    /// <param name="flag"> ºñÈ°¼ºÈ­ÇÒ UI ÇÃ·¡±×¸¦ intÇüÀ¸·Î º¯È¯ </param>
+    /// <param name="flag"> ë¹„í™œì„±í™”í•  UI í”Œë˜ê·¸ë¥¼ intí˜•ìœ¼ë¡œ ë³€í™˜ </param>
     public void DisableUIState(int flag) => uiState &= ~flag;
 
     /// <summary>
-    /// ÇöÀç È°¼ºÈ­µÈ UI »óÅÂ ÇÃ·¡±× °ªÀ» ¹İÈ¯ÇÑ´Ù.
+    /// í˜„ì¬ í™œì„±í™”ëœ UI ìƒíƒœ í”Œë˜ê·¸ ê°’ì„ ë°˜í™˜í•œë‹¤.
     /// </summary>
-    /// <returns>ÇöÀç UI »óÅÂ¸¦ ³ªÅ¸³»´Â ºñÆ® ÇÃ·¡±× °ª</returns>
+    /// <returns>í˜„ì¬ UI ìƒíƒœë¥¼ ë‚˜íƒ€ë‚´ëŠ” ë¹„íŠ¸ í”Œë˜ê·¸ ê°’</returns>
     public int GetCurrentUIState() => uiState;
 
     public void ReviveUIController()
@@ -158,7 +158,7 @@ public class UIController : Singleton<UIController>
     #region Private/Protected Methods
 
     /// <summary>
-    /// ¾ÀÀÌ º¯°æµÉ¶§¸¶´Ù, CheckUI¸¦ ÇÑ´Ù.
+    /// ì”¬ì´ ë³€ê²½ë ë•Œë§ˆë‹¤, CheckUIë¥¼ í•œë‹¤.
     /// </summary>
     protected override void StartProtocol()
     {
@@ -166,7 +166,7 @@ public class UIController : Singleton<UIController>
     }
 
     /// <summary>
-    /// ÇöÀç UI ¸®½ºÆ®¸¦ Áö¿î´Ù.
+    /// í˜„ì¬ UI ë¦¬ìŠ¤íŠ¸ë¥¼ ì§€ìš´ë‹¤.
     /// </summary>
     protected override void EndProtocol()
     {
@@ -178,8 +178,8 @@ public class UIController : Singleton<UIController>
     #region Coroutine
 
     /// <summary>
-    /// UiState¸¦ ÀüÈ¯ ÁØºñ ¹×
-    /// PlaySceneÀÇ ÁÖ¿ä Èå¸§À» °ü¸®ÇÏ´Â GameProgressÀÇ revive ÁøÇà
+    /// UiStateë¥¼ ì „í™˜ ì¤€ë¹„ ë°
+    /// PlaySceneì˜ ì£¼ìš” íë¦„ì„ ê´€ë¦¬í•˜ëŠ” GameProgressì˜ revive ì§„í–‰
     /// </summary>
     private IEnumerator AdRewardRevive()
     {

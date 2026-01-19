@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
 
 namespace Benjathemaker
@@ -27,7 +27,7 @@ namespace Benjathemaker
         public float scaleLerpSpeed = 1f; // Speed of scaling transition
         private float scaleTimer;
 
-        // ¾ÆÀÌÅÛ ½ºÆ÷³ÊÀÇ À§Ä¡ ¼³Á¤°ú Ãæµ¹ ¹æÁö
+        // ì•„ì´í…œ ìŠ¤í¬ë„ˆì˜ ìœ„ì¹˜ ì„¤ì •ê³¼ ì¶©ëŒ ë°©ì§€
         private void OnEnable()
         {
             initialPosition = transform.position;

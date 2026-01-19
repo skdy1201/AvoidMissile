@@ -1,15 +1,15 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
 
 /// <summary>
-/// UI°¡ ¿É¼Ç»óÅÂ·ÎÀÇ ÁøÀÔ, ÅğÀåÀ» °ü¸®ÇØÁÖ´Â ½ºÅ©¸³Æ®
+/// UIê°€ ì˜µì…˜ìƒíƒœë¡œì˜ ì§„ì…, í‡´ì¥ì„ ê´€ë¦¬í•´ì£¼ëŠ” ìŠ¤í¬ë¦½íŠ¸
 /// </summary>
 /// <remarks>
-/// ¿É¼Ç °ªµé¿¡ ´ëÇÑ ¼³Á¤Àº ´Ù¸¥ UIµéÀÌ ÇÏÁö¸¸, 
-/// ¿É¼Ç ¾Ö´Ï¸ŞÀÌ¼Ç, UIµéÀÇ »óÅÂ º¯È¯À» °ü¸®
+/// ì˜µì…˜ ê°’ë“¤ì— ëŒ€í•œ ì„¤ì •ì€ ë‹¤ë¥¸ UIë“¤ì´ í•˜ì§€ë§Œ, 
+/// ì˜µì…˜ ì• ë‹ˆë©”ì´ì…˜, UIë“¤ì˜ ìƒíƒœ ë³€í™˜ì„ ê´€ë¦¬
 /// </remarks>
 public class OptionUI : BaseUI, InterfaceUI
 {
@@ -18,24 +18,24 @@ public class OptionUI : BaseUI, InterfaceUI
     [SerializeField] private float activeTime;
 
     /// <summary>
-    /// ¿É¼Ç »óÅÂ·Î ÁøÀÔÇÏ°Ô ÇÏ±â À§ÇÑ ¹öÆ° ¿ÀºêÁ§Æ®
+    /// ì˜µì…˜ ìƒíƒœë¡œ ì§„ì…í•˜ê²Œ í•˜ê¸° ìœ„í•œ ë²„íŠ¼ ì˜¤ë¸Œì íŠ¸
     /// </summary>
     [SerializeField] private GameObject optionButton;
 
     /// <summary>
-    /// UI »óÅÂ°¡ ¿É¼ÇÀÏ¶§, ¹è°æÀ» °ËÀº»öÀ¸·Î Ã¤¿öÁÙ °´Ã¼
+    /// UI ìƒíƒœê°€ ì˜µì…˜ì¼ë•Œ, ë°°ê²½ì„ ê²€ì€ìƒ‰ìœ¼ë¡œ ì±„ì›Œì¤„ ê°ì²´
     /// </summary>
     [SerializeField] private GameObject optionBackGround;
 
     [SerializeField] private Vector2 targetSize;
 
     /// <summary>
-    /// ¿É¼Ç UIµéÀÌ µé¾î°¥ Ã¢
+    /// ì˜µì…˜ UIë“¤ì´ ë“¤ì–´ê°ˆ ì°½
     /// </summary>
     [SerializeField] private GameObject optionWindow;
 
     /// <summary>
-    /// ¿É¼Ç »óÅÂÀÏ¶§, ÀÛµ¿ÇÒ °ü·Ã ¿ÀºêÁ§Æ® ¸®½ºÆ®
+    /// ì˜µì…˜ ìƒíƒœì¼ë•Œ, ì‘ë™í•  ê´€ë ¨ ì˜¤ë¸Œì íŠ¸ ë¦¬ìŠ¤íŠ¸
     /// </summary>
     [SerializeField] private List<GameObject> optionUIItem = new List<GameObject>();
 
@@ -54,10 +54,10 @@ public class OptionUI : BaseUI, InterfaceUI
     #region Public Methods
 
     /// <summary>
-    /// ÇÃ·¡±×¸¦ °Ë»çÇÏ°í, È°¼ºÈ­ ÇØ¾ß ÇÑ´Ù¸é, ¿É¼ÇµéÀ» È°¼ºÈ­.
+    /// í”Œë˜ê·¸ë¥¼ ê²€ì‚¬í•˜ê³ , í™œì„±í™” í•´ì•¼ í•œë‹¤ë©´, ì˜µì…˜ë“¤ì„ í™œì„±í™”.
     /// </summary>
-    /// <param name="uiFlag"> UI »óÅÂ </param>
-    /// <param name="active"> È°¼ºÈ­ ¿©ºÎ </param>
+    /// <param name="uiFlag"> UI ìƒíƒœ </param>
+    /// <param name="active"> í™œì„±í™” ì—¬ë¶€ </param>
     public override void CheckActiveCondition(int uiFlag, bool active)
     {
         base.CheckActiveCondition(uiFlag, active);
@@ -69,24 +69,24 @@ public class OptionUI : BaseUI, InterfaceUI
     }
 
     /// <summary>
-    /// ÀÎÅÍÆäÀÌ½º ÇÔ¼ö. ¿É¼Ç UI°¡ ÃÊ¹İ¿¡ ÇÊ¿äÇÑ °ÍµéÀ» ¼³Á¤
+    /// ì¸í„°í˜ì´ìŠ¤ í•¨ìˆ˜. ì˜µì…˜ UIê°€ ì´ˆë°˜ì— í•„ìš”í•œ ê²ƒë“¤ì„ ì„¤ì •
     /// </summary>
     public void Init()
     {
-        // ÀÌ¹ÌÁö ¿ÀºêÁ§Æ®µéÀ» ´Ù È°¼ºÈ­ 
+        // ì´ë¯¸ì§€ ì˜¤ë¸Œì íŠ¸ë“¤ì„ ë‹¤ í™œì„±í™” 
         optionBackGround.GetComponent<Image>().enabled = false;
         optionWindow.GetComponent<Image>().enabled = false;
 
         Button buttonComponent = optionButton.GetComponent<Button>();
 
-        // null Ã¼Å©
+        // null ì²´í¬
         if (buttonComponent == null)
         {
             Debug.LogError("Option Connect Fail");
             Debug.Break();
         }
 
-        // ¿É¼ÇÀ» ¹Ù²Ùµç, ¹Ù²ÙÁö ¾Êµç, CloseOptionÀ¸·Î °áÁ¤°ú µ¿½Ã¿¡ ¿É¼Ç Á¾·á
+        // ì˜µì…˜ì„ ë°”ê¾¸ë“ , ë°”ê¾¸ì§€ ì•Šë“ , CloseOptionìœ¼ë¡œ ê²°ì •ê³¼ ë™ì‹œì— ì˜µì…˜ ì¢…ë£Œ
         foreach (var item in optionUIItem)
         {
             OptionButton optionButton = item.GetComponent<OptionButton>();
@@ -104,11 +104,11 @@ public class OptionUI : BaseUI, InterfaceUI
     #region Private/Protected Methods
 
     /// <summary>
-    /// ¿É¼ÇÀ» µ¿ÀÛ½ÃÅ°´Â ÇÔ¼ö
+    /// ì˜µì…˜ì„ ë™ì‘ì‹œí‚¤ëŠ” í•¨ìˆ˜
     /// </summary>
     /// <remarks>
-    /// ÀÌ¹ÌÁöµéÀ» È°¼ºÈ­ ½ÃÅ´
-    /// UI ½ÃÀÛ ¾Ö´Ï¸ŞÀÌ¼ÇÀ» Àç»ıÇÑ´Ù.
+    /// ì´ë¯¸ì§€ë“¤ì„ í™œì„±í™” ì‹œí‚´
+    /// UI ì‹œì‘ ì• ë‹ˆë©”ì´ì…˜ì„ ì¬ìƒí•œë‹¤.
     /// </remarks>
     private void ActiveOption()
     {
@@ -119,7 +119,7 @@ public class OptionUI : BaseUI, InterfaceUI
     }
 
     /// <summary>
-    /// ¿É¼ÇÀ» ºñÈ°¼ºÈ­ ½ÃÅ°´Â ÇÔ¼ö
+    /// ì˜µì…˜ì„ ë¹„í™œì„±í™” ì‹œí‚¤ëŠ” í•¨ìˆ˜
     /// </summary>
 
     private void CloseOption()
@@ -140,27 +140,27 @@ public class OptionUI : BaseUI, InterfaceUI
     #region Coroutines
 
     /// <summary>
-    /// OptionUi°¡ È°¼ºÈ­ ÇÏ±â Àü¿¡ ½ÃÀÛÇÒ UI ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+    /// OptionUiê°€ í™œì„±í™” í•˜ê¸° ì „ì— ì‹œì‘í•  UI ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
     /// </summary>
     /// /// <remarks>
-    /// ¿É¼Ç UI Ç¥½Ã¿Í ÇÔ²² °ÔÀÓÀ» ÀÏ½ÃÁ¤Áö
-    /// °ÔÀÓ Àç°³´Â »ç¿ëÀÚ°¡ ¿É¼ÇÀ» ´İÀ» ¶§ ButtonFunction.CloseSetting()¿¡¼­ Ã³¸®
+    /// ì˜µì…˜ UI í‘œì‹œì™€ í•¨ê»˜ ê²Œì„ì„ ì¼ì‹œì •ì§€
+    /// ê²Œì„ ì¬ê°œëŠ” ì‚¬ìš©ìê°€ ì˜µì…˜ì„ ë‹«ì„ ë•Œ ButtonFunction.CloseSetting()ì—ì„œ ì²˜ë¦¬
     /// </remarks>
     private IEnumerator ActiveAnimation()
     {
-        // ½Ã°£ ±¸ÇÏ±â
+        // ì‹œê°„ êµ¬í•˜ê¸°
         float start = Time.unscaledTime;
         float end = start + activeTime;
 
-        // Á¡ÁøÀûÀ¸·Î Ä¿Áö´Â ¿É¼Ç Ã¢
+        // ì ì§„ì ìœ¼ë¡œ ì»¤ì§€ëŠ” ì˜µì…˜ ì°½
         RectTransform rect = optionWindow.GetComponent<RectTransform>();
         rect.sizeDelta = Vector2.zero;
 
-        // PlayScene¿¡¼­´Â ÀÏ½Ã Á¤Áö°¡ ÇÊ¿äÇØ ÀÏ°ıÀûÀ¸·Î timeScale Á¶Á¤
-        // ¿É¼Ç Ç¥½Ã¿Í µ¿½Ã¿¡ °ÔÀÓ ÀÏ½ÃÁ¤Áö
+        // PlaySceneì—ì„œëŠ” ì¼ì‹œ ì •ì§€ê°€ í•„ìš”í•´ ì¼ê´„ì ìœ¼ë¡œ timeScale ì¡°ì •
+        // ì˜µì…˜ í‘œì‹œì™€ ë™ì‹œì— ê²Œì„ ì¼ì‹œì •ì§€
         Time.timeScale = 0f;
 
-        // ½ÃÀÛ ÁöÁ¡°ú ³¡ ÁöÁ¡ »çÀÌÀÇ ºñÀ²·Î ¿É¼Ç Ã¢ Áõ°¡
+        // ì‹œì‘ ì§€ì ê³¼ ë ì§€ì  ì‚¬ì´ì˜ ë¹„ìœ¨ë¡œ ì˜µì…˜ ì°½ ì¦ê°€
         while (Time.unscaledTime < end)
         {
             float currentTime = Mathf.InverseLerp(start, end, Time.unscaledTime);
@@ -172,7 +172,7 @@ public class OptionUI : BaseUI, InterfaceUI
 
         rect.sizeDelta = targetSize;
 
-        // ¿É¼Ç Ã¢ÀÌ ¸ñÇ¥ Å©±â ±îÁö µµ´ŞÇßÀ¸¹Ç·Î, ¿ÀºêÁ§Æ® È°¼ºÈ­
+        // ì˜µì…˜ ì°½ì´ ëª©í‘œ í¬ê¸° ê¹Œì§€ ë„ë‹¬í–ˆìœ¼ë¯€ë¡œ, ì˜¤ë¸Œì íŠ¸ í™œì„±í™”
         for (int i = 0; i < optionUIItem.Count; ++i)
             optionUIItem[i].SetActive(true);
     }

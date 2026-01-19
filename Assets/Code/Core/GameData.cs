@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
@@ -13,7 +13,7 @@ public enum GameDataKey
 }
 
 /// <summary>
-/// °ÔÀÓÀÇ Àü¿ªÀûÀÎ µ¥ÀÌÅÍ¸¦ °ü¸®ÇÏ´Â ½Ì±ÛÅæ
+/// ê²Œì„ì˜ ì „ì—­ì ì¸ ë°ì´í„°ë¥¼ ê´€ë¦¬í•˜ëŠ” ì‹±ê¸€í†¤
 /// </summary>
 public class GameData : Singleton<GameData>
 {
@@ -35,7 +35,7 @@ public class GameData : Singleton<GameData>
     #region Private/Protected Fields
 
     /// <summary>
-    /// ¾ÀÀÌ ½ÃÀÛÇÒ ¶§, ¿É¼ÇµéÀ» µ¿±âÈ­ ÇØÁÖ´Â ÀÛ¾÷À» ÇÔ
+    /// ì”¬ì´ ì‹œì‘í•  ë•Œ, ì˜µì…˜ë“¤ì„ ë™ê¸°í™” í•´ì£¼ëŠ” ì‘ì—…ì„ í•¨
     /// </summary>
     protected override void StartProtocol()
     {
@@ -43,10 +43,10 @@ public class GameData : Singleton<GameData>
     }
 
     /// <summary>
-    /// ¸¶Áö¸·À¸·Î ¼³Á¤µÈ ¿É¼ÇÀ» ´Ù½Ã ÀúÀåÇÔ
+    /// ë§ˆì§€ë§‰ìœ¼ë¡œ ì„¤ì •ëœ ì˜µì…˜ì„ ë‹¤ì‹œ ì €ì¥í•¨
     /// </summary>
     /// <remarks>
-    /// ¹Ì»çÀÏ Åõ¸íµµ, BGM, È¿°úÀ½¿¡ ´ëÇÑ »çÇ×µéÀ» ÀúÀå
+    /// ë¯¸ì‚¬ì¼ íˆ¬ëª…ë„, BGM, íš¨ê³¼ìŒì— ëŒ€í•œ ì‚¬í•­ë“¤ì„ ì €ì¥
     /// </remarks>
     protected override void EndProtocol()
     {
@@ -59,7 +59,7 @@ public class GameData : Singleton<GameData>
     #region Unity Lifecycle
 
     /// <summary>
-    /// Awake°¡ ½ÇÇàµÇ¸é, ·©Å· ¸®½ºÆ®ÀÇ »çÀÌÁî¸¦ Á¶ÀıÇÏ°í, ¿É¼ÇÀ» µ¿±âÈ­
+    /// Awakeê°€ ì‹¤í–‰ë˜ë©´, ë­í‚¹ ë¦¬ìŠ¤íŠ¸ì˜ ì‚¬ì´ì¦ˆë¥¼ ì¡°ì ˆí•˜ê³ , ì˜µì…˜ì„ ë™ê¸°í™”
     /// </summary>
     protected override void Awake()
     {
@@ -83,24 +83,24 @@ public class GameData : Singleton<GameData>
     #region Public Methods
 
     /// <summary>
-    /// Á¡¼ö ÀúÀå ÇÔ¼ö
+    /// ì ìˆ˜ ì €ì¥ í•¨ìˆ˜
     /// </summary>
-    /// <param name="score"> Á¡¼ö </param>
+    /// <param name="score"> ì ìˆ˜ </param>
     /// <remarks>
-    /// ±âÁ¸ ·©Å· ¸®½ºÆ®¿¡ ´õÇØµÎ°í, Á¤·ÄÇØ¼­ 5°³¸¸ ÃßÃâ
+    /// ê¸°ì¡´ ë­í‚¹ ë¦¬ìŠ¤íŠ¸ì— ë”í•´ë‘ê³ , ì •ë ¬í•´ì„œ 5ê°œë§Œ ì¶”ì¶œ
     /// </remarks>
     public void SaveScore(int score)
     {
         rankScore.Add(score);
         rankScore.Sort((a, b) => b.CompareTo(a));
 
-        // »óÀ§ 5°³
+        // ìƒìœ„ 5ê°œ
         if (rankScore.Count > 5)
         {
             rankScore.RemoveAt(rankScore.Count - 1);
         }
 
-        // PlayerPref¿¡ ÀúÀå
+        // PlayerPrefì— ì €ì¥
         string key = "Rank";
 
         for (int i = 0; i < rankScore.Count; ++i)
@@ -110,9 +110,9 @@ public class GameData : Singleton<GameData>
     }
 
     /// <summary>
-    /// ÃÖ°í Á¡¼ö ±¸ÇÏ±â
+    /// ìµœê³  ì ìˆ˜ êµ¬í•˜ê¸°
     /// </summary>
-    /// <returns> °¡Àå ³ôÀº Á¡¼ö </returns>
+    /// <returns> ê°€ì¥ ë†’ì€ ì ìˆ˜ </returns>
     public int GetMaxScore()
     {
         if (rankScore.Count == 0)
@@ -122,10 +122,10 @@ public class GameData : Singleton<GameData>
     }
 
     /// <summary>
-    /// ÁöÁ¤µÈ ¼øÀ§ÀÇ Á¡¼ö¸¦ ¹İÈ¯
+    /// ì§€ì •ëœ ìˆœìœ„ì˜ ì ìˆ˜ë¥¼ ë°˜í™˜
     /// </summary>
-    /// <param name="rank">Á¶È¸ÇÒ ¼øÀ§ (1~5) </param>
-    /// <returns> ÇØ´ç ¼øÀ§ÀÇ Á¡¼ö </returns>
+    /// <param name="rank">ì¡°íšŒí•  ìˆœìœ„ (1~5) </param>
+    /// <returns> í•´ë‹¹ ìˆœìœ„ì˜ ì ìˆ˜ </returns>
     public int GetRank(int rank)
     {
         string key = "Rank";
@@ -133,10 +133,10 @@ public class GameData : Singleton<GameData>
     }
 
     /// <summary>
-    /// ¿É¼Ç Å¸ÀÔ¿¡ µû¸¥ °ª
+    /// ì˜µì…˜ íƒ€ì…ì— ë”°ë¥¸ ê°’
     /// </summary>
-    /// <param name="type"> ¿É¼Ç Å¸ÀÔ </param>
-    /// <returns> ¿É¼Ç °ª </returns>
+    /// <param name="type"> ì˜µì…˜ íƒ€ì… </param>
+    /// <returns> ì˜µì…˜ ê°’ </returns>
     public float GetSettingValue(OptionType type)
     {
         float result = 0f;
@@ -165,13 +165,13 @@ public class GameData : Singleton<GameData>
     }
 
     /// <summary>
-    /// ¿É¼Ç °ª ¼³Á¤
+    /// ì˜µì…˜ ê°’ ì„¤ì •
     /// </summary>
-    /// <param name="type"> ¿É¼Ç Å¸ÀÔ </param>
-    /// <param name="value"> ¼³Á¤ °ª </param>
+    /// <param name="type"> ì˜µì…˜ íƒ€ì… </param>
+    /// <param name="value"> ì„¤ì • ê°’ </param>
     public void SetSettingValue(OptionType type, float value)
     {
-        // Å¸ÀÔ°ú º¯¼ö ¸ÅÄª
+        // íƒ€ì…ê³¼ ë³€ìˆ˜ ë§¤ì¹­
         switch (type)
         {
             case OptionType.Alpha:
@@ -188,10 +188,10 @@ public class GameData : Singleton<GameData>
     }
 
     /// <summary>
-    /// PlayerPref·Î ÀúÀåÇØµĞ µ¥ÀÌÅÍµéÀ» ÀüºÎ µ¿±âÈ­ ½ÃÅ°±â 
+    /// PlayerPrefë¡œ ì €ì¥í•´ë‘” ë°ì´í„°ë“¤ì„ ì „ë¶€ ë™ê¸°í™” ì‹œí‚¤ê¸° 
     /// </summary>
     /// <remarks>
-    /// ·©Å·, ¿É¼Ç
+    /// ë­í‚¹, ì˜µì…˜
     /// </remarks>
     public void SyncPlayerPref()
     {
@@ -231,7 +231,7 @@ public class GameData : Singleton<GameData>
     }
 
     /// <summary>
-    /// ½ÃÀÛÇßÀ» ¶§, ¿É¼ÇÀÌ º¯°æµÇ¾úÀ»¶§, PlayerPrefµµ °»½Å
+    /// ì‹œì‘í–ˆì„ ë•Œ, ì˜µì…˜ì´ ë³€ê²½ë˜ì—ˆì„ë•Œ, PlayerPrefë„ ê°±ì‹ 
     /// </summary>
     public void SetOption()
     {
@@ -247,12 +247,12 @@ public class GameData : Singleton<GameData>
     #region Private/Protected Methods
 
     /// <summary>
-    /// ¹ÙÀÌ³Ê¸® ÆÄÀÏÀ» ÀĞ¾î¼­ µ¥ÀÌÅÍ·Î ÀúÀå
+    /// ë°”ì´ë„ˆë¦¬ íŒŒì¼ì„ ì½ì–´ì„œ ë°ì´í„°ë¡œ ì €ì¥
     /// </summary>
     /// <remarks>
-    /// Bytes ÆÄÀÏÀº TextAssetÀ¸·Î ·Îµå °¡´É
-    /// ·ÎµåÇÑ ÆÄÀÏÀ» ÀĞ´Â °ÍÀÌ±â ¶§¹®¿¡, MemoryStream »ç¿ë
-    /// ÆÄÀÏ ³»ºÎ°¡ BinaryÀÌ±â ¶§¹®¿¡, BinaryReader »ç¿ë
+    /// Bytes íŒŒì¼ì€ TextAssetìœ¼ë¡œ ë¡œë“œ ê°€ëŠ¥
+    /// ë¡œë“œí•œ íŒŒì¼ì„ ì½ëŠ” ê²ƒì´ê¸° ë•Œë¬¸ì—, MemoryStream ì‚¬ìš©
+    /// íŒŒì¼ ë‚´ë¶€ê°€ Binaryì´ê¸° ë•Œë¬¸ì—, BinaryReader ì‚¬ìš©
     /// </remarks>
     private void LoadItemData()
     {

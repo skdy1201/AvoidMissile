@@ -1,11 +1,11 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 /// <summary>
-/// Àü¹ÝÀûÀ¸·Î °øÀ¯µÇ¸é ÁÁÀ» µ¥ÀÌÅÍµéÀ» °ü¸®ÇÏ´Â ½ºÅ©¸³Æ®
+/// ì „ë°˜ì ìœ¼ë¡œ ê³µìœ ë˜ë©´ ì¢‹ì„ ë°ì´í„°ë“¤ì„ ê´€ë¦¬í•˜ëŠ” ìŠ¤í¬ë¦½íŠ¸
 /// </summary>
 /// <remarks>
-/// ¾À ÀüÈ¯ °ü¸®, Å¸ÀÏ/ÇÃ·¹ÀÌ¾î ÂüÁ¶, °ÔÀÓ ÁøÇà °ü·Ã »ó¼ö¸¦ Á¦°ø
-/// ¾ÀÀÌ ÀüÈ¯µÇ¾îµµ DontDestroyOnLoad·Î À¯Áö
+/// ì”¬ ì „í™˜ ê´€ë¦¬, íƒ€ì¼/í”Œë ˆì´ì–´ ì°¸ì¡°, ê²Œìž„ ì§„í–‰ ê´€ë ¨ ìƒìˆ˜ë¥¼ ì œê³µ
+/// ì”¬ì´ ì „í™˜ë˜ì–´ë„ DontDestroyOnLoadë¡œ ìœ ì§€
 /// </remarks>
 public class GlobalData : Singleton<GlobalData>
 {
@@ -83,7 +83,7 @@ public class GlobalData : Singleton<GlobalData>
     }
 
     /// <summary>
-    /// ÇØ´ç ¾ÀÀÇ ÇÃ·¹ÀÌ¾î´Â Á×¾úÀ¸´Ï ¿¬°áÀ» ÇØÁ¦.
+    /// í•´ë‹¹ ì”¬ì˜ í”Œë ˆì´ì–´ëŠ” ì£½ì—ˆìœ¼ë‹ˆ ì—°ê²°ì„ í•´ì œ.
     /// </summary>
     protected override void EndProtocol()
     {

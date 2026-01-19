@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -6,18 +6,18 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.Serialization;
 
 /// <summary>
-/// ÃßÈÄ Ãß°¡µÉ ¿©Áö°¡ ÀÖÀ» ¼ö ÀÖÀ½.
+/// ì¶”í›„ ì¶”ê°€ë  ì—¬ì§€ê°€ ìˆì„ ìˆ˜ ìˆìŒ.
 /// </summary>
 public enum BoomParticle
 {
     Normal,
 }
 
-// todo : SpawnerÀÇ OnPlayerDeath¿Í PlayerDeadonBoomSpawner
-// ÇÔ¼ö°¡ °°Àº ¿ëµµÁö¸¸, ´Ù¸£°Ô ¾²ÀÎ´Ù. SpawnerÀÇ ÇÔ¼ö¸¦ Àß È°¿ëÇØ¾ß ÇÑ´Ù.
+// todo : Spawnerì˜ OnPlayerDeathì™€ PlayerDeadonBoomSpawner
+// í•¨ìˆ˜ê°€ ê°™ì€ ìš©ë„ì§€ë§Œ, ë‹¤ë¥´ê²Œ ì“°ì¸ë‹¤. Spawnerì˜ í•¨ìˆ˜ë¥¼ ì˜ í™œìš©í•´ì•¼ í•œë‹¤.
 
 /// <summary>
-/// ÆÄÆ¼Å¬ ¿ÀºêÁ§Æ®¸¦ ´Ù·ç´Â ½ºÆ÷³Ê
+/// íŒŒí‹°í´ ì˜¤ë¸Œì íŠ¸ë¥¼ ë‹¤ë£¨ëŠ” ìŠ¤í¬ë„ˆ
 /// </summary>
 public class BoomEffectSpawner : Spawner<BoomParticle>
 {
@@ -25,7 +25,7 @@ public class BoomEffectSpawner : Spawner<BoomParticle>
     #region Serialized Fields
 
     /// <summary>
-    /// ÆøÆÈ ÀÌÆåÆ® ¸®½ºÆ®
+    /// í­íŒ” ì´í™íŠ¸ ë¦¬ìŠ¤íŠ¸
     /// </summary>
     [FormerlySerializedAs("BoomList")]
     [SerializeField] private List<GameObject> boomEffects = new List<GameObject>();
@@ -36,10 +36,10 @@ public class BoomEffectSpawner : Spawner<BoomParticle>
     #region Private/Protected Fields
     
     /// <summary>
-    /// ÇöÀç È°¼ºÈ­ µÇ¾îÀÖ´Â ÆÄÆ¼Å¬ ¿ÀºêÁ§Æ®
+    /// í˜„ì¬ í™œì„±í™” ë˜ì–´ìˆëŠ” íŒŒí‹°í´ ì˜¤ë¸Œì íŠ¸
     /// </summary>
     /// <remarks>
-    /// Áß°£ »èÁ¦¸¦ À§ÇÑ ¸µÅ©µå ¸®½ºÆ®
+    /// ì¤‘ê°„ ì‚­ì œë¥¼ ìœ„í•œ ë§í¬ë“œ ë¦¬ìŠ¤íŠ¸
     /// </remarks>>
     private LinkedList<GameObject> activeBoomEffects = new LinkedList<GameObject>();
 
@@ -50,7 +50,7 @@ public class BoomEffectSpawner : Spawner<BoomParticle>
     #region Properties
 
     /// <summary>
-    /// ¿­°ÅÇüÀÇ °¹¼ö·Î ½ºÆ÷³Ê ¸®½ºÆ®¸¦ ÃÊ±âÈ­ ÇØ¾ßÇÑ´Ù.
+    /// ì—´ê±°í˜•ì˜ ê°¯ìˆ˜ë¡œ ìŠ¤í¬ë„ˆ ë¦¬ìŠ¤íŠ¸ë¥¼ ì´ˆê¸°í™” í•´ì•¼í•œë‹¤.
     /// </summary>
     public new static BoomEffectSpawner Instance
     {
@@ -62,8 +62,8 @@ public class BoomEffectSpawner : Spawner<BoomParticle>
     #region Unity Lifecycle
 
     /// <summary>
-    /// ½ºÆ÷³Ê¿¡ ÆÄÆ¼Å¬ ¿ÀºêÁ§Æ®¸¦ ¹Ì¸® ¸¸µé¾î¼­ ³Ö¾îµĞ´Ù.
-    /// ÇÃ·¹ÀÌ¾î »ç¸Á ÀÌº¥Æ®¸¦ µî·ÏÇÑ´Ù.
+    /// ìŠ¤í¬ë„ˆì— íŒŒí‹°í´ ì˜¤ë¸Œì íŠ¸ë¥¼ ë¯¸ë¦¬ ë§Œë“¤ì–´ì„œ ë„£ì–´ë‘”ë‹¤.
+    /// í”Œë ˆì´ì–´ ì‚¬ë§ ì´ë²¤íŠ¸ë¥¼ ë“±ë¡í•œë‹¤.
     /// </summary>
     protected override void Awake()
     {
@@ -73,7 +73,7 @@ public class BoomEffectSpawner : Spawner<BoomParticle>
 
         for (int i = 0; i < count; ++i)
         {
-            // ½ºÆ÷³Ê¸¶´Ù Æø¹ß ÀÌÆåÆ® ³Ö¾îµÎ±â
+            // ìŠ¤í¬ë„ˆë§ˆë‹¤ í­ë°œ ì´í™íŠ¸ ë„£ì–´ë‘ê¸°
             Queue<GameObject> currentSpawner = spawners[i];
 
             for (int j = 0; j < 100; ++j)
@@ -98,15 +98,15 @@ public class BoomEffectSpawner : Spawner<BoomParticle>
     #region Public Methods
 
     /// <summary>
-    /// ÆÄÆ¼Å¬ ¿ÀºêÁ§Æ®¸¦ ºô·Á¿Â´Ù
+    /// íŒŒí‹°í´ ì˜¤ë¸Œì íŠ¸ë¥¼ ë¹Œë ¤ì˜¨ë‹¤
     /// </summary>
-    /// <param name="type"> Æø¹ß ÆÄÆ¼Å¬ Å¸ÀÔ </param>
-    /// <returns> Æø¹ß ÆÄÆ¼Å¬ ¿ÀºêÁ§Æ®</returns>
+    /// <param name="type"> í­ë°œ íŒŒí‹°í´ íƒ€ì… </param>
+    /// <returns> í­ë°œ íŒŒí‹°í´ ì˜¤ë¸Œì íŠ¸</returns>
     public override GameObject RentSpawner(BoomParticle type)
     {
         GameObject gameObject = null;
 
-        // ¾øÀ¸¸é »ı¼º
+        // ì—†ìœ¼ë©´ ìƒì„±
         if (spawners[(int)type].Count <= 0)
         {
             gameObject = Instantiate(boomEffects[(int)type]);
@@ -127,17 +127,17 @@ public class BoomEffectSpawner : Spawner<BoomParticle>
     }
 
     /// <summary>
-    /// ½ºÆ÷³Ê¿¡ µÇµ¹·Á ³õ±â
+    /// ìŠ¤í¬ë„ˆì— ë˜ëŒë ¤ ë†“ê¸°
     /// </summary>
-    /// <param name="type"> Æø¹ß ÆÄÆ¼Å¬ Å¸ÀÔ</param>
-    /// <param name="gameObject"> ½ºÆ÷³Ê¿¡ Áı¾î³ÖÀ» ÆøÆÈ ÆÄÆ¼Å¬ ¿ÀºêÁ§Æ®</param>
+    /// <param name="type"> í­ë°œ íŒŒí‹°í´ íƒ€ì…</param>
+    /// <param name="gameObject"> ìŠ¤í¬ë„ˆì— ì§‘ì–´ë„£ì„ í­íŒ” íŒŒí‹°í´ ì˜¤ë¸Œì íŠ¸</param>
     public override void ReturnSpawner(BoomParticle type, GameObject gameObject)
     {
 
-        // ÀÚ½Ä ¿ÀºêÁ§Æ®ÀÇ ÆÄÆ¼Å¬ ½Ã½ºÅÛ Ã¼Å©.
+        // ìì‹ ì˜¤ë¸Œì íŠ¸ì˜ íŒŒí‹°í´ ì‹œìŠ¤í…œ ì²´í¬.
         ParticleSystem[] allParticles = gameObject.GetComponentsInChildren<ParticleSystem>();
         
-        // ÀÖ´Ù¸é ÀüºÎ ¸ØÃß±â
+        // ìˆë‹¤ë©´ ì „ë¶€ ë©ˆì¶”ê¸°
         foreach (ParticleSystem particleSystem in allParticles)
         {
             particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
@@ -156,22 +156,22 @@ public class BoomEffectSpawner : Spawner<BoomParticle>
     }
 
     /// <summary>
-    /// ÇÃ·¹ÀÌ¾î°¡ »ç¸ÁÇÏ¸é ¸ğµç ÆÄÆ¼Å¬À» ¸ØÃß°í, 
-    /// ÇöÀç È°¼ºÈ­µÈ ÆÄÆ¼Å¬À» ´Ù½Ã ¹İ³³ÇÑ´Ù.
+    /// í”Œë ˆì´ì–´ê°€ ì‚¬ë§í•˜ë©´ ëª¨ë“  íŒŒí‹°í´ì„ ë©ˆì¶”ê³ , 
+    /// í˜„ì¬ í™œì„±í™”ëœ íŒŒí‹°í´ì„ ë‹¤ì‹œ ë°˜ë‚©í•œë‹¤.
     /// </summary>
-    public void PlayerDeadonBoomSpawner() // ÄÚ·çÆ¾ Á¦°Å
+    public void PlayerDeadonBoomSpawner() // ì½”ë£¨í‹´ ì œê±°
     {
         var aliveBoom = activeBoomEffects.First;
 
         while (aliveBoom != null)
         {
-            // ÇöÀç ÆÄÆ¼Å¬ ¸ØÃß±â
+            // í˜„ì¬ íŒŒí‹°í´ ë©ˆì¶”ê¸°
             GameObject currentObject = aliveBoom.Value;
             ParticleSystem particleSystem = currentObject.GetComponent<ParticleSystem>();
             particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             activeBoomEffects.Remove(aliveBoom);
 
-            // ´Ù½Ã Ç®¿¡ µÇµ¹¸®±â
+            // ë‹¤ì‹œ í’€ì— ë˜ëŒë¦¬ê¸°
             ReturnSpawner(BoomParticle.Normal, currentObject);
             aliveBoom = aliveBoom.Next;
         }
@@ -191,11 +191,11 @@ public class BoomEffectSpawner : Spawner<BoomParticle>
     protected override void StartProtocol() { }
 
     /// <summary>
-    /// È°¼ºÈ­µÈ Æø¹ß ÀÌÆåÆ®¸¦ ´Ù ¸ØÃß°í, 
+    /// í™œì„±í™”ëœ í­ë°œ ì´í™íŠ¸ë¥¼ ë‹¤ ë©ˆì¶”ê³ , 
     /// </summary>
     protected override void EndProtocol()
     {
-        // ¸ğµç È°¼º ÆÄÆ¼Å¬ Áï½Ã Á¤Áö
+        // ëª¨ë“  í™œì„± íŒŒí‹°í´ ì¦‰ì‹œ ì •ì§€
         foreach (GameObject boom in activeBoomEffects)
         {
             if (boom != null)
@@ -212,10 +212,10 @@ public class BoomEffectSpawner : Spawner<BoomParticle>
             }
         }
 
-        // LinkedList ºñ¿ì±â
+        // LinkedList ë¹„ìš°ê¸°
         activeBoomEffects.Clear();
 
-        // Ç®¿¡ ÀÖ´Â °Íµéµµ Á¤¸®
+        // í’€ì— ìˆëŠ” ê²ƒë“¤ë„ ì •ë¦¬
         foreach (var queue in spawners)
         {
             foreach (GameObject pooled in queue)

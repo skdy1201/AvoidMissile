@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -9,10 +9,10 @@ public enum EnumXAxisMissile
 }
 
 /// <summary>
-/// XÃàÀ¸·Î ¿òÁ÷ÀÌ´Â ¹Ì»çÀÏ
+/// Xì¶•ìœ¼ë¡œ ì›€ì§ì´ëŠ” ë¯¸ì‚¬ì¼
 /// </summary>
 /// <remarks>
-/// Çö½ÇÀÇ À¯µµ ¹Ì»çÀÏ, ÀÌµ¿ - È¸ÀüÀ» ³ª´² ¿òÁ÷ÀÌ´Â ¹Ì»çÀÏÀÇ Á¾·ù·Î ³ª´¸
+/// í˜„ì‹¤ì˜ ìœ ë„ ë¯¸ì‚¬ì¼, ì´ë™ - íšŒì „ì„ ë‚˜ëˆ  ì›€ì§ì´ëŠ” ë¯¸ì‚¬ì¼ì˜ ì¢…ë¥˜ë¡œ ë‚˜ë‰¨
 /// </remarks>
 public class MissileXAxis : Missile
 {
@@ -65,8 +65,8 @@ public class MissileXAxis : Missile
 
     
     /// <summary>
-    /// XÃà ¹Ì»çÀÏ Å¸ÀÔÀ» ·£´ı ¹èÁ¤,
-    /// ¹Ì»çÀÏÀÇ ·£´ı ¼³Á¤
+    /// Xì¶• ë¯¸ì‚¬ì¼ íƒ€ì…ì„ ëœë¤ ë°°ì •,
+    /// ë¯¸ì‚¬ì¼ì˜ ëœë¤ ì„¤ì •
     /// </summary>
     void Start()
     {
@@ -75,7 +75,7 @@ public class MissileXAxis : Missile
     }
 
     /// <summary>
-    /// ¹Ì»çÀÏ ÀÌµ¿ÇÏ°Å³ª È¸Àü
+    /// ë¯¸ì‚¬ì¼ ì´ë™í•˜ê±°ë‚˜ íšŒì „
     /// </summary>
     void Update()
     {
@@ -84,8 +84,8 @@ public class MissileXAxis : Missile
 
         Vector3 movevalue = this.transform.forward * Time.deltaTime * missileMoveSpeed;
 
-        // Ä¿½ºÅÒ Å¸ÀÔÀÌ¶ó¸é, ÀÌµ¿°ú È¸ÀüÀ» ºĞ¸®
-        // Çö½Ç Å¸ÀÔÀÌ¶ó¸é, ¸Å¹ø ¹æÇâÀ» ±¸ÇÏ¸ç ÀÌµ¿
+        // ì»¤ìŠ¤í…€ íƒ€ì…ì´ë¼ë©´, ì´ë™ê³¼ íšŒì „ì„ ë¶„ë¦¬
+        // í˜„ì‹¤ íƒ€ì…ì´ë¼ë©´, ë§¤ë²ˆ ë°©í–¥ì„ êµ¬í•˜ë©° ì´ë™
         switch (xAxisType)
         {
             case EnumXAxisMissile.custom:
@@ -116,7 +116,7 @@ public class MissileXAxis : Missile
                 Vector3 targetDir = (GlobalData.Instance.Player.transform.position - transform.position).normalized;
                 Quaternion targetRot = Quaternion.LookRotation(targetDir, Vector3.up);
 
-                // YÃà È¸Àü¸¸ »ç¿ë (X, ZÃà È¸Àü ¹«½Ã)
+                // Yì¶• íšŒì „ë§Œ ì‚¬ìš© (X, Zì¶• íšŒì „ ë¬´ì‹œ)
                 targetRot.z = targetRot.x = 0;
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRot, missileRotateSpeed * Time.deltaTime);
                 break;
@@ -135,13 +135,13 @@ public class MissileXAxis : Missile
     public void SetRotateSpeed(float rotateSpeed) => missileRotateSpeed = rotateSpeed;
 
     /// <summary>
-    /// ¹Ì»çÀÏ ½ºÅÈ ¼³Á¤
+    /// ë¯¸ì‚¬ì¼ ìŠ¤íƒ¯ ì„¤ì •
     /// </summary>
-    /// <param name="hp"> ¹Ì»çÀÏ Ã¼·Â </param>
-    /// <param name="moveTime"> ÀÌµ¿ ½Ã°£ </param>
-    /// <param name="moveSpeed"> ÀÌµ¿ ¼Óµµ </param>
-    /// <param name="rotateTime"> È¸Àü ½Ã°£ </param>
-    /// <param name="rotateSpeed"> È¸Àü ¼Óµµ </param>
+    /// <param name="hp"> ë¯¸ì‚¬ì¼ ì²´ë ¥ </param>
+    /// <param name="moveTime"> ì´ë™ ì‹œê°„ </param>
+    /// <param name="moveSpeed"> ì´ë™ ì†ë„ </param>
+    /// <param name="rotateTime"> íšŒì „ ì‹œê°„ </param>
+    /// <param name="rotateSpeed"> íšŒì „ ì†ë„ </param>
     public void SetMissileStat(int hp, float moveTime, float moveSpeed, float rotateTime, float rotateSpeed)
     {
         SetHP(hp);
@@ -156,13 +156,13 @@ public class MissileXAxis : Missile
     #region Private/Protected Methods
 
     /// <summary>
-    /// YÃà ¹Ì»çÀÏ°ú ¸ÂÀ¸¸é  HP °¨¼Ò. 0ÀÌ µÇ¸é ¼Ò¸ê.
-    /// Ãæµ¹ ÁöÁ¡¿¡ Æø¹ß È¿°ú
+    /// Yì¶• ë¯¸ì‚¬ì¼ê³¼ ë§ìœ¼ë©´  HP ê°ì†Œ. 0ì´ ë˜ë©´ ì†Œë©¸.
+    /// ì¶©ëŒ ì§€ì ì— í­ë°œ íš¨ê³¼
     /// </summary>
-    /// <param name="collision"> Ãæµ¹ ¹°Ã¼ </param>
+    /// <param name="collision"> ì¶©ëŒ ë¬¼ì²´ </param>
     /// <remarks>
-    /// ¹Ì»çÀÏÀÇ ¿ä¼Ò¸¸ °ü¸®
-    /// ÇÃ·¹ÀÌ¾îÀÇ Ã¼·Â °¨¼Ò´Â ÇÃ·¹ÀÌ¾î°¡ ´ã´ç
+    /// ë¯¸ì‚¬ì¼ì˜ ìš”ì†Œë§Œ ê´€ë¦¬
+    /// í”Œë ˆì´ì–´ì˜ ì²´ë ¥ ê°ì†ŒëŠ” í”Œë ˆì´ì–´ê°€ ë‹´ë‹¹
     /// </remarks>
     protected override void OnCollisionEnter(Collision collision)
     {
@@ -172,14 +172,14 @@ public class MissileXAxis : Missile
         {
             missileHP--;
 
-            // Ã¼·ÂÀÌ 0ÀÌ µÇ¸é ÆÄ±«
+            // ì²´ë ¥ì´ 0ì´ ë˜ë©´ íŒŒê´´
             if (missileHP <= 0)
             {
                 MissileSpawner.Instance.SubSpawn(this.gameObject);
                 Destroy(this.gameObject);
             }
 
-            // Ãæµ¹ ÁöÁ¡¿¡ ÀÌÆåÆ® ½ºÆù
+            // ì¶©ëŒ ì§€ì ì— ì´í™íŠ¸ ìŠ¤í°
             Vector3 contact = collision.contacts[0].point;
 
             ActiveBombEffect(contact);
@@ -187,28 +187,28 @@ public class MissileXAxis : Missile
     }
 
     /// <summary>
-    /// Real ¹Ì»çÀÏ È¸Àü °¢µµ °è»ê
+    /// Real ë¯¸ì‚¬ì¼ íšŒì „ ê°ë„ ê³„ì‚°
     /// </summary>
-    /// <returns> ÇÃ·¹ÀÌ¾î ¹æÇâÀ¸·Î È¸ÀüÇÒ °¢µµ (ºÎÈ£ Æ÷ÇÔ) </returns>
+    /// <returns> í”Œë ˆì´ì–´ ë°©í–¥ìœ¼ë¡œ íšŒì „í•  ê°ë„ (ë¶€í˜¸ í¬í•¨) </returns>
     private float GetAngletoPlayer()
     {
-        // ÇöÀç ÇÃ·¹ÀÌ¾î À§Ä¡ ¹Ş±â
+        // í˜„ì¬ í”Œë ˆì´ì–´ ìœ„ì¹˜ ë°›ê¸°
         playerPoint = new Vector2(GlobalData.Instance.Player.transform.position.x, GlobalData.Instance.Player.transform.position.z);
 
-        // ÇÊ¿äÇÑ Á¤º¸ ¸ÅÄª
+        // í•„ìš”í•œ ì •ë³´ ë§¤ì¹­
         Vector2 currentPosition = new Vector2(this.gameObject.transform.position.x, this.gameObject.transform.position.z);
         Vector2 direction = (playerPoint - currentPosition).normalized;
         Vector2 currentFront = new Vector2(this.gameObject.transform.forward.x, this.gameObject.transform.forward.z);
 
-        // ÇÃ·¹ÀÌ¾î¿ÍÀÇ °¢µµ °è»ê
+        // í”Œë ˆì´ì–´ì™€ì˜ ê°ë„ ê³„ì‚°
         float dot = Vector2.Dot(direction, currentFront);
         float angle = Mathf.Acos(Mathf.Clamp(dot, -1f, 1f)) * Mathf.Rad2Deg;
 
-        // È¸Àü ¹æÇâÀ» °áÁ¤ÇÒ ¿ÜÀû
+        // íšŒì „ ë°©í–¥ì„ ê²°ì •í•  ì™¸ì 
         float cross = currentFront.x * direction.y - currentFront.y * direction.x;
         float rotationDirection = -Mathf.Sign(cross);
 
-        // ¹æÇâ°ú °¢µµ¸¦ °öÇØ¼­ Àü¹æ ±âÁØÀ¸·Î È¸ÀüÇÒ °ªÀ» ¸®ÅÏ
+        // ë°©í–¥ê³¼ ê°ë„ë¥¼ ê³±í•´ì„œ ì „ë°© ê¸°ì¤€ìœ¼ë¡œ íšŒì „í•  ê°’ì„ ë¦¬í„´
         return angle * rotationDirection;
     }
 
@@ -217,10 +217,10 @@ public class MissileXAxis : Missile
     #region Coroutines
 
     /// <summary>
-    /// Custom ¹Ì»çÀÏ È¸Àü
+    /// Custom ë¯¸ì‚¬ì¼ íšŒì „
     /// </summary>
     /// <remarks>
-    /// È¸Àü½Ã°£ µ¿¾È¿¡¸¸ ¹Ì»çÀÏÀÌ È¸Àü
+    /// íšŒì „ì‹œê°„ ë™ì•ˆì—ë§Œ ë¯¸ì‚¬ì¼ì´ íšŒì „
     /// </remarks>
     IEnumerator RotateToPlayer()
     {
@@ -230,21 +230,21 @@ public class MissileXAxis : Missile
         Vector2 direction = (playerPoint - currentPosition).normalized;
         Vector2 currentFront = new Vector2(this.gameObject.transform.forward.x, this.gameObject.transform.forward.z);
 
-        // ³»ÀûÀ¸·Î °¢µµ ±¸ÇÏ±â
+        // ë‚´ì ìœ¼ë¡œ ê°ë„ êµ¬í•˜ê¸°
         float dot = Vector2.Dot(direction, currentFront);
         float angle = Mathf.Acos(Mathf.Clamp(dot, -1f, 1f)) * Mathf.Rad2Deg;
 
-        // ¿ÜÀûÀ¸·Î È¸Àü ¹æÇâ ±¸ÇÏ±â
+        // ì™¸ì ìœ¼ë¡œ íšŒì „ ë°©í–¥ êµ¬í•˜ê¸°
         float cross = currentFront.x * direction.y - currentFront.y * direction.x;
         float rotationDirection = -Mathf.Sign(cross);
 
-        // È¸Àü Å¸ÀÌ¸Ó±îÁö µµ´ŞÇÏÁö ¾Ê¾Ò´Ù¸é ÄÚ·çÆ¾ ³» ¹İº¹
+        // íšŒì „ íƒ€ì´ë¨¸ê¹Œì§€ ë„ë‹¬í•˜ì§€ ì•Šì•˜ë‹¤ë©´ ì½”ë£¨í‹´ ë‚´ ë°˜ë³µ
         while (currentRotateTimer <= missileRotateTime)
         {
-            // °¢µµ¸¦ È¸Àü ½Ã°£À¸·Î ³ª´©¸é, 1ÃÊ¿¡ È¸ÀüÇÒ °¢µµ°¡ ³ª¿À°í deltaTimeÀ» °öÇØ ÇÑ ÇÁ·¹ÀÓ È¸Àü °¢µµ
+            // ê°ë„ë¥¼ íšŒì „ ì‹œê°„ìœ¼ë¡œ ë‚˜ëˆ„ë©´, 1ì´ˆì— íšŒì „í•  ê°ë„ê°€ ë‚˜ì˜¤ê³  deltaTimeì„ ê³±í•´ í•œ í”„ë ˆì„ íšŒì „ ê°ë„
             float rotationThisFrame = (angle / missileRotateTime) * Time.deltaTime;
             
-            // È¸Àü°¢µµ¿Í ¹æÇâÀ» °öÇØ¼­ ÇØ´ç ¹æÇâÀ¸·Î °¢µµ¸¸Å­ È¸Àü
+            // íšŒì „ê°ë„ì™€ ë°©í–¥ì„ ê³±í•´ì„œ í•´ë‹¹ ë°©í–¥ìœ¼ë¡œ ê°ë„ë§Œí¼ íšŒì „
             transform.Rotate(0, rotationThisFrame * rotationDirection, 0);
             
             currentRotateTimer += Time.deltaTime;
@@ -252,7 +252,7 @@ public class MissileXAxis : Missile
             yield return null;
         }
 
-        // ÀÌµ¿ ÇÃ·¡±× È°¼ºÈ­ && È¸Àü ÇÃ·¡±× ºñÈ°¼ºÈ­
+        // ì´ë™ í”Œë˜ê·¸ í™œì„±í™” && íšŒì „ í”Œë˜ê·¸ ë¹„í™œì„±í™”
         movementActive = true;
         rotationActive = false;
     }

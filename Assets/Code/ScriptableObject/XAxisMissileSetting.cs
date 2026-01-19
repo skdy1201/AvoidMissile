@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 [CreateAssetMenu(fileName = "XAxisSetting", menuName = "Scriptable Objects/XAxisSetting")]
 public class XAxisSetting : ScriptableObject

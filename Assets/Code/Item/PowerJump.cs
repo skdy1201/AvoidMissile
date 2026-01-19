@@ -1,14 +1,14 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class PowerJump : Item
 {
     #region Public Methods
 
     /// <summary>
-    /// PlayerÀÇ Slide ´É·ÂÀ» ¹Ù²Û´Ù.
+    /// Playerì˜ Slide ëŠ¥ë ¥ì„ ë°”ê¾¼ë‹¤.
     /// </summary>
     /// <remarks>
-    /// ¹Ì»çÀÏµµ ÆÄ±« °¡´É
+    /// ë¯¸ì‚¬ì¼ë„ íŒŒê´´ ê°€ëŠ¥
     /// </remarks>
     public override void EffectItem()
     {

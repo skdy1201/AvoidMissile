@@ -1,11 +1,11 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 /// <summary>
-/// ¾À ÀüÈ¯À» °ü¸®ÇÏ´Â ½ºÅ©¸³Æ®
+/// ì”¬ ì „í™˜ì„ ê´€ë¦¬í•˜ëŠ” ìŠ¤í¬ë¦½íŠ¸
 /// </summary>
 public class SceneController : Singleton<SceneController>
 {
@@ -22,16 +22,16 @@ public class SceneController : Singleton<SceneController>
     #region Public Methods
 
     /// <summary>
-    /// ¾ÀÀ» º¯°æÇØÁÖ´Â ÇÔ¼ö
+    /// ì”¬ì„ ë³€ê²½í•´ì£¼ëŠ” í•¨ìˆ˜
     /// </summary>
     /// <remarks>
-    /// TitleScene°ú PlayScene °£ ÀüÈ¯À» Ã³¸®ÇÏ¸ç, ¾À ÀüÈ¯ Áß Áßº¹ Å¬¸¯À» ¹æÁöÇÏ±â À§ÇØ ¹öÆ°À» ºñÈ°¼ºÈ­
-    /// GameProgress.EndLevel ÀÌº¥Æ®¸¦ È£ÃâÇÏ°í »ç¿îµå ÆäÀÌµå ¾Æ¿ôÀ» Àû¿ë
-    /// UI Â÷´Ü »óÅÂ¸¦ È°¼ºÈ­ÇØ ´Ù¸¥ UIµéÀÇ µ¿ÀÛÀ» ºñÈ°¼ºÈ­.
+    /// TitleSceneê³¼ PlayScene ê°„ ì „í™˜ì„ ì²˜ë¦¬í•˜ë©°, ì”¬ ì „í™˜ ì¤‘ ì¤‘ë³µ í´ë¦­ì„ ë°©ì§€í•˜ê¸° ìœ„í•´ ë²„íŠ¼ì„ ë¹„í™œì„±í™”
+    /// GameProgress.EndLevel ì´ë²¤íŠ¸ë¥¼ í˜¸ì¶œí•˜ê³  ì‚¬ìš´ë“œ í˜ì´ë“œ ì•„ì›ƒì„ ì ìš©
+    /// UI ì°¨ë‹¨ ìƒíƒœë¥¼ í™œì„±í™”í•´ ë‹¤ë¥¸ UIë“¤ì˜ ë™ì‘ì„ ë¹„í™œì„±í™”.
     /// </remarks>
     public void ChangeScene()
     {
-        // ÀüÈ¯ ÇÔ¼ö¿¡ µé¾î¿À°í ³ª¼­ ¹Ù·Î UI »óÈ£ÀÛ¿ë Â÷´Ü
+        // ì „í™˜ í•¨ìˆ˜ì— ë“¤ì–´ì˜¤ê³  ë‚˜ì„œ ë°”ë¡œ UI ìƒí˜¸ì‘ìš© ì°¨ë‹¨
         EventSystem.current.enabled = false;
 
         GameProgress.EndScene?.Invoke();
@@ -59,21 +59,21 @@ public class SceneController : Singleton<SceneController>
     }
 
     /// <summary>
-    /// PlayScene Àç½ÃÀÛ ÇÔ¼ö
+    /// PlayScene ì¬ì‹œì‘ í•¨ìˆ˜
     /// </summary>
-    /// <param name="buttonObject"> Àç½ÃÀÛ ¹öÆ° </param>
+    /// <param name="buttonObject"> ì¬ì‹œì‘ ë²„íŠ¼ </param>
     public void RestartPlayScene()
     {
-        // ÇÃ·¹ÀÌ¾î »ç¸Á½Ã timescaleÀÌ 0
+        // í”Œë ˆì´ì–´ ì‚¬ë§ì‹œ timescaleì´ 0
         Time.timeScale = 1.0f;
 
-        // UI ÇÃ·¡±× Á¶Á¤
+        // UI í”Œë˜ê·¸ ì¡°ì •
         UIController.Instance.EnableUIState((int)UIStateEnum.Main);
         UIController.Instance.DisableUIState((int)UIStateEnum.GameOver);
 
         GameProgress.EndScene?.Invoke();
 
-        // PlayScene ¿¹¾à
+        // PlayScene ì˜ˆì•½
         StartCoroutine(reserveProtocol(GlobalData.Instance.PlayScene));
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -82,9 +82,9 @@ public class SceneController : Singleton<SceneController>
     }
 
     /// <summary>
-    /// ¾À Àç½ÃÀÛ ÇÔ¼ö
+    /// ì”¬ ì¬ì‹œì‘ í•¨ìˆ˜
     /// </summary>
-    /// GameOver »óÅÂ¿¡¼­ ¸ØÃá TimeScaleÀ» ÀçÁ¶Á¤
+    /// GameOver ìƒíƒœì—ì„œ ë©ˆì¶˜ TimeScaleì„ ì¬ì¡°ì •
     public void RestartTestScene()
     {
         BoomEffectSpawner.Instance.SelfEndProtocol();
@@ -112,15 +112,15 @@ public class SceneController : Singleton<SceneController>
     #region Coroutines
 
     /// <summary>
-    /// ¾À ÀüÈ¯À» ÇÑ ÈÄ, StartProtocolÀ» ÀÛµ¿½ÃÅ°±â À§ÇÑ ÄÚ·çÆ¾
+    /// ì”¬ ì „í™˜ì„ í•œ í›„, StartProtocolì„ ì‘ë™ì‹œí‚¤ê¸° ìœ„í•œ ì½”ë£¨í‹´
     /// </summary>
-    /// <param name="targetScene"> Å¸°Ù ¾À </param>
+    /// <param name="targetScene"> íƒ€ê²Ÿ ì”¬ </param>
     IEnumerator reserveProtocol(string targetScene)
     {
-        // ÀÌ¸§À» ºñ±³ÇÏ¸ç ¹Ù²Ù±â Àü±îÁö ´ë±â
+        // ì´ë¦„ì„ ë¹„êµí•˜ë©° ë°”ê¾¸ê¸° ì „ê¹Œì§€ ëŒ€ê¸°
         yield return new WaitUntil(() => SceneManager.GetActiveScene().name == targetScene);
 
-        // °¢ ½Ì±ÛÅæ °´Ã¼µéÀÇ ÃÊ±âÈ­ µ¿ÀÛ ½ÃÀÛ
+        // ê° ì‹±ê¸€í†¤ ê°ì²´ë“¤ì˜ ì´ˆê¸°í™” ë™ì‘ ì‹œì‘
         if (GameProgress.StartScene != null)
         {
             GameProgress.StartScene?.Invoke();
@@ -128,12 +128,12 @@ public class SceneController : Singleton<SceneController>
     }
 
     /// <summary>
-    /// ÀÏÁ¤ÇÑ ½Ã°£À» ÅëÇØ ¾À ¹Ù²Ù±â 
+    /// ì¼ì •í•œ ì‹œê°„ì„ í†µí•´ ì”¬ ë°”ê¾¸ê¸° 
     /// </summary>
-    /// <param name="time"> ¾À ÀüÈ¯½Ã°£ </param>
-    /// <param name="strScene"> ÀüÈ¯ÇÏ´Â ¾À ÀÌ¸§ </param>
+    /// <param name="time"> ì”¬ ì „í™˜ì‹œê°„ </param>
+    /// <param name="strScene"> ì „í™˜í•˜ëŠ” ì”¬ ì´ë¦„ </param>
     /// <returns></returns>
-    // TODO: AudioContollerÀÇ fadeout ÇÔ¼ö¿Í ¿¬°èÇÏ´Â°Ô ÁÁÀ»Áöµµ
+    // TODO: AudioContollerì˜ fadeout í•¨ìˆ˜ì™€ ì—°ê³„í•˜ëŠ”ê²Œ ì¢‹ì„ì§€ë„
     public IEnumerator SceneTransition(float time, string strScene)
     {
         float curTime = time;

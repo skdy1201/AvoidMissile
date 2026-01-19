@@ -1,12 +1,12 @@
-using NUnit.Framework;
+ï»¿using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// °ÔÀÓ ÇÃ·§ÆûÀ» »ı¼ºÇÏ°í °ü¸®ÇÏ´Â Å¬·¡½º
-/// ÁöÁ¤µÈ Å©±âÀÇ Å¸ÀÏ ±×¸®µå¸¦ »ı¼ºÇÏ°í °¢ Å¸ÀÏ¿¡ °íÀ¯ ID¸¦ ºÎ¿©
+/// ê²Œì„ í”Œë«í¼ì„ ìƒì„±í•˜ê³  ê´€ë¦¬í•˜ëŠ” í´ë˜ìŠ¤
+/// ì§€ì •ëœ í¬ê¸°ì˜ íƒ€ì¼ ê·¸ë¦¬ë“œë¥¼ ìƒì„±í•˜ê³  ê° íƒ€ì¼ì— ê³ ìœ  IDë¥¼ ë¶€ì—¬
 /// </summary>
 public class Platform : MonoBehaviour
 {
@@ -16,7 +16,7 @@ public class Platform : MonoBehaviour
     [SerializeField] private GameObject platformTile;
 
     /// <summary>
-    /// ÇÃ·§ÆûÀÇ Å©±â (x: ¿­ °³¼ö, y: Çà °³¼ö)
+    /// í”Œë«í¼ì˜ í¬ê¸° (x: ì—´ ê°œìˆ˜, y: í–‰ ê°œìˆ˜)
     /// </summary>
     [SerializeField] private Vector2 platformSize;
 
@@ -25,7 +25,7 @@ public class Platform : MonoBehaviour
     #region Private/Protected Fields
 
     /// <summary>
-    /// ÇÃ·§Æû¿¡ »ı¼ºµÈ ¸ğµç Å¸ÀÏ ¸ñ·Ï
+    /// í”Œë«í¼ì— ìƒì„±ëœ ëª¨ë“  íƒ€ì¼ ëª©ë¡
     /// </summary>
     private List<GameObject> tiles = new List<GameObject>();
     
@@ -47,13 +47,13 @@ public class Platform : MonoBehaviour
         int platformCol = (int)platformSize.x;
         int platformRow = (int)platformSize.y;
 
-        // Å¸ÀÏ »çÀÌÁî ¹Ş¾ÆµÎ±â
+        // íƒ€ì¼ ì‚¬ì´ì¦ˆ ë°›ì•„ë‘ê¸°
         tileXsize = platformTile.GetComponent<MeshCollider>().sharedMesh.bounds.size.x;
         tileZsize = platformTile.GetComponent<MeshCollider>().sharedMesh.bounds.size.z;
 
         Vector3 currentPosition = this.transform.position;
 
-        // Å¸ÀÏµéÀ» ÇÏ³ª ¾¿ ÀÎ½ºÅÏ½º ÇÏ¸ç, ¼³Á¤
+        // íƒ€ì¼ë“¤ì„ í•˜ë‚˜ ì”© ì¸ìŠ¤í„´ìŠ¤ í•˜ë©°, ì„¤ì •
         for (int i = 0; i < platformCol; ++i)
         {
             for (int j = 0; j < platformRow; ++j)
@@ -73,7 +73,7 @@ public class Platform : MonoBehaviour
             }
         }
 
-        // ¹Ì»çÀÏ ½ºÆ÷³Ê¿¡ ÇÃ·§Æû µî·Ï
+        // ë¯¸ì‚¬ì¼ ìŠ¤í¬ë„ˆì— í”Œë«í¼ ë“±ë¡
         MissileSpawner.Instance.gamePlatform = this;
         
         ItemSpawner.Instance.SetPlatform(this);

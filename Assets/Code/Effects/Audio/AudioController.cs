@@ -1,4 +1,4 @@
-using GoogleMobileAds.Api;
+ï»¿using GoogleMobileAds.Api;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -29,13 +29,13 @@ public enum ItemEffectSFX
     Revive,
 }
 
-// TODO : »ç¿îµå °¨¼Ò ¿¬°á ¾ÈÇØµÒ.
+// TODO : ì‚¬ìš´ë“œ ê°ì†Œ ì—°ê²° ì•ˆí•´ë‘ .
 
 /// <summary>
-/// °ÔÀÓÀÇ »ç¿îµå¸¦ °ü¸®ÇØÁÖ´Â ÄÁÆ®·Ñ·¯
+/// ê²Œì„ì˜ ì‚¬ìš´ë“œë¥¼ ê´€ë¦¬í•´ì£¼ëŠ” ì»¨íŠ¸ë¡¤ëŸ¬
 /// </summary>
 /// <remarks>
-/// BGM, Player Sound µî ¿©·¯ ¼Ò¸®µéÀ» ´ã´ç
+/// BGM, Player Sound ë“± ì—¬ëŸ¬ ì†Œë¦¬ë“¤ì„ ë‹´ë‹¹
 /// </remarks>
 public class AudioController : Singleton<AudioController>
 {
@@ -61,12 +61,12 @@ public class AudioController : Singleton<AudioController>
     #region Private/Protected Fields
 
     /// <summary>
-    /// »ç¿îµå ¸ñ·ÏÀ» ´ã°í ÀÖ´Â ½ÇÁ¦ ¿ÀºêÁ§Æ® ¸®½ºÆ®
+    /// ì‚¬ìš´ë“œ ëª©ë¡ì„ ë‹´ê³  ìˆëŠ” ì‹¤ì œ ì˜¤ë¸Œì íŠ¸ ë¦¬ìŠ¤íŠ¸
     /// </summary>
     private List<GameObject> gameSounds = new List<GameObject>();
 
     /// <summary>
-    /// ÀÌÆåÆ® »ç¿îµå¸¦ Àç»ıÇÒ ÀÎ½ºÅÏ½º
+    /// ì´í™íŠ¸ ì‚¬ìš´ë“œë¥¼ ì¬ìƒí•  ì¸ìŠ¤í„´ìŠ¤
     /// </summary>
     private GameObject effectAudioInstance;
 
@@ -75,21 +75,21 @@ public class AudioController : Singleton<AudioController>
     #region Unity Lifecycle
 
     /// <summary>
-    /// ¿Àµğ¿À ÄÁÆ®·Ñ·¯ ÃÊ±â ¼¼ÆÃ
+    /// ì˜¤ë””ì˜¤ ì»¨íŠ¸ë¡¤ëŸ¬ ì´ˆê¸° ì„¸íŒ…
     /// </summary>
     /// <remarks>
-    /// ¾À º¯°æ ÀÌº¥Æ®µé µî·Ï
-    /// ½ÇÁ¦ ¿Àµğ¿À¸¦ Àç»ı½ÃÅ³ ÀÎ½ºÅÏ½º¸¦ Ä³½Ì
+    /// ì”¬ ë³€ê²½ ì´ë²¤íŠ¸ë“¤ ë“±ë¡
+    /// ì‹¤ì œ ì˜¤ë””ì˜¤ë¥¼ ì¬ìƒì‹œí‚¬ ì¸ìŠ¤í„´ìŠ¤ë¥¼ ìºì‹±
     /// </remarks>
     protected override void Awake()
     {
         base.Awake();
 
-        // ÀÌº¥Æ® µî·Ï
+        // ì´ë²¤íŠ¸ ë“±ë¡
         GameProgress.StartScene.AddListener(() => StartProtocol());
         GameProgress.EndScene.AddListener(() => EndProtocol());
 
-        // ÇÁ¸®ÆÕÀ» ÀÎ½ºÅÏ½ºÈ­ ÇØ¼­ ÀúÀå
+        // í”„ë¦¬íŒ¹ì„ ì¸ìŠ¤í„´ìŠ¤í™” í•´ì„œ ì €ì¥
         for (int i = 0; i < bgmSounds.Length; ++i)
         {
             GameObject gameObject = Instantiate(bgmSounds[i]);
@@ -98,10 +98,10 @@ public class AudioController : Singleton<AudioController>
             gameSounds.Add(gameObject);
         }
 
-        // BGM Àç»ı
+        // BGM ì¬ìƒ
         PlayBGM(SoundType.TitleBgm);
 
-        // ÀÌÆåÆ® ¿ÀºêÁ§Æ® ÇÁ¸®ÆÕ ÀÎ½ºÅÏ½º
+        // ì´í™íŠ¸ ì˜¤ë¸Œì íŠ¸ í”„ë¦¬íŒ¹ ì¸ìŠ¤í„´ìŠ¤
         effectAudioInstance = Instantiate(effectAudio);
         effectAudioInstance.transform.parent = this.gameObject.transform;
     }
@@ -111,13 +111,13 @@ public class AudioController : Singleton<AudioController>
     #region Public Methods
 
     /// <summary>
-    /// Àç»ıÇÏ°í ÀÖ´ø, BGM°ú Àç»ıÇÏ·Á´Â BGMÀ» ±³Ã¼
+    /// ì¬ìƒí•˜ê³  ìˆë˜, BGMê³¼ ì¬ìƒí•˜ë ¤ëŠ” BGMì„ êµì²´
     /// </summary>
-    /// <param name="type"> Àç»ıÇÏ·Á´Â BGM Å¸ÀÔ </param>
-    /// <param name="loop"> ¹İº¹ Àç»ı ¿©ºÎ </param>
+    /// <param name="type"> ì¬ìƒí•˜ë ¤ëŠ” BGM íƒ€ì… </param>
+    /// <param name="loop"> ë°˜ë³µ ì¬ìƒ ì—¬ë¶€ </param>
     public void PlayBGM(SoundType type, bool loop = true)
     {
-        // Àç»ıÇÏ·Á´Â Å¸ÀÔÀÇ BGMÀÌ ²¨Á® ÀÖ´Ù¸é, ·çÇÁ¿©ºÎ¸¦ È®ÀÎÇÏ°í Àç»ı
+        // ì¬ìƒí•˜ë ¤ëŠ” íƒ€ì…ì˜ BGMì´ êº¼ì ¸ ìˆë‹¤ë©´, ë£¨í”„ì—¬ë¶€ë¥¼ í™•ì¸í•˜ê³  ì¬ìƒ
         if (gameSounds[(int)type].activeSelf == false)
         {
             gameSounds[(int)type].SetActive(true);
@@ -128,7 +128,7 @@ public class AudioController : Singleton<AudioController>
             gameSounds[(int)type].GetComponent<AudioSource>().loop = loop;
         }
 
-        // ÇöÀç Àç»ıÇÏ·Á´Â Å¸ÀÔÀÌ ¾Æ´Ñ BGMÀÌ ÄÑÁ® ÀÖ´Ù¸é, Á¤Áö
+        // í˜„ì¬ ì¬ìƒí•˜ë ¤ëŠ” íƒ€ì…ì´ ì•„ë‹Œ BGMì´ ì¼œì ¸ ìˆë‹¤ë©´, ì •ì§€
         if (type == SoundType.TitleBgm && gameSounds[(int)SoundType.PlayBgm].activeSelf)
         {
             gameSounds[(int)SoundType.PlayBgm].GetComponent<AudioSource>().Stop();
@@ -143,7 +143,7 @@ public class AudioController : Singleton<AudioController>
     }
 
     /// <summary>
-    /// ·£´ı Æø¹ß ÀÌÆåÆ® »ç¿îµå Àç»ı
+    /// ëœë¤ í­ë°œ ì´í™íŠ¸ ì‚¬ìš´ë“œ ì¬ìƒ
     /// </summary>
     public void PlayExploreSound()
     {
@@ -154,7 +154,7 @@ public class AudioController : Singleton<AudioController>
     }
 
     /// <summary>
-    /// ¾ÆÀÌÅÛ ÀÌÆåÆ® »ç¿îµå Àç»ı
+    /// ì•„ì´í…œ ì´í™íŠ¸ ì‚¬ìš´ë“œ ì¬ìƒ
     /// </summary>
     /// <param name="effectSoundidx"></param>
     public void PlayItemSound(int effectSoundidx)
@@ -163,18 +163,18 @@ public class AudioController : Singleton<AudioController>
     }
 
     /// <summary>
-    /// BGM º¼·ı ¼³Á¤
+    /// BGM ë³¼ë¥¨ ì„¤ì •
     /// </summary>
-    /// <param name="value"> º¼·ı °ª </param>
+    /// <param name="value"> ë³¼ë¥¨ ê°’ </param>
     public void SetBGMvolume(float value)
     {
         gameSounds[(int)currentBGM].GetComponent<AudioSource>().volume = value;
     }
 
     /// <summary>
-    /// ÇÃ·¹ÀÌ¾îÀÇ ÀÌÆåÆ® »ç¿îµå Àç»ı
+    /// í”Œë ˆì´ì–´ì˜ ì´í™íŠ¸ ì‚¬ìš´ë“œ ì¬ìƒ
     /// </summary>
-    /// <param name="effectNumber"> ÇÃ·¹ÀÌ¾î ÀÌÆåÆ® ¿­°ÅÇü </param>
+    /// <param name="effectNumber"> í”Œë ˆì´ì–´ ì´í™íŠ¸ ì—´ê±°í˜• </param>
     public void PlayPlayerEffect(int effectNumber)
     {
         effectAudioInstance.GetComponent<AudioSource>().PlayOneShot(playerEffect[effectNumber], GameData.Instance.GetSettingValue(OptionType.EffectSound));
@@ -195,7 +195,7 @@ public class AudioController : Singleton<AudioController>
     #region Private/Protected Methods
 
     /// <summary>
-    /// ¾À¿¡ µû¶ó¼­, BGMÀ» Àç»ıÇÑ´Ù.
+    /// ì”¬ì— ë”°ë¼ì„œ, BGMì„ ì¬ìƒí•œë‹¤.
     /// </summary>
     protected override void StartProtocol()
     {
@@ -213,10 +213,10 @@ public class AudioController : Singleton<AudioController>
     }
 
     /// <summary>
-    /// ·¹º§ Á¾·á ½Ã È£ÃâµÇ´Â Á¤¸® ÀÛ¾÷
+    /// ë ˆë²¨ ì¢…ë£Œ ì‹œ í˜¸ì¶œë˜ëŠ” ì •ë¦¬ ì‘ì—…
     /// </summary>
     /// <remarks>
-    /// ÇöÀç´Â º°µµ Á¤¸® ÀÛ¾÷ÀÌ ¾øÀ½
+    /// í˜„ì¬ëŠ” ë³„ë„ ì •ë¦¬ ì‘ì—…ì´ ì—†ìŒ
     /// </remarks>
     protected override void EndProtocol()
     {
@@ -227,10 +227,10 @@ public class AudioController : Singleton<AudioController>
     #region Coroutines
 
     /// <summary>
-    /// ÁÖ¾îÁø ½Ã°£ ³»¿¡ Á¡ÁøÀûÀ¸·Î À½·® °¨¼Ò
+    /// ì£¼ì–´ì§„ ì‹œê°„ ë‚´ì— ì ì§„ì ìœ¼ë¡œ ìŒëŸ‰ ê°ì†Œ
     /// </summary>
-    /// <param name="time"> ½Ã°£ </param>
-    /// <param name="targetSound"> ÁÙÀÌ·Á´Â »ç¿îµå ¿­°ÅÇü </param>
+    /// <param name="time"> ì‹œê°„ </param>
+    /// <param name="targetSound"> ì¤„ì´ë ¤ëŠ” ì‚¬ìš´ë“œ ì—´ê±°í˜• </param>
     /// <returns></returns>
     private IEnumerator FadeOutSound(float time, SoundType targetSound)
     {

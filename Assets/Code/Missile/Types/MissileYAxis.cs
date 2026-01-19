@@ -1,8 +1,8 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 /// <summary>
-/// Y축 미사일 스크립트
+/// Y異?誘몄궗???ㅽ겕由쏀듃
 /// </summary>
 public class MissileYAxis : Missile
 {
@@ -35,7 +35,7 @@ public class MissileYAxis : Missile
     #region Unity Lifecycle
 
     /// <summary>
-    /// 콜라이더 컴포넌트 초기화. 충돌 판정을 위해 Awake에서 캐싱
+    /// 肄쒕씪?대뜑 而댄룷?뚰듃 珥덇린?? 異⑸룎 ?먯젙???꾪빐 Awake?먯꽌 罹먯떛
     /// </summary>
     protected override void Awake()
     {
@@ -62,7 +62,7 @@ public class MissileYAxis : Missile
 
     private void FixedUpdate()
     {
-        // 데칼 위치: 스폰된 타일 XZ 좌표 + 타일 높이
+        // ?곗뭡 ?꾩튂: ?ㅽ룿?????XZ 醫뚰몴 + ????믪씠
         Vector3 decalPoint = new Vector3(
             XZCoord.x,
             platformY + decalYOffset,
@@ -70,7 +70,7 @@ public class MissileYAxis : Missile
         );
         warningDecal.transform.position = decalPoint;
 
-        // 높이 기반 스케일 계산 (0~100)
+        // ?믪씠 湲곕컲 ?ㅼ???怨꾩궛 (0~100)
         float currentHeight = transform.position.y - (platformY + decalYOffset);
         float scalevalue = 100f - (currentHeight / dropPoint * 100f);
         scalevalue = Mathf.Floor(scalevalue);
@@ -101,9 +101,9 @@ public class MissileYAxis : Missile
     public float GetMissileAlpha() => missileMaterial.color.a;
 
     /// <summary>
-    /// 미사일의 머티리얼 변경
+    /// 誘몄궗?쇱쓽 癒명떚由ъ뼹 蹂寃?
     /// </summary>
-    /// <param name="transparent">투명 머티리얼</param>
+    /// <param name="transparent">?щ챸 癒명떚由ъ뼹</param>
     public void ChangeMaterial(Material transparent)
     {
         MeshRenderer missileRenderer = this.gameObject.GetComponent<MeshRenderer>();
@@ -115,12 +115,12 @@ public class MissileYAxis : Missile
     }
 
     /// <summary>
-    /// 알파 값 변경 함수
+    /// ?뚰뙆 媛?蹂寃??⑥닔
     /// </summary>
-    /// <param name="alphaValue">변경할 알파 값</param>
+    /// <param name="alphaValue">蹂寃쏀븷 ?뚰뙆 媛?/param>
     public void ChangeAlpha(float alphaValue)
     {
-        // 아직 머티리얼이 설정되지 않았으므로
+        // ?꾩쭅 癒명떚由ъ뼹???ㅼ젙?섏? ?딆븯?쇰?濡?
         if (missileMaterial == null)
             return;
 
@@ -132,25 +132,25 @@ public class MissileYAxis : Missile
     #region Private/Protected Methods
 
     /// <summary>
-    /// Y축 미사일 충돌
+    /// Y異?誘몄궗??異⑸룎
     /// </summary>
-    /// <param name="collision">충돌한 오브젝트 콜라이더</param>
+    /// <param name="collision">異⑸룎???ㅻ툕?앺듃 肄쒕씪?대뜑</param>
     protected override void OnCollisionEnter(Collision collision)
     {
-        // 이미 충돌했는지 확인
+        // ?대? 異⑸룎?덈뒗吏 ?뺤씤
         if (this.CollisionOther)
         {
-            return;  // 이미 처리됨
+            return;  // ?대? 泥섎━??
         }
 
         base.OnCollisionEnter(collision);
 
-        // 폭발 이펙트를 정확한 충돌 위치에 표시하기 위해 좌표 저장
+        // ??컻 ?댄럺?몃? ?뺥솗??異⑸룎 ?꾩튂???쒖떆?섍린 ?꾪빐 醫뚰몴 ???
         Vector3 contact = collision.contacts[0].point;
 
         ActiveBombEffect(contact);
 
-        // 충돌체의 레이어에 따라 분기
+        // 異⑸룎泥댁쓽 ?덉씠?댁뿉 ?곕씪 遺꾧린
         if (collision.gameObject.layer == LayerMask.NameToLayer("Platform"))
         {
             this.CollisionOther = true;
@@ -161,8 +161,8 @@ public class MissileYAxis : Missile
         }
         else if (collision.gameObject.layer == LayerMask.NameToLayer("Missile"))
         {
-            // Y축 미사일과 충돌한다면, 두 미사일의 Y 값을 비교해 위에 있으면 풀에 반환
-            // 낮은 높이의 미사일이라면 더 빨리 떨어짐
+            // Y異?誘몄궗?쇨낵 異⑸룎?쒕떎硫? ??誘몄궗?쇱쓽 Y 媛믪쓣 鍮꾧탳???꾩뿉 ?덉쑝硫????諛섑솚
+            // ??? ?믪씠??誘몄궗?쇱씠?쇰㈃ ??鍮⑤━ ?⑥뼱吏?
             if (collision.gameObject.GetComponent<MissileYAxis>() != null)
             {
                 float otherMissileY = collision.gameObject.transform.position.y;
@@ -171,10 +171,10 @@ public class MissileYAxis : Missile
                 {
                     Rigidbody lowerRigidBody = collision.gameObject.GetComponent<Rigidbody>();
 
-                    // XZ 속도 제거 (수직 낙하 유지)
+                    // XZ ?띾룄 ?쒓굅 (?섏쭅 ?숉븯 ?좎?)
                     lowerRigidBody.linearVelocity = new Vector3(0, lowerRigidBody.linearVelocity.y, 0);
 
-                    // 낙하 속도 증가
+                    // ?숉븯 ?띾룄 利앷?
                     lowerRigidBody.linearDamping = Mathf.Max(lowerRigidBody.linearDamping - 0.05f, 1.5f);
 
                     this.gameObject.GetComponent<Missile>().CollisionOther = true;

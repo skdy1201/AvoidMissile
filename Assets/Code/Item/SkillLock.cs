@@ -1,7 +1,7 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 /// <summary>
-/// ½ºÅ³ »ç¿ëÀ» ±İÁö½ÃÅ°´Â ¾ÆÀÌÅÛ
+/// ìŠ¤í‚¬ ì‚¬ìš©ì„ ê¸ˆì§€ì‹œí‚¤ëŠ” ì•„ì´í…œ
 /// </summary>
 public class SkillLock : Item
 {

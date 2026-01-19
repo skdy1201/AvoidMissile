@@ -1,17 +1,17 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 /// <summary>
-/// ¸¹Àº ¼öÀÇ ¿ÀºêÁ§Æ®¸¦ »ç¿ëÇÏ±â À§ÇÑ ¿ÀºêÁ§Æ® Ç® ½ºÆ÷³Ê Ãß»ó Å¬·¡½º
+/// ë§ì€ ìˆ˜ì˜ ì˜¤ë¸Œì íŠ¸ë¥¼ ì‚¬ìš©í•˜ê¸° ìœ„í•œ ì˜¤ë¸Œì íŠ¸ í’€ ìŠ¤í¬ë„ˆ ì¶”ìƒ í´ë˜ìŠ¤
 /// </summary>
-/// <typeparam name="TEnum"> ¿ÀºêÁ§Æ® Å¸ÀÔÀ» ±¸ºĞÇÏ´Â ¿­°ÅÇü </typeparam>
+/// <typeparam name="TEnum"> ì˜¤ë¸Œì íŠ¸ íƒ€ì…ì„ êµ¬ë¶„í•˜ëŠ” ì—´ê±°í˜• </typeparam>
 public abstract class Spawner<TEnum> : Singleton<Spawner<TEnum>>
     where TEnum : System.Enum
 {
     #region Private/Protected Fields
     /// <summary>
-    /// ¿ÀºêÁ§Æ® Å¸ÀÔº° ½ºÆ÷³Ê Å¥
+    /// ì˜¤ë¸Œì íŠ¸ íƒ€ì…ë³„ ìŠ¤í¬ë„ˆ í
     /// </summary
     protected List<Queue<GameObject>> spawners = new List<Queue<GameObject>>();
 
@@ -21,17 +21,17 @@ public abstract class Spawner<TEnum> : Singleton<Spawner<TEnum>>
     #region Unity Lifecycle
 
     /// <summary>
-    /// ÀÌº¥Æ® µî·Ï ¹× ¿­°ÅÇü°ú ½ºÆ÷³Ê ³»ºÎ ÄÁÅ×ÀÌ³Ê µ¿±âÈ­
+    /// ì´ë²¤íŠ¸ ë“±ë¡ ë° ì—´ê±°í˜•ê³¼ ìŠ¤í¬ë„ˆ ë‚´ë¶€ ì»¨í…Œì´ë„ˆ ë™ê¸°í™”
     /// </summary>
     protected override void Awake()
     {
         base.Awake();
 
-        // ÀÌº¥Æ® µî·Ï
+        // ì´ë²¤íŠ¸ ë“±ë¡
         GameProgress.StartScene.AddListener(StartProtocol);
         GameProgress.EndScene.AddListener(EndProtocol);
 
-        // ¿­°ÅÇü °³¼ö¸¸Å­ Å¥ ÃÊ±âÈ­
+        // ì—´ê±°í˜• ê°œìˆ˜ë§Œí¼ í ì´ˆê¸°í™”
         int queueCount = System.Enum.GetValues(typeof(TEnum)).Length;
 
         for (int i = 0; i < queueCount; ++i)
@@ -46,17 +46,17 @@ public abstract class Spawner<TEnum> : Singleton<Spawner<TEnum>>
     #region Abstract Methods
 
     /// <summary>
-    /// ½ºÆ÷³Ê¿¡¼­ ¿ÀºêÁ§Æ® ´ë¿©
+    /// ìŠ¤í¬ë„ˆì—ì„œ ì˜¤ë¸Œì íŠ¸ ëŒ€ì—¬
     /// </summary>
-    /// <param name="type"> ´ë¿©ÇÒ ¿ÀºêÁ§Æ® Å¸ÀÔ </param>
-    /// <returns> ´ë¿©ÇÒ Å¸ÀÔÀÇ °ÔÀÓ ¿ÀºêÁ§Æ® </returns>
+    /// <param name="type"> ëŒ€ì—¬í•  ì˜¤ë¸Œì íŠ¸ íƒ€ì… </param>
+    /// <returns> ëŒ€ì—¬í•  íƒ€ì…ì˜ ê²Œì„ ì˜¤ë¸Œì íŠ¸ </returns>
     abstract public GameObject RentSpawner(TEnum type);
 
     /// <summary>
-    /// »ç¿ëÇÑ ¿ÀºêÁ§Æ®¸¦ Ç®¿¡ ¹İ³³
+    /// ì‚¬ìš©í•œ ì˜¤ë¸Œì íŠ¸ë¥¼ í’€ì— ë°˜ë‚©
     /// </summary>
-    /// <param name="type"> ¹İ³³ÇÒ ¿ÀºêÁ§Æ®ÀÇ Å¸ÀÔ </param>
-    /// <param name="gameObject"> ¹İ³³ÇÒ ¿ÀºêÁ§Æ® </param>
+    /// <param name="type"> ë°˜ë‚©í•  ì˜¤ë¸Œì íŠ¸ì˜ íƒ€ì… </param>
+    /// <param name="gameObject"> ë°˜ë‚©í•  ì˜¤ë¸Œì íŠ¸ </param>
     abstract public void ReturnSpawner(TEnum type, GameObject gameObject);
 
     #endregion
@@ -64,14 +64,14 @@ public abstract class Spawner<TEnum> : Singleton<Spawner<TEnum>>
     #region Public Methods
 
     /// <summary>
-    /// ÇÃ·¹ÀÌ¾î°¡ Á×À» ¶§, ½ºÆ÷³Ê Á¤¸® ÀÛ¾÷
+    /// í”Œë ˆì´ì–´ê°€ ì£½ì„ ë•Œ, ìŠ¤í¬ë„ˆ ì •ë¦¬ ì‘ì—…
     /// </summary>
     public virtual void OnPlayerDeath()
     {
-        // ÁøÇà ÁßÀÎ ¸ğµç ÄÚ·çÆ¾ ÁßÁö
+        // ì§„í–‰ ì¤‘ì¸ ëª¨ë“  ì½”ë£¨í‹´ ì¤‘ì§€
         StopAllCoroutines();
 
-        // ÇÊ¿ä ½Ã Ãß°¡ ÀÛ¾÷À» ÇÏÀ§ Å¬·¡½º¿¡¼­ ±¸Çö
+        // í•„ìš” ì‹œ ì¶”ê°€ ì‘ì—…ì„ í•˜ìœ„ í´ë˜ìŠ¤ì—ì„œ êµ¬í˜„
     }
 
     #endregion

@@ -1,7 +1,7 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 /// <summary>
-/// ¸®´õº¸µå °ü·Ã ÇÔ¼ö¿Í ¿¬°áµÇ´Â ButtonUI
+/// ë¦¬ë”ë³´ë“œ ê´€ë ¨ í•¨ìˆ˜ì™€ ì—°ê²°ë˜ëŠ” ButtonUI
 /// </summary>
 public class LeaderBoardButton : ButtonUI
 {
@@ -37,10 +37,10 @@ public class LeaderBoardButton : ButtonUI
     #region Private/Protected Methods
 
     /// <summary>
-    /// ¸®´õº¸µå UI
+    /// ë¦¬ë”ë³´ë“œ UI
     /// </summary>
     /// <remarks>
-    /// UI ½ºÅ×ÀÌÆ®¿¡ µû¶ó ÀÚ¿¬½º·´°Ô ¸®´õº¸µå  UI°¡ È°¼ºÈ­ µÈ´Ù.
+    /// UI ìŠ¤í…Œì´íŠ¸ì— ë”°ë¼ ìì—°ìŠ¤ëŸ½ê²Œ ë¦¬ë”ë³´ë“œ  UIê°€ í™œì„±í™” ëœë‹¤.
     /// </remarks>
     private void LeaderBoard()
     {
@@ -51,7 +51,7 @@ public class LeaderBoardButton : ButtonUI
     }
 
     /// <summary>
-    /// ¸®´õº¸µå UI¸¦ ´İ´Â ÇÔ¼ö
+    /// ë¦¬ë”ë³´ë“œ UIë¥¼ ë‹«ëŠ” í•¨ìˆ˜
     /// </summary>
     private void CloseLeaderBoard()
     {

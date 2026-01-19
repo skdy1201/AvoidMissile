@@ -1,12 +1,12 @@
-using System.Collections;
+ï»¿using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// ¸ğµç ¾ÆÀÌÅÛÀÇ ±âº» µ¿ÀÛÀ» Á¤ÀÇÇÏ´Â Ãß»ó Å¬·¡½º
+/// ëª¨ë“  ì•„ì´í…œì˜ ê¸°ë³¸ ë™ì‘ì„ ì •ì˜í•˜ëŠ” ì¶”ìƒ í´ë˜ìŠ¤
 /// </summary>
 /// <remarks>
-/// »ó¼Ó¹Ş´Â ¾ÆÀÌÅÛÀº EffectItem()À» ¹İµå½Ã ±¸ÇöÇØ¾ß ÇÏ¸ç,
-/// SyncData()¸¦ ÅëÇØ ¿ÜºÎ µ¥ÀÌÅÍ¿Í µ¿±âÈ­
+/// ìƒì†ë°›ëŠ” ì•„ì´í…œì€ EffectItem()ì„ ë°˜ë“œì‹œ êµ¬í˜„í•´ì•¼ í•˜ë©°,
+/// SyncData()ë¥¼ í†µí•´ ì™¸ë¶€ ë°ì´í„°ì™€ ë™ê¸°í™”
 /// </remarks>
 public abstract class Item : MonoBehaviour
 {
@@ -21,7 +21,7 @@ public abstract class Item : MonoBehaviour
 
     [SerializeField] protected float time;
 
-    // ItemSpawnerÀÇ TIle Check¸¦ À§ÇÑ, ¹èÁ¤ Å¸ÀÏ º¯¼ö
+    // ItemSpawnerì˜ TIle Checkë¥¼ ìœ„í•œ, ë°°ì • íƒ€ì¼ ë³€ìˆ˜
     [SerializeField]protected int spawnTile = -1;
 
     #endregion
@@ -58,7 +58,7 @@ public abstract class Item : MonoBehaviour
     #region Unity Lifecycle
 
     /// <summary>
-    /// Äİ¶óÀÌ´õ¸¦ ¹Ì¸® Ä³½Ì
+    /// ì½œë¼ì´ë”ë¥¼ ë¯¸ë¦¬ ìºì‹±
     /// </summary>
     protected virtual void Awake()
     {
@@ -81,18 +81,18 @@ public abstract class Item : MonoBehaviour
     #region Public Methods
 
     /// <summary>
-    /// ¾ÆÀÌÅÛÀÌ °¡Áø È¿°ú¸¦ µ¿ÀÛ½ÃÅ°´Â °¡»óÇÔ¼ö
-    /// °¢°¢ÀÇ ¾ÆÀÌÅÛµéÀÌ Á÷Á¢ ±¸Çö
+    /// ì•„ì´í…œì´ ê°€ì§„ íš¨ê³¼ë¥¼ ë™ì‘ì‹œí‚¤ëŠ” ê°€ìƒí•¨ìˆ˜
+    /// ê°ê°ì˜ ì•„ì´í…œë“¤ì´ ì§ì ‘ êµ¬í˜„
     /// </summary>
     abstract public void EffectItem();
 
     /// <summary>
-    /// csv ÆÄÀÏ·Î ¹Ù²Û µ¥ÀÌÅÍ¿Í ¾ÆÀÌÅÛ Á¤º¸¸¦ ¸ÅÄª
+    /// csv íŒŒì¼ë¡œ ë°”ê¾¼ ë°ì´í„°ì™€ ì•„ì´í…œ ì •ë³´ë¥¼ ë§¤ì¹­
     /// </summary>
-    /// <param name="itemName"> ¿ÀºêÁ§Æ® ÀÌ¸§ </param>
-    /// <param name="itemType"> ¾ÆÀÌÅÛ Å¸ÀÔ </param>
-    /// <param name="itemValue"> ¾ÆÀÌÅÛ ½ºÅÈ </param>
-    /// <param name="itemTime"> ¾ÆÀÌÅÛ µ¿ÀÛ ½Ã°£ </param>
+    /// <param name="itemName"> ì˜¤ë¸Œì íŠ¸ ì´ë¦„ </param>
+    /// <param name="itemType"> ì•„ì´í…œ íƒ€ì… </param>
+    /// <param name="itemValue"> ì•„ì´í…œ ìŠ¤íƒ¯ </param>
+    /// <param name="itemTime"> ì•„ì´í…œ ë™ì‘ ì‹œê°„ </param>
     public void SyncData(string itemName, string itemType, string itemValue, string itemTime)
     {
         this.gameObject.name = itemName;
@@ -131,9 +131,9 @@ public abstract class Item : MonoBehaviour
     #region Private/Protected Methods
 
     /// <summary>
-    /// ÇÃ·¹ÀÌ¾î¿Í Ãæµ¹ÇÑ´Ù¸é, ¾ÆÀÌÅÛÀÇ È¿°ú¸¦ ¹ßµ¿½ÃÅ°°í, ½ºÆ÷³Ê¿¡ ¹İÈ¯ÇÑ´Ù.
+    /// í”Œë ˆì´ì–´ì™€ ì¶©ëŒí•œë‹¤ë©´, ì•„ì´í…œì˜ íš¨ê³¼ë¥¼ ë°œë™ì‹œí‚¤ê³ , ìŠ¤í¬ë„ˆì— ë°˜í™˜í•œë‹¤.
     /// </summary>
-    /// <param name="otherCollider"> Ãæµ¹ÇÑ ´Ù¸¥ ¿ÀºêÁ§Æ® </param>
+    /// <param name="otherCollider"> ì¶©ëŒí•œ ë‹¤ë¥¸ ì˜¤ë¸Œì íŠ¸ </param>
     private void OnCollisionEnter(Collision otherCollider)
     {
         if (otherCollider.gameObject.layer == LayerMask.NameToLayer("Player"))
@@ -145,7 +145,7 @@ public abstract class Item : MonoBehaviour
     }
 
     /// <summary>
-    /// ¾ÆÀÌÅÛÀ» ReturnSpawner ½ÃÅ³¶§, º¯ÇÑ Alpha°ªÀ» ¿ø»óº¹±¸
+    /// ì•„ì´í…œì„ ReturnSpawner ì‹œí‚¬ë•Œ, ë³€í•œ Alphaê°’ì„ ì›ìƒë³µêµ¬
     /// </summary>
     public void ResetItemAlpha()
     {

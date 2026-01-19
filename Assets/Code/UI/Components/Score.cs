@@ -1,4 +1,4 @@
-using TMPro;
+ï»¿using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -11,7 +11,7 @@ public enum ScoreType
 }
 
 /// <summary>
-/// ÇÃ·¹ÀÌ¾îÀÇ Á¡¼ö
+/// í”Œë ˆì´ì–´ì˜ ì ìˆ˜
 /// </summary>
 public class Score : BaseUI, InterfaceUI
 {
@@ -35,7 +35,7 @@ public class Score : BaseUI, InterfaceUI
 
 
     /// <summary>
-    /// ÇÃ·¹ÀÌ Á¡¼ö¶ó¸é, ¸Å Æ½¸¶´Ù ¹®ÀÚ¿­À» ¾÷µ¥ÀÌÆ®
+    /// í”Œë ˆì´ ì ìˆ˜ë¼ë©´, ë§¤ í‹±ë§ˆë‹¤ ë¬¸ìì—´ì„ ì—…ë°ì´íŠ¸
     /// </summary>
     void Update()
     {
@@ -53,7 +53,7 @@ public class Score : BaseUI, InterfaceUI
     #region Public Methods
 
     /// <summary>
-    /// ÇöÀç Á¡¼ö¿Í ÃÖ°í Á¡¼ö¸¦ ¶ç¿ì´Â ÇÔ¼ö
+    /// í˜„ì¬ ì ìˆ˜ì™€ ìµœê³  ì ìˆ˜ë¥¼ ë„ìš°ëŠ” í•¨ìˆ˜
     /// </summary>
     public void FloatPlayerScore()
     {
@@ -64,8 +64,8 @@ public class Score : BaseUI, InterfaceUI
     }
 
     /// <summary>
-    /// scoreText ÂüÁ¶°¡ ´©¶ôµÈ °æ¿ì¸¦ ´ëºñÇÏ¿© ÇÊµå¸¦ µ¿±âÈ­ÇÏ°í,
-    /// ÇÃ·¹ÀÌ¾î »ç¸Á ½Ã Á¡¼ö Ç¥½Ã¸¦ À§ÇÑ ÀÌº¥Æ®¸¦ µî·Ï
+    /// scoreText ì°¸ì¡°ê°€ ëˆ„ë½ëœ ê²½ìš°ë¥¼ ëŒ€ë¹„í•˜ì—¬ í•„ë“œë¥¼ ë™ê¸°í™”í•˜ê³ ,
+    /// í”Œë ˆì´ì–´ ì‚¬ë§ ì‹œ ì ìˆ˜ í‘œì‹œë¥¼ ìœ„í•œ ì´ë²¤íŠ¸ë¥¼ ë“±ë¡
     /// </summary>
     public void Init() 
     {

@@ -1,4 +1,4 @@
-using GoogleMobileAds;
+ï»¿using GoogleMobileAds;
 using GoogleMobileAds.Api;
 using System.Collections;
 using UnityEngine;
@@ -7,11 +7,11 @@ using UnityEngine.EventSystems;
 using UnityEngine.Events;
 
 /// <summary>
-/// Google AdMob ¿ÜºÎ SDK¸¦ »ç¿ëÇÒ ¼ö ÀÖµµ·Ï µµ¿ÍÁÖ´Â ÄÁÆ®·Ñ·¯
+/// Google AdMob ì™¸ë¶€ SDKë¥¼ ì‚¬ìš©í•  ìˆ˜ ìˆë„ë¡ ë„ì™€ì£¼ëŠ” ì»¨íŠ¸ë¡¤ëŸ¬
 /// </summary>
 /// <remarks>
-/// Ã³À½ ½ÃÀÛÇÒ ¶§ ±¤°í ¿ÀºêÁ§Æ®¸¦ ÃÊ±âÈ­
-/// Á¶°Ç¿¡ µû¶ó ±¤°í¸¦ »ı¼º, Àç»ı, ÆÄ±«
+/// ì²˜ìŒ ì‹œì‘í•  ë•Œ ê´‘ê³  ì˜¤ë¸Œì íŠ¸ë¥¼ ì´ˆê¸°í™”
+/// ì¡°ê±´ì— ë”°ë¼ ê´‘ê³ ë¥¼ ìƒì„±, ì¬ìƒ, íŒŒê´´
 /// </remarks>
 public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
 {
@@ -34,7 +34,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
 
     private RewardedAd rewardedAd;
     
-    // ±¤°í ·Îµù ½ÇÆĞ½Ã, ·ÎµåÈ½¼ö Á¦ÇÑ
+    // ê´‘ê³  ë¡œë”© ì‹¤íŒ¨ì‹œ, ë¡œë“œíšŸìˆ˜ ì œí•œ
     private int currentRetryCount = 0;
     private const int maxRetryCount = 3;
 
@@ -44,11 +44,11 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     #region Unity Lifecycle
 
     /// <summary>
-    /// ±¤°í ¿ÀºêÁ§Æ® ÃÊ±âÈ­
+    /// ê´‘ê³  ì˜¤ë¸Œì íŠ¸ ì´ˆê¸°í™”
     /// </summary>
     /// <remarks>
-    /// Å¸ÀÌÆ² ¾À¿¡¼± ±¤°í¸¦ Àç»ıÇÒ ÇÊ¿ä°¡ ¾ø±â ¶§¹®¿¡,
-    /// ÇÃ·¹ÀÌ ¾À¿¡¼­¸¸ ±¤°í¸¦ ·ÎµåÇÑ´Ù.
+    /// íƒ€ì´í‹€ ì”¬ì—ì„  ê´‘ê³ ë¥¼ ì¬ìƒí•  í•„ìš”ê°€ ì—†ê¸° ë•Œë¬¸ì—,
+    /// í”Œë ˆì´ ì”¬ì—ì„œë§Œ ê´‘ê³ ë¥¼ ë¡œë“œí•œë‹¤.
     /// </remarks>
     protected override void Awake()
     {
@@ -73,7 +73,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     #region Public Methods
 
     /// <summary>
-    /// ¿ÜºÎ¿¡¼­ ±¤°í Àç»ıÀ» ÇÏ±â À§ÇÑ ·¡ÆÛ ÇÔ¼ö
+    /// ì™¸ë¶€ì—ì„œ ê´‘ê³  ì¬ìƒì„ í•˜ê¸° ìœ„í•œ ë˜í¼ í•¨ìˆ˜
     /// </summary>
     public void DisplayInterstitialAd()
     {
@@ -81,7 +81,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     }
 
     /// <summary>
-    /// ¸®¿öµå ±¤°í¸¦ ¿ÜºÎ¿¡¼­ Àç»ıÇÒ ¼ö ÀÖ´Â ·¡ÆÛ ÇÔ¼ö
+    /// ë¦¬ì›Œë“œ ê´‘ê³ ë¥¼ ì™¸ë¶€ì—ì„œ ì¬ìƒí•  ìˆ˜ ìˆëŠ” ë˜í¼ í•¨ìˆ˜
     /// </summary>
     public void DisplayRewardAd()
     {
@@ -93,7 +93,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     #region Private/Protected Methods
 
     /// <summary>
-    /// ÇÃ·¹ÀÌ ¾ÀÀÌ¶ó¸é, ±¤°í ·Îµå
+    /// í”Œë ˆì´ ì”¬ì´ë¼ë©´, ê´‘ê³  ë¡œë“œ
     /// </summary>
     protected override void StartProtocol()
     {
@@ -105,17 +105,17 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     }
 
     /// <summary>
-    /// ÇöÀç´Â ³¡³¯¶§ ÇÒ µ¿ÀÛÀÌ ¾øÀ½
+    /// í˜„ì¬ëŠ” ëë‚ ë•Œ í•  ë™ì‘ì´ ì—†ìŒ
     /// </summary>
     protected override void EndProtocol()
     {
     }
 
     /// <summary>
-    /// Àü¸é±¤°í ·Îµå
+    /// ì „ë©´ê´‘ê³  ë¡œë“œ
     /// </summary>
     /// <remarks>
-    /// Å×½ºÆ® ¹öÀü¿¡¼± Å×½ºÆ® ±¤°í ID¸¦ »ç¿ëÇÏ±â À§ÇØ ³»ºÎÀûÀ¸·Î Ã¼Å©
+    /// í…ŒìŠ¤íŠ¸ ë²„ì „ì—ì„  í…ŒìŠ¤íŠ¸ ê´‘ê³  IDë¥¼ ì‚¬ìš©í•˜ê¸° ìœ„í•´ ë‚´ë¶€ì ìœ¼ë¡œ ì²´í¬
     /// </remarks>
     private void LoadInterstitialAd()
     {
@@ -144,7 +144,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
 
             interstitialAd = ad;
 
-            // ±¤°í°¡ ³¡³¯ ¶§, Ã³¸®ÇÒ ÀÌº¥Æ®µé µî·Ï
+            // ê´‘ê³ ê°€ ëë‚  ë•Œ, ì²˜ë¦¬í•  ì´ë²¤íŠ¸ë“¤ ë“±ë¡
             interstitialAd.OnAdFullScreenContentClosed += () => finishinterstitialAd = true;
             interstitialAd.OnAdFullScreenContentClosed += () => ReleasedinterstitialAd();
         });
@@ -153,11 +153,11 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     }
 
     /// <summary>
-    /// º¸»óÇü ±¤°í ·Îµå ÇÔ¼ö
+    /// ë³´ìƒí˜• ê´‘ê³  ë¡œë“œ í•¨ìˆ˜
     /// </summary>
     /// <remarks>
-    /// º¸»óÇü ±¤°í ·Îµå È½¼ö¸¦ Á¦ÇÑÇÏ¶ó´Â °¡ÀÌµå¿¡ ¸ÂÃç
-    /// ½ÇÆĞ½Ã 3¹ø Àç½Ãµµ
+    /// ë³´ìƒí˜• ê´‘ê³  ë¡œë“œ íšŸìˆ˜ë¥¼ ì œí•œí•˜ë¼ëŠ” ê°€ì´ë“œì— ë§ì¶°
+    /// ì‹¤íŒ¨ì‹œ 3ë²ˆ ì¬ì‹œë„
     /// </remarks>
     private void LoadRewardedAd()
     {
@@ -200,7 +200,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     }
 
     /// <summary>
-    /// Àü¸é±¤°í Àç»ı
+    /// ì „ë©´ê´‘ê³  ì¬ìƒ
     /// </summary>
     private void ShowInterstitialAd()
     {
@@ -212,7 +212,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     }
 
     /// <summary>
-    /// AdMob È¨ÆäÀÌÁö¿¡¼­ ¼³Á¤ÇÑ Reward¸¦ Ã¼Å©ÇØ º¸»ó Á¦°ø
+    /// AdMob í™ˆí˜ì´ì§€ì—ì„œ ì„¤ì •í•œ Rewardë¥¼ ì²´í¬í•´ ë³´ìƒ ì œê³µ
     /// </summary>
     private void ShowRewardAd()
     {
@@ -241,10 +241,10 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     }
 
     /// <summary>
-    /// ±¤°í ³¡³­ ÀÌÈÄ, ÇØ´ç ±¤°í Á¦°Å
+    /// ê´‘ê³  ëë‚œ ì´í›„, í•´ë‹¹ ê´‘ê³  ì œê±°
     /// </summary>
     /// <remarks>
-    /// TimeScale  Á¶Á¤À» À§ÇÑ ÄÚ·çÆ¾ Ã¼Å©
+    /// TimeScale  ì¡°ì •ì„ ìœ„í•œ ì½”ë£¨í‹´ ì²´í¬
     /// </remarks>
     private void DestroyInterstitialAd()
     {
@@ -261,7 +261,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     }
 
     /// <summary>
-    /// ±¤°í ³¡³­ ÀÌÈÄ, ÇØ´ç ±¤°í Á¦°Å
+    /// ê´‘ê³  ëë‚œ ì´í›„, í•´ë‹¹ ê´‘ê³  ì œê±°
     /// </summary>
     private void ReleaseRewardedAd()
     {
@@ -274,14 +274,14 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
 
     }
 
-    // ¸®¿öµå ±¤°í ÀÌº¥Æ® ¿¬°á
+    // ë¦¬ì›Œë“œ ê´‘ê³  ì´ë²¤íŠ¸ ì—°ê²°
     private void RegisterRewardedAdEvents()
     {
         rewardedAd.OnAdFullScreenContentClosed += () =>
         {
             Debug.Log("[GoogleMobileAds] Rewarded ad closed.");
             ReleaseRewardedAd();
-            LoadRewardedAd(); // ´ÙÀ½ ½ÃÃ»À» À§ÇØ Àç·Îµå
+            LoadRewardedAd(); // ë‹¤ìŒ ì‹œì²­ì„ ìœ„í•´ ì¬ë¡œë“œ
 
             closeRewardAd = true;
 
@@ -290,7 +290,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
         rewardedAd.OnAdFullScreenContentFailed += (AdError error) =>
         {
             Debug.LogError($"[GoogleMobileAds] Rewarded ad failed to show: {error.GetMessage()}");
-            LoadRewardedAd(); // ½ÇÆĞ ½Ã Àç·Îµå
+            LoadRewardedAd(); // ì‹¤íŒ¨ ì‹œ ì¬ë¡œë“œ
         };
     }
 
@@ -299,7 +299,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     #region Event Handlers
 
     /// <summary>
-    /// ±¤°í ÀÌÈÄ, ºÎÈ° ½Ã°£ Àü±îÁö, Title, Retry ¹öÆ°ÀÇ »óÈ£ÀÛ¿ë ¹æÁö ÀÌº¥Æ®
+    /// ê´‘ê³  ì´í›„, ë¶€í™œ ì‹œê°„ ì „ê¹Œì§€, Title, Retry ë²„íŠ¼ì˜ ìƒí˜¸ì‘ìš© ë°©ì§€ ì´ë²¤íŠ¸
     /// </summary>
     public static UnityEvent AfterRewardFinished = new UnityEvent();
 
@@ -308,11 +308,11 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
     #region Coroutine
 
     /// <summary>
-    /// AdmobÀÌ ÀÓÀÇ·Î TimeScaleÀ» Á¶Á¾ÇÏ±â ¶§¹®¿¡, ÄÚ·çÆ¾À¸·Î °Ë»çÇÏ¸ç, »óÈ²¸¶´Ù TimeScaleÀ» ÀÇµµ´ë·Î ÅëÁ¦
+    /// Admobì´ ì„ì˜ë¡œ TimeScaleì„ ì¡°ì¢…í•˜ê¸° ë•Œë¬¸ì—, ì½”ë£¨í‹´ìœ¼ë¡œ ê²€ì‚¬í•˜ë©°, ìƒí™©ë§ˆë‹¤ TimeScaleì„ ì˜ë„ëŒ€ë¡œ í†µì œ
     /// </summary>
     /// <remarks>
-    /// Àü¸é ±¤°í´Â ³¡³­ ÀÌÈÄ, ÀÏ½Ã Á¤Áö
-    /// º¸»ó ±¤°í´Â ±¤°í°¡ ³¡³ªÀÚ ¸¶ÀÚ, ºÎÈ°È¿°ú°¡ ÀÛµ¿ÇÏ±â ¶§¹®¿¡, ÀÏ½Ã Á¤Áö ÈÄ, ºÎÈ° ½ÃÀÛ
+    /// ì „ë©´ ê´‘ê³ ëŠ” ëë‚œ ì´í›„, ì¼ì‹œ ì •ì§€
+    /// ë³´ìƒ ê´‘ê³ ëŠ” ê´‘ê³ ê°€ ëë‚˜ì ë§ˆì, ë¶€í™œíš¨ê³¼ê°€ ì‘ë™í•˜ê¸° ë•Œë¬¸ì—, ì¼ì‹œ ì •ì§€ í›„, ë¶€í™œ ì‹œì‘
     /// </remarks>
     IEnumerator AdmobChecker()
     {
@@ -328,7 +328,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
             }
             else if(finishRewardedAd == true)
             {
-                // ÀçºÎÈ°À» ÇÏÁö ¸øÇÏµµ·Ï ¹Ì¸® ¼¼ÆÃ
+                // ì¬ë¶€í™œì„ í•˜ì§€ ëª»í•˜ë„ë¡ ë¯¸ë¦¬ ì„¸íŒ…
                 Player player = GlobalData.Instance.Player.GetComponent<Player>();
                 player.Revive = true;
                 GameProgress.Instance.PlayerAlive = true;

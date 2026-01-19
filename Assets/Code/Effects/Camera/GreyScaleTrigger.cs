@@ -1,11 +1,11 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using Unity.Collections;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using System.Collections;
 
 /// <summary>
-/// GameOver ½Ã, ±×·¹ÀÌ ½ºÄÉÀÏÀ» µ¿ÀÛ
+/// GameOver ì‹œ, ê·¸ë ˆì´ ìŠ¤ì¼€ì¼ì„ ë™ì‘
 /// </summary>
 public class GreyScaleTrigger : MonoBehaviour
 {
@@ -19,8 +19,8 @@ public class GreyScaleTrigger : MonoBehaviour
     #region Unity Lifecycle
 
     /// <summary>
-    /// º¼·ı ½ºÅ©¸³Æ® ¸ÅÄª.
-    /// ÀÌº¥Æ® µî·Ï
+    /// ë³¼ë¥¨ ìŠ¤í¬ë¦½íŠ¸ ë§¤ì¹­.
+    /// ì´ë²¤íŠ¸ ë“±ë¡
     /// </summary>
     private void Awake()
     {
@@ -46,7 +46,7 @@ public class GreyScaleTrigger : MonoBehaviour
     #region Public Method
     
     /// <summary>
-    /// RewardAd ÀÌÈÄ ´Ù½Ã ÇÃ·¹ÀÌ ÇÏ±â À§ÇØ º¼·ı ÄÄÆ÷³ÍÆ® ºñÈ°¼ºÈ­ ¹× ÃÊ±âÈ­
+    /// RewardAd ì´í›„ ë‹¤ì‹œ í”Œë ˆì´ í•˜ê¸° ìœ„í•´ ë³¼ë¥¨ ì»´í¬ë„ŒíŠ¸ ë¹„í™œì„±í™” ë° ì´ˆê¸°í™”
     /// </summary>
     public void ResetGreyScale()
     {
@@ -59,7 +59,7 @@ public class GreyScaleTrigger : MonoBehaviour
     #region Coroutines
 
     /// <summary>
-    /// 1ÃÊ µ¿¾È °¡ÁßÄ¡¸¦ ½×¾Æ°¡¸ç ±×·¹ÀÌ ½ºÄÉÀÏÀ» ¸¸µç´Ù
+    /// 1ì´ˆ ë™ì•ˆ ê°€ì¤‘ì¹˜ë¥¼ ìŒ“ì•„ê°€ë©° ê·¸ë ˆì´ ìŠ¤ì¼€ì¼ì„ ë§Œë“ ë‹¤
     /// </summary>
     private IEnumerator StartGrayScale()
     {
@@ -80,7 +80,7 @@ public class GreyScaleTrigger : MonoBehaviour
             yield return null;
         }
 
-        volumeComponent.weight = 1f; // ÃÖÁ¾°ª º¸Àå
+        volumeComponent.weight = 1f; // ìµœì¢…ê°’ ë³´ì¥
 
     }
 

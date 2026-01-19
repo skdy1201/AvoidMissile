@@ -1,10 +1,10 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 /// <summary>
-/// UIµéÀÇ ¹èÄ¡¸¦ Á¶Á¤ÇØÁÖ´Â ½ºÅ©¸³Æ®
+/// UIë“¤ì˜ ë°°ì¹˜ë¥¼ ì¡°ì •í•´ì£¼ëŠ” ìŠ¤í¬ë¦½íŠ¸
 /// </summary>
 /// <remarks>
-/// ±â±â¸¶´Ù ´Ù¸¥ ÇØ»óµµ¿¡¼­ ºñÀ²À» Á¶Á¤ÇÏ´Ù UI¹èÄ¡°¡ °í¸£Áö ¸øÇÑ »óÈ²À» ¼öÁ¤
+/// ê¸°ê¸°ë§ˆë‹¤ ë‹¤ë¥¸ í•´ìƒë„ì—ì„œ ë¹„ìœ¨ì„ ì¡°ì •í•˜ë‹¤ UIë°°ì¹˜ê°€ ê³ ë¥´ì§€ ëª»í•œ ìƒí™©ì„ ìˆ˜ì •
 /// </remarks>
 public class SafeArea : BaseUI, InterfaceUI
 {
@@ -25,10 +25,10 @@ public class SafeArea : BaseUI, InterfaceUI
     #endregion
 
     /// <summary>
-    /// ·¹ÅÍ¹Ú½º¸¦ Ãß°¡ÇÏ´Â CameraController class¿¡ ÀÌº¥Æ® µî·Ï
+    /// ë ˆí„°ë°•ìŠ¤ë¥¼ ì¶”ê°€í•˜ëŠ” CameraController classì— ì´ë²¤íŠ¸ ë“±ë¡
     /// </summary>
     /// <remarks>
-    /// ·¹ÅÍ¹Ú½º ¼³Á¤ÀÌ ³¡³ª¸é ÀÌº¥Æ® invoke
+    /// ë ˆí„°ë°•ìŠ¤ ì„¤ì •ì´ ëë‚˜ë©´ ì´ë²¤íŠ¸ invoke
     /// </remarks>
     public void Init()
     {
@@ -47,7 +47,7 @@ public class SafeArea : BaseUI, InterfaceUI
 
         Rect camRectTransform = Camera.main.rect;
 
-        //UIÀÇ ÃÖ´ë, ÃÖ¼Ò ¹üÀ§¸¦ Ä«¸Ş¶óÀÇ rect¿¡ ¸ÂÃá´Ù.
+        //UIì˜ ìµœëŒ€, ìµœì†Œ ë²”ìœ„ë¥¼ ì¹´ë©”ë¼ì˜ rectì— ë§ì¶˜ë‹¤.
         safeArea.anchorMin = new Vector2(camRectTransform.x, camRectTransform.y);
        
         safeArea.anchorMax = new Vector2(camRectTransform.x + camRectTransform.width,
