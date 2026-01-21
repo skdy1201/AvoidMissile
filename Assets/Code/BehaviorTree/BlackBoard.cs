@@ -15,4 +15,9 @@ public class BlackBoard : MonoBehaviour
         return (T)datas[key];
     }
 
+    public void ClearBlackboard()
+    {
+        datas.Clear();
+    }
+
 }
