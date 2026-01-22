@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 using System;
 
-public  class LeafNode : BehaviorNode
+public abstract class LeafNode : BehaviorNode
 {
     protected Func<GameObject, NodeResult> action;
+
+    protected abstract NodeResult OnExecute(GameObject owner);
 
     public LeafNode(Func<GameObject, NodeResult> action)
     {
@@ -18,6 +20,7 @@ public  class LeafNode : BehaviorNode
 
     public override NodeResult Execute(GameObject owner)
     {
-        return action?.Invoke(owner) ?? NodeResult.FAILURE;
+        return OnExecute(owner);
     }
+
 }
