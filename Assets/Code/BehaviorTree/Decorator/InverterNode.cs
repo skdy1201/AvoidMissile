@@ -1,6 +1,8 @@
 ﻿using System;
 using UnityEngine;
 
+[CreateAssetMenu(fileName = "InverterNode", menuName = "BehaviorTree/InverterNode")]
+
 public class InverterNode : DecoratorNode
 {
     public override NodeResult Execute(GameObject owner)

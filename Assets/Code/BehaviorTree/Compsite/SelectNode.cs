@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+[CreateAssetMenu(fileName = "SelectNode", menuName = "BehaviorTree/SelectNode")]
 public class SelectNode : CompositeNode
 {
 

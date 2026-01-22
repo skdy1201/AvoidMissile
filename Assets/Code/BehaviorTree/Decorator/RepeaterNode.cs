@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+[CreateAssetMenu(fileName = "RepeaterNode", menuName = "BehaviorTree/RepeaterNode")]
 public class RepeaterNode : DecoratorNode
 {
     private int repeatCount;

@@ -8,19 +8,13 @@ public enum NodeResult
     RUNNING,
 }
 
-public abstract class BehaviorNode
-{
-    protected List<BehaviorNode> childrens = new List<BehaviorNode>();
 
-    NodeResult nodeState;
+public abstract class BehaviorNode : ScriptableObject
+{
+    [SerializeField] protected List<BehaviorNode> childrens = new List<BehaviorNode>();
 
     public abstract NodeResult Execute(GameObject owner);
     public abstract void AddNode(BehaviorNode childNode);
-
-    public NodeResult NodeResult
-    {
-        get { return nodeState; }
-    }
 
 }
 

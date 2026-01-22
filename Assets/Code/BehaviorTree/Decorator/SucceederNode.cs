@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 
+[CreateAssetMenu(fileName = "SucceederNode", menuName = "BehaviorTree/SucceederNode")]
+
 public class SucceederNode : DecoratorNode
 {
     public override NodeResult Execute(GameObject owner)

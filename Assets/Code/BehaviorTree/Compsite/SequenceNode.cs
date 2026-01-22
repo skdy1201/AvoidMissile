@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
+
+[CreateAssetMenu(fileName = "SequenceNode", menuName = "BehaviorTree/SequenceNode")]
 
 public class SequenceNode : CompositeNode
 {
