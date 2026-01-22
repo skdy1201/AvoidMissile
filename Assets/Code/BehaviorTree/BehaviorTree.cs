@@ -3,13 +3,7 @@
 
 public class BehaviorTree : MonoBehaviour
 {
-    private BehaviorNode rootNode = new BehaviorNode();
-
-    public void TestFunc()
-    {
-        BehaviorNode node = new BehaviorNode();
-
-        //rootNode.AddNode(node);
-    }
+   // private BehaviorNode rootNode = new BehaviorNode();
+   // private BehaviorContext context = new BehaviorContext();
     
 }

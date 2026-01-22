@@ -1,6 +1,11 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
-public class CompositeNode : BehaviorNode
+public abstract class CompositeNode : BehaviorNode
 {
+    public override void AddNode(BehaviorNode childNode)
+    {
+        childrens.Add(childNode);
+    }
 
 }
