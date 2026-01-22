@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System;
 
-public abstract class LeafNode : BehaviorNode
+public  class LeafNode : BehaviorNode
 {
     protected Func<GameObject, NodeResult> action;
 
@@ -14,5 +14,10 @@ public abstract class LeafNode : BehaviorNode
     {
         Debug.Log("Ths is LeafNode");
         return;
+    }
+
+    public override NodeResult Execute(GameObject owner)
+    {
+        return action?.Invoke(owner) ?? NodeResult.FAILURE;
     }
 }
