@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75e2df683bfc95241a293ce661f9746a, type: 3}
   m_Name: BehaviorTree
   m_EditorClassIdentifier: Assembly-CSharp::BehaviorTree
-  rootNode: {fileID: 0}
+  rootNode: {fileID: 11400000, guid: b3d1c79090ceb664f8cd641ffb0752ed, type: 2}

@@ -12,4 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6108c659e04d0f846b9184cfb1830ea2, type: 3}
   m_Name: RootSelector
   m_EditorClassIdentifier: Assembly-CSharp::SelectNode
-  childrens: []
+  children:
+  - {fileID: 11400000, guid: a7bdf329f20634948a7af4f8052893c7, type: 2}
+  - {fileID: 11400000, guid: 809ffb9a66f3f85468bc691cf36547fd, type: 2}
