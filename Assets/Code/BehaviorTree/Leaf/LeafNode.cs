@@ -10,6 +10,15 @@ public abstract class LeafNode : BehaviorNode
     {
         NodeType = BehaviorTreeNodeType.Leaf;
     }
+
+    protected virtual void OnValidate()
+    {
+        if (children.Count > 0)
+        {
+            Debug.LogWarning($"[{name}] LeafNode는 자식을 가질 수 없습니다. 모두 제거됨.");
+            children.Clear();
+        }
+    }
     #endregion
 
     #region Public Methods

@@ -10,6 +10,15 @@ public abstract class DecoratorNode : BehaviorNode
     {
         NodeType = BehaviorTreeNodeType.Decorator;
     }
+
+    protected virtual void OnValidate()
+    {
+        if (children.Count > 1)
+        {
+            Debug.LogWarning($"[{name}] Decorator는 자식 1개만 가능합니다. 초과분 제거됨.");
+            children.RemoveRange(1, children.Count - 1);
+        }
+    }
     #endregion
 
     #region Public Methods
