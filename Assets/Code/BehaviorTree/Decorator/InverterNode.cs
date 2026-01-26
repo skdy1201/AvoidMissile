@@ -1,27 +1,28 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
+/// <summary>
+/// 자식 결과를 반전 (SUCCESS ↔ FAILURE)
+/// </summary>
 [CreateAssetMenu(fileName = "InverterNode", menuName = "BehaviorTree/InverterNode")]
-
 public class InverterNode : DecoratorNode
 {
-    public override NodeResult Execute(GameObject owner)
+    #region Private/Protected Methods
+    protected override NodeResult OnExecute(GameObject owner)
     {
-        if (childrens.Count  == 0)
+        if (children.Count == 0)
         {
             Debug.LogError("No Children");
+            return NodeResult.FAILURE;
         }
 
-        NodeResult result = childrens[0].Execute(owner);
+        NodeResult result = children[0].Execute(owner);
 
-        switch (result)
+        return result switch
         {
-            case NodeResult.SUCCESS:
-                return NodeResult.FAILURE;
-            case NodeResult.FAILURE:
-                return NodeResult.SUCCESS;
-            default:
-                return NodeResult.RUNNING;
-        }
+            NodeResult.SUCCESS => NodeResult.FAILURE,
+            NodeResult.FAILURE => NodeResult.SUCCESS,
+            _ => NodeResult.RUNNING
+        };
     }
+    #endregion
 }

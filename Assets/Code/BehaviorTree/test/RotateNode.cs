@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Y축 회전 노드
+/// </summary>
 [CreateAssetMenu(fileName = "RotateNode", menuName = "BehaviorTree/Test/RotateNode")]
 public class RotateNode : LeafNode
 {
@@ -8,7 +11,6 @@ public class RotateNode : LeafNode
     protected override NodeResult OnExecute(GameObject owner)
     {
         owner.transform.Rotate(Vector3.up, rotateSpeed * Time.deltaTime);
-        Debug.Log("[BT] Rotating - SUCCESS");
         return NodeResult.SUCCESS;
     }
 }

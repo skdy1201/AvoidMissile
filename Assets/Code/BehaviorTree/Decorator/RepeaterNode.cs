@@ -1,30 +1,36 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// 자식을 지정 횟수만큼 반복 실행
+/// </summary>
 [CreateAssetMenu(fileName = "RepeaterNode", menuName = "BehaviorTree/RepeaterNode")]
 public class RepeaterNode : DecoratorNode
 {
-    private int repeatCount;
-    private int currentCount = 0;
+    #region Serialized Fields
+    [SerializeField] private int repeatCount;
+    #endregion
 
-    public RepeaterNode(int count) { repeatCount = count; }
+    #region Private/Protected Fields
+    private int currentCount;
+    #endregion
 
-    public override NodeResult Execute(GameObject owner)
+    #region Private/Protected Methods
+    protected override NodeResult OnExecute(GameObject owner)
     {
-        if (childrens.Count == 0)
+        if (children.Count == 0)
         {
             Debug.LogError("No Children");
+            return NodeResult.FAILURE;
         }
 
-        NodeResult result = childrens[0].Execute(owner);
-        
-        if(result == NodeResult.RUNNING)
-        {
+        NodeResult result = children[0].Execute(owner);
+
+        if (result == NodeResult.RUNNING)
             return NodeResult.RUNNING;
-        }
 
-        ++currentCount;
+        currentCount++;
 
-        if(currentCount >= repeatCount)
+        if (currentCount >= repeatCount)
         {
             currentCount = 0;
             return NodeResult.SUCCESS;
@@ -32,4 +38,5 @@ public class RepeaterNode : DecoratorNode
 
         return NodeResult.RUNNING;
     }
+    #endregion
 }

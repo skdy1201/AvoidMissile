@@ -1,18 +1,22 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// 자식 결과와 관계없이 항상 SUCCESS 반환
+/// </summary>
 [CreateAssetMenu(fileName = "SucceederNode", menuName = "BehaviorTree/SucceederNode")]
-
 public class SucceederNode : DecoratorNode
 {
-    public override NodeResult Execute(GameObject owner)
+    #region Private/Protected Methods
+    protected override NodeResult OnExecute(GameObject owner)
     {
-        if (childrens.Count == 0)
+        if (children.Count == 0)
         {
             Debug.LogError("No Children");
+            return NodeResult.FAILURE;
         }
 
-        childrens[0].Execute(owner);
-
+        children[0].Execute(owner);
         return NodeResult.SUCCESS;
     }
+    #endregion
 }
