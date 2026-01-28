@@ -9,7 +9,7 @@ public class MissileYAxis : Missile
     #region Serialized Fields
 
     [SerializeField] public Vector2 XZCoord = new Vector2();
-    [SerializeField] private Material missileMaterial;
+    [SerializeField] private Material material;
 
     [SerializeField] private GameObject warningDecal;
     [SerializeField] private DecalProjector decal;
@@ -28,7 +28,7 @@ public class MissileYAxis : Missile
 
     #region Properties
 
-    public bool MissileTransparent { get; set; } = false;
+    public bool Transparent { get; set; } = false;
 
     #endregion
 
@@ -40,10 +40,10 @@ public class MissileYAxis : Missile
     protected override void Awake()
     {
         base.Awake();
-        missileCollider = GetComponent<Collider>();
-        missileMaterial = GetComponent<MeshRenderer>().material;
+        col = GetComponent<Collider>();
+        material = GetComponent<MeshRenderer>().material;
 
-        if (missileMaterial == null)
+        if (material == null)
             Debug.LogError("missile material is null");
 
         if (warningDecal == null)
@@ -52,10 +52,10 @@ public class MissileYAxis : Missile
         decal = warningDecal.GetComponent<DecalProjector>();
 
         // Rigidbody 설정: 중력 비활성화 (직접 속도 제어)
-        if (missileRigidbody != null)
+        if (rb != null)
         {
-            missileRigidbody.useGravity = false;
-            missileRigidbody.linearDamping = 0f;
+            rb.useGravity = false;
+            rb.linearDamping = 0f;
         }
     }
 
@@ -94,7 +94,7 @@ public class MissileYAxis : Missile
 
     private void OnEnable()
     {
-        missileCollider.enabled = true;
+        col.enabled = true;
         decal.size = Vector3.zero;
     }
 
@@ -107,7 +107,7 @@ public class MissileYAxis : Missile
 
     #region Public Methods
 
-    public float GetMissileAlpha() => missileMaterial.color.a;
+    public float GetAlpha() => material.color.a;
 
     /// <summary>
     /// Y축 미사일 낙하 속도 초기화
@@ -125,10 +125,10 @@ public class MissileYAxis : Missile
     public void ChangeAlpha(float alphaValue)
     {
         // 아직 머티리얼이 설정되지 않았다면
-        if (missileMaterial == null)
+        if (material == null)
             return;
 
-        missileMaterial.color = new Color(missileMaterial.color.r, missileMaterial.color.g, missileMaterial.color.b, alphaValue);
+        material.color = new Color(material.color.r, material.color.g, material.color.b, alphaValue);
     }
 
     #endregion
@@ -142,7 +142,7 @@ public class MissileYAxis : Missile
     protected override void OnCollisionEnter(Collision collision)
     {
         // 이미 충돌했는지 확인
-        if (missileCollider.enabled == false)
+        if (col.enabled == false)
             return;
 
         base.OnCollisionEnter(collision);
@@ -155,9 +155,9 @@ public class MissileYAxis : Missile
         // 충돌체의 레이어에 따라 분기
         if (collision.gameObject.layer == LayerMask.NameToLayer("Platform"))
         {
-            this.missileCollider.enabled = false;
+            col.enabled = false;
 
-            MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, this.gameObject);
+            MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, gameObject);
 
             GameProgress.Instance.Score = GameProgress.Instance.Score;
         }
@@ -169,9 +169,9 @@ public class MissileYAxis : Missile
             {
                 float otherMissileY = collision.gameObject.transform.position.y;
 
-                if (this.gameObject.transform.position.y > otherMissileY)
+                if (gameObject.transform.position.y > otherMissileY)
                 {
-                    MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, this.gameObject);
+                    MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, gameObject);
                 }
                 else
                 {
@@ -181,7 +181,7 @@ public class MissileYAxis : Missile
             }
             else if (collision.gameObject.GetComponent<MissileXAxis>() != null)
             {
-                MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, this.gameObject);
+                MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, gameObject);
             }
         }
     }

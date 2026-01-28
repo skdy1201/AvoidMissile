@@ -1,6 +1,5 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public enum EnumXAxisMissile
 {
@@ -18,16 +17,15 @@ public class MissileXAxis : Missile
 {
     #region Serialized Fields
 
-    [Header("Missile Stat")]
+    [Header("Stat")]
+    [SerializeField] private int hp;
+    [SerializeField] private float moveTime = 0f;
+    [SerializeField] private float maxMoveTime;
+    [SerializeField] private float rotateTime;
+    [SerializeField] private float rotateSpeed;
+    [SerializeField] private EnumXAxisMissile xAxisType;
 
-    [SerializeField] private int missileHP;
-    [SerializeField] private float missileMoveTime = 0f;
-    [SerializeField] private float missileMaxMoveTime;
-    [SerializeField] private float missileRotateTime;
-    [SerializeField] private float missileRotateSpeed;
-    [SerializeField] EnumXAxisMissile xAxisType;
-
-    [Header("MissileState")]
+    [Header("State")]
     [SerializeField] private bool movementActive = true;
     [SerializeField] private bool rotationActive = false;
 
@@ -49,12 +47,12 @@ public class MissileXAxis : Missile
         base.Awake();
 
         // Rigidbody 설정: 중력 비활성화, 저항 제거, XZ 평면 이동만 허용
-        if (missileRigidbody != null)
+        if (rb != null)
         {
-            missileRigidbody.isKinematic = false;
-            missileRigidbody.useGravity = false;
-            missileRigidbody.linearDamping = 0f;
-            missileRigidbody.constraints = RigidbodyConstraints.FreezePositionY
+            rb.isKinematic = false;
+            rb.useGravity = false;
+            rb.linearDamping = 0f;
+            rb.constraints = RigidbodyConstraints.FreezePositionY
                                          | RigidbodyConstraints.FreezeRotationX
                                          | RigidbodyConstraints.FreezeRotationZ;
         }
@@ -78,9 +76,9 @@ public class MissileXAxis : Missile
         switch (xAxisType)
         {
             case EnumXAxisMissile.custom:
-                if (missileMoveTime > 0 && movementActive == true)
+                if (moveTime > 0 && movementActive == true)
                 {
-                    missileMoveTime -= Time.fixedDeltaTime;
+                    moveTime -= Time.fixedDeltaTime;
 
                     // 이동 방향 업데이트 및 속도 적용
                     physics.direction = transform.forward;
@@ -89,13 +87,13 @@ public class MissileXAxis : Missile
                 else
                 {
                     // 회전 중에는 속도 0
-                    if (missileRigidbody != null)
+                    if (rb != null)
                     {
-                        missileRigidbody.linearVelocity = Vector3.zero;
+                        rb.linearVelocity = Vector3.zero;
                     }
 
                     movementActive = false;
-                    missileMoveTime = missileMaxMoveTime;
+                    moveTime = maxMoveTime;
 
                     playerPoint = new Vector2(GlobalData.Instance.Player.transform.position.x, GlobalData.Instance.Player.transform.position.z);
 
@@ -116,7 +114,7 @@ public class MissileXAxis : Missile
 
                 // Y축 회전만 사용 (X, Z축 회전 무시)
                 targetRot.z = targetRot.x = 0;
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRot, missileRotateSpeed * Time.deltaTime);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRot, rotateSpeed * Time.fixedDeltaTime);
                 break;
 
         }
@@ -132,17 +130,17 @@ public class MissileXAxis : Missile
     public override void Initialize(float speed)
     {
         SetSpeed(speed, transform.forward);
-        missileMoveTime = missileMaxMoveTime;
+        moveTime = maxMoveTime;
     }
 
-    public void SetHP(int HP) => missileHP = HP;
-    public void SetMoveTime(float moveTime) => missileMaxMoveTime = moveTime;
+    public void SetHP(int HP) => hp = HP;
+    public void SetMoveTime(float moveTime) => maxMoveTime = moveTime;
     public void SetMoveSpeed(float moveSpeed)
     {
         physics.speed = moveSpeed;
     }
-    public void SetRotateTime(float rotateTime) => missileRotateTime = rotateTime;
-    public void SetRotateSpeed(float rotateSpeed) => missileRotateSpeed = rotateSpeed;
+    public void SetRotateTime(float time) => rotateTime = time;
+    public void SetRotateSpeed(float speed) => rotateSpeed = speed;
 
     /// <summary>
     /// 미사일 스탯 설정
@@ -152,7 +150,7 @@ public class MissileXAxis : Missile
     /// <param name="moveSpeed"> 이동 속도 </param>
     /// <param name="rotateTime"> 회전 시간 </param>
     /// <param name="rotateSpeed"> 회전 속도 </param>
-    public void SetMissileStat(int hp, float moveTime, float moveSpeed, float rotateTime, float rotateSpeed)
+    public void SetStat(int hp, float moveTime, float moveSpeed, float rotateTime, float rotateSpeed)
     {
         SetHP(hp);
         SetMoveTime(moveTime);
@@ -180,13 +178,13 @@ public class MissileXAxis : Missile
 
         if (collision.gameObject.layer == LayerMask.NameToLayer("Missile") && collision.gameObject.GetComponent<MissileYAxis>() != null)
         {
-            missileHP--;
+            hp--;
 
             // 체력이 0이 되면 파괴
-            if (missileHP <= 0)
+            if (hp <= 0)
             {
-                MissileSpawner.Instance.SubSpawn(this.gameObject);
-                Destroy(this.gameObject);
+                MissileSpawner.Instance.SubSpawn(gameObject);
+                Destroy(gameObject);
             }
 
             // 충돌 지점에 이펙트 스폰
@@ -194,32 +192,6 @@ public class MissileXAxis : Missile
 
             ActiveBombEffect(contact);
         }
-    }
-
-    /// <summary>
-    /// Real 미사일 회전 각도 계산
-    /// </summary>
-    /// <returns> 플레이어 방향으로 회전할 각도 (부호 포함) </returns>
-    private float GetAngletoPlayer()
-    {
-        // 현재 플레이어 위치 받기
-        playerPoint = new Vector2(GlobalData.Instance.Player.transform.position.x, GlobalData.Instance.Player.transform.position.z);
-
-        // 필요한 정보 매칭
-        Vector2 currentPosition = new Vector2(this.gameObject.transform.position.x, this.gameObject.transform.position.z);
-        Vector2 direction = (playerPoint - currentPosition).normalized;
-        Vector2 currentFront = new Vector2(this.gameObject.transform.forward.x, this.gameObject.transform.forward.z);
-
-        // 플레이어와의 각도 계산
-        float dot = Vector2.Dot(direction, currentFront);
-        float angle = Mathf.Acos(Mathf.Clamp(dot, -1f, 1f)) * Mathf.Rad2Deg;
-
-        // 회전 방향을 결정할 외적
-        float cross = currentFront.x * direction.y - currentFront.y * direction.x;
-        float rotationDirection = -Mathf.Sign(cross);
-
-        // 방향과 각도를 곱해서 전방 기준으로 회전할 값을 리턴
-        return angle * rotationDirection;
     }
 
     #endregion
@@ -236,9 +208,9 @@ public class MissileXAxis : Missile
     {
         float currentRotateTimer = 0f;
 
-        Vector2 currentPosition = new Vector2(this.gameObject.transform.position.x, this.gameObject.transform.position.z);
+        Vector2 currentPosition = new Vector2(gameObject.transform.position.x, gameObject.transform.position.z);
         Vector2 direction = (playerPoint - currentPosition).normalized;
-        Vector2 currentFront = new Vector2(this.gameObject.transform.forward.x, this.gameObject.transform.forward.z);
+        Vector2 currentFront = new Vector2(gameObject.transform.forward.x, gameObject.transform.forward.z);
 
         // 내적으로 각도 구하기
         float dot = Vector2.Dot(direction, currentFront);
@@ -249,10 +221,10 @@ public class MissileXAxis : Missile
         float rotationDirection = -Mathf.Sign(cross);
 
         // 회전 타이머까지 도달하지 않았다면 코루틴 내 반복
-        while (currentRotateTimer <= missileRotateTime)
+        while (currentRotateTimer <= rotateTime)
         {
             // 각도를 회전 시간으로 나누면, 1초에 회전할 각도가 나오고 deltaTime을 곱해 한 프레임 회전 각도
-            float rotationThisFrame = (angle / missileRotateTime) * Time.deltaTime;
+            float rotationThisFrame = (angle / rotateTime) * Time.deltaTime;
             
             // 회전각도와 방향을 곱해서 해당 방향으로 각도만큼 회전
             transform.Rotate(0, rotationThisFrame * rotationDirection, 0);

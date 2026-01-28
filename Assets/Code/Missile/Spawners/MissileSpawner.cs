@@ -262,11 +262,11 @@ public class MissileSpawner : Spawner<MissileType>
                 return null;
             }
 
-            obj.GetComponent<Missile>().MissileNumber = missileNumber;
+            obj.GetComponent<Missile>().Number = missileNumber;
             missileNumber++;
 
             if (obj.GetComponent<MissileYAxis>() != null)
-                obj.GetComponent<MissileYAxis>().MissileReturn = false;
+                obj.GetComponent<MissileYAxis>().Returned = false;
 
             return obj;
         }
@@ -320,9 +320,9 @@ public class MissileSpawner : Spawner<MissileType>
             Debug.LogWarning("ReserveRetrun problem");
         }
 
-        if (obj.GetComponent<Missile>().MissileReturn == false)
+        if (obj.GetComponent<Missile>().Returned == false)
         {
-            obj.GetComponent<Missile>().MissileReturn = true;
+            obj.GetComponent<Missile>().Returned = true;
             currentYAxisMissiles.Remove(obj);
             returnMissiles.Add(obj);
         }
@@ -388,7 +388,7 @@ public class MissileSpawner : Spawner<MissileType>
         float rotateTime = Random.Range(xAxisMissileInfo.MissileRotateTime, xAxisMissileInfo.MissileRotateTime * 2);
         float rotateSpeed = Random.Range(180f, xAxisMissileInfo.MissileRotateSpeed);
 
-        missile.SetMissileStat(healthPoint, moveTime, moveSpeed, rotateTime, rotateSpeed);
+        missile.SetStat(healthPoint, moveTime, moveSpeed, rotateTime, rotateSpeed);
         missile.Initialize(moveSpeed);
     }
 
@@ -609,7 +609,7 @@ public class MissileSpawner : Spawner<MissileType>
 
             float alpha = GameData.Instance.GetSettingValue(OptionType.Alpha);
 
-            if (alpha != missileObject.GetComponent<MissileYAxis>().GetMissileAlpha())
+            if (alpha != missileObject.GetComponent<MissileYAxis>().GetAlpha())
             {
                 missileObject.GetComponent<MissileYAxis>().ChangeAlpha(alpha);
             }

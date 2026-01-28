@@ -10,29 +10,29 @@ public class Missile : MonoBehaviour
 {
     #region Serialized Fields
 
-    [SerializeField] private int missileNumber;
-    [SerializeField] private bool missileReturn;
+    [SerializeField] private int number;
+    [SerializeField] private bool returned;
     [SerializeField] private int spawnTime;
 
     #endregion
 
     #region Private/Protected Fields
 
-    protected Collider missileCollider;
-    protected Rigidbody missileRigidbody;
+    protected Collider col;
+    protected Rigidbody rb;
     [SerializeField] protected PhysicsData physics;
 
     #endregion
 
     #region Properties
 
-    public int MissileNumber 
-    { 
-        get => missileNumber; 
-        set => missileNumber = value;
+    public int Number
+    {
+        get => number;
+        set => number = value;
     }
 
-    public bool MissileReturn { get => missileReturn; set => missileReturn = value; }
+    public bool Returned { get => returned; set => returned = value; }
 
     public int SpawnTime
     {
@@ -49,8 +49,8 @@ public class Missile : MonoBehaviour
     /// </summary>
     protected virtual void Awake()
     {
-        this.gameObject.layer = LayerMask.NameToLayer("Missile");
-        missileRigidbody = GetComponent<Rigidbody>();
+        gameObject.layer = LayerMask.NameToLayer("Missile");
+        rb = GetComponent<Rigidbody>();
     }
 
     #endregion
@@ -82,9 +82,9 @@ public class Missile : MonoBehaviour
     /// </summary>
     protected void ApplyVelocity()
     {
-        if (missileRigidbody != null)
+        if (rb != null)
         {
-            missileRigidbody.linearVelocity = physics.Velocity;
+            rb.linearVelocity = physics.Velocity;
         }
     }
 
@@ -125,12 +125,12 @@ public class Missile : MonoBehaviour
 
                 ActiveBombEffect(contact);
 
-                this.gameObject.SetActive(false);
+                gameObject.SetActive(false);
 
-                if(this.gameObject.GetComponent<MissileYAxis>() != null)
-                MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, this.gameObject);
+                if (gameObject.GetComponent<MissileYAxis>() != null)
+                    MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, gameObject);
                 else
-                    Destroy(this.gameObject);
+                    Destroy(gameObject);
             }
         }
     }
