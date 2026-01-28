@@ -1,4 +1,3 @@
-﻿using Unity.IntegerTime;
 using UnityEngine;
 
 /// <summary>
@@ -20,6 +19,8 @@ public class Missile : MonoBehaviour
     #region Private/Protected Fields
 
     protected Collider missileCollider;
+    protected Rigidbody missileRigidbody;
+    protected PhysicsData physics;
 
     #endregion
 
@@ -30,8 +31,6 @@ public class Missile : MonoBehaviour
         get => missileNumber; 
         set => missileNumber = value;
     }
-
-    public bool CollisionOther { get; set; } = false;
 
     public bool MissileReturn { get => missileReturn; set => missileReturn = value; }
 
@@ -46,16 +45,39 @@ public class Missile : MonoBehaviour
     #region Unity Lifecycle
 
     /// <summary>
-    /// 충돌 레이어 설정
+    /// 충돌 레이어 설정 및 컴포넌트 캐싱
     /// </summary>
     protected virtual void Awake()
     {
         this.gameObject.layer = LayerMask.NameToLayer("Missile");
+        missileRigidbody = GetComponent<Rigidbody>();
     }
 
     #endregion
 
     #region Public Methods
+
+    /// <summary>
+    /// 미사일 속도와 방향을 설정
+    /// </summary>
+    /// <param name="speed">속도 크기 (units/second)</param>
+    /// <param name="direction">이동 방향</param>
+    public void SetSpeed(float speed, Vector3 direction)
+    {
+        physics.speed = speed;
+        physics.direction = direction.normalized;
+    }
+
+    /// <summary>
+    /// 현재 속도 설정을 Rigidbody에 적용
+    /// </summary>
+    protected void ApplyVelocity()
+    {
+        if (missileRigidbody != null)
+        {
+            missileRigidbody.linearVelocity = physics.Velocity;
+        }
+    }
 
     /// <summary>
     /// 충돌 지점의 폭발 효과를 동작시키기 위한 함수
