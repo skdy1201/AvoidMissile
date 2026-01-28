@@ -20,7 +20,7 @@ public class Missile : MonoBehaviour
 
     protected Collider missileCollider;
     protected Rigidbody missileRigidbody;
-    protected PhysicsData physics;
+    [SerializeField] protected PhysicsData physics;
 
     #endregion
 
@@ -56,6 +56,15 @@ public class Missile : MonoBehaviour
     #endregion
 
     #region Public Methods
+
+    /// <summary>
+    /// 미사일 초기화 (속도 설정)
+    /// </summary>
+    /// <param name="speed">속도 크기 (units/second)</param>
+    public virtual void Initialize(float speed)
+    {
+        physics.speed = speed;
+    }
 
     /// <summary>
     /// 미사일 속도와 방향을 설정
