@@ -51,6 +51,12 @@ public class MissileYAxis : Missile
 
         decal = warningDecal.GetComponent<DecalProjector>();
 
+        // Rigidbody 설정: 중력 비활성화 (직접 속도 제어)
+        if (missileRigidbody != null)
+        {
+            missileRigidbody.useGravity = false;
+            missileRigidbody.linearDamping = 0f;
+        }
     }
 
     private void Start()
@@ -62,6 +68,9 @@ public class MissileYAxis : Missile
 
     private void FixedUpdate()
     {
+        // 속도 적용 (매 물리 프레임마다 일정한 속도 유지)
+        ApplyVelocity();
+
         // 데칼 위치: 스폰된 XZ 좌표 + 플랫폼 높이
         Vector3 decalPoint = new Vector3(
             XZCoord.x,
@@ -85,7 +94,7 @@ public class MissileYAxis : Missile
 
     private void OnEnable()
     {
-        this.CollisionOther = false;
+        missileCollider.enabled = true;
         decal.size = Vector3.zero;
     }
 
@@ -99,6 +108,15 @@ public class MissileYAxis : Missile
     #region Public Methods
 
     public float GetMissileAlpha() => missileMaterial.color.a;
+
+    /// <summary>
+    /// Y축 미사일 낙하 속도 초기화
+    /// </summary>
+    /// <param name="speed">낙하 속도 (units/second)</param>
+    public override void Initialize(float speed)
+    {
+        SetSpeed(speed, Vector3.down);
+    }
 
     /// <summary>
     /// 알파 값 변경 함수
@@ -124,10 +142,8 @@ public class MissileYAxis : Missile
     protected override void OnCollisionEnter(Collision collision)
     {
         // 이미 충돌했는지 확인
-        if (this.CollisionOther)
-        {
-            return;  // 이미 처리됨
-        }
+        if (missileCollider.enabled == false)
+            return;
 
         base.OnCollisionEnter(collision);
 
@@ -139,7 +155,7 @@ public class MissileYAxis : Missile
         // 충돌체의 레이어에 따라 분기
         if (collision.gameObject.layer == LayerMask.NameToLayer("Platform"))
         {
-            this.CollisionOther = true;
+            this.missileCollider.enabled = false;
 
             MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, this.gameObject);
 
@@ -155,17 +171,12 @@ public class MissileYAxis : Missile
 
                 if (this.gameObject.transform.position.y > otherMissileY)
                 {
-                    Rigidbody lowerRigidBody = collision.gameObject.GetComponent<Rigidbody>();
-
-                    // XZ 속도 제거 (수직 낙하 유도)
-                    lowerRigidBody.linearVelocity = new Vector3(0, lowerRigidBody.linearVelocity.y, 0);
-
-                    // 낙하 속도 증가
-                    lowerRigidBody.linearDamping = Mathf.Max(lowerRigidBody.linearDamping - 0.05f, 1.5f);
-
-                    this.gameObject.GetComponent<Missile>().CollisionOther = true;
-
                     MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, this.gameObject);
+                }
+                else
+                {
+                    // 낙하 속도 증가 (최대 15 units/second까지)
+                    physics.speed = Mathf.Min(physics.speed + 1f, 15f);
                 }
             }
             else if (collision.gameObject.GetComponent<MissileXAxis>() != null)

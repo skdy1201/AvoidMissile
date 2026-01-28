@@ -11,7 +11,11 @@ public class YAxisSetting : ScriptableObject
     [SerializeField] public float MaxMissileTimer = 2f;
     [SerializeField] public float MissileCycle = 3f;
 
+    [Header("Fall Speed (units/second)")]
+    [SerializeField] public float MinFallSpeed = 5f;
+    [SerializeField] public float MaxFallSpeed = 12f;
+
+    [System.Obsolete("Use MinFallSpeed/MaxFallSpeed instead")]
     [SerializeField] public float baseMissileSpeed = 4f;
-
-
 }
+

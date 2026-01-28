@@ -20,25 +20,11 @@ public class MissileXAxis : Missile
 
     [Header("Missile Stat")]
 
-    [FormerlySerializedAs("MissileHP")]
     [SerializeField] private int missileHP;
-
-    [FormerlySerializedAs("MissileCurMoveTime")]
     [SerializeField] private float missileMoveTime = 0f;
-
-
-    [FormerlySerializedAs("MissileMoveTime")]
     [SerializeField] private float missileMaxMoveTime;
-
-    [FormerlySerializedAs("MissileMoveSpeed")]
-    [SerializeField] private float missileMoveSpeed;
-
-    [FormerlySerializedAs("MissileRotateTime")]
     [SerializeField] private float missileRotateTime;
-
-    [FormerlySerializedAs("MissileRotateSpeed")]
     [SerializeField] private float missileRotateSpeed;
-
     [SerializeField] EnumXAxisMissile xAxisType;
 
     [Header("MissileState")]
@@ -61,9 +47,19 @@ public class MissileXAxis : Missile
     protected override void Awake()
     {
         base.Awake();
+
+        // Rigidbody 설정: 중력 비활성화, 저항 제거, XZ 평면 이동만 허용
+        if (missileRigidbody != null)
+        {
+            missileRigidbody.isKinematic = false;
+            missileRigidbody.useGravity = false;
+            missileRigidbody.linearDamping = 0f;
+            missileRigidbody.constraints = RigidbodyConstraints.FreezePositionY
+                                         | RigidbodyConstraints.FreezeRotationX
+                                         | RigidbodyConstraints.FreezeRotationZ;
+        }
     }
 
-    
     /// <summary>
     /// X축 미사일 타입을 랜덤 배정,
     /// 미사일의 랜덤 설정
@@ -74,15 +70,8 @@ public class MissileXAxis : Missile
         MissileSpawner.Instance.GetRandomSettingXAxis(this);
     }
 
-    /// <summary>
-    /// 미사일 이동하거나 회전
-    /// </summary>
-    void Update()
+    private void FixedUpdate()
     {
-
-        Debug.DrawRay(this.gameObject.transform.position, this.transform.forward, Color.yellow);
-
-        Vector3 movevalue = this.transform.forward * Time.deltaTime * missileMoveSpeed;
 
         // 커스텀 타입이라면, 이동과 회전을 분리
         // 현실 타입이라면, 매번 방향을 구하며 이동
@@ -91,13 +80,20 @@ public class MissileXAxis : Missile
             case EnumXAxisMissile.custom:
                 if (missileMoveTime > 0 && movementActive == true)
                 {
-                    missileMoveTime -= Time.deltaTime;
+                    missileMoveTime -= Time.fixedDeltaTime;
 
-                    this.transform.position += movevalue;
-
+                    // 이동 방향 업데이트 및 속도 적용
+                    physics.direction = transform.forward;
+                    ApplyVelocity();
                 }
                 else
                 {
+                    // 회전 중에는 속도 0
+                    if (missileRigidbody != null)
+                    {
+                        missileRigidbody.linearVelocity = Vector3.zero;
+                    }
+
                     movementActive = false;
                     missileMoveTime = missileMaxMoveTime;
 
@@ -111,7 +107,9 @@ public class MissileXAxis : Missile
                 }
                 break;
             case EnumXAxisMissile.real:
-                this.transform.position += movevalue;
+                // 이동 방향 업데이트 및 속도 적용
+                physics.direction = transform.forward;
+                ApplyVelocity();
 
                 Vector3 targetDir = (GlobalData.Instance.Player.transform.position - transform.position).normalized;
                 Quaternion targetRot = Quaternion.LookRotation(targetDir, Vector3.up);
@@ -123,14 +121,26 @@ public class MissileXAxis : Missile
 
         }
     }
-
     #endregion
 
     #region Public Methods
 
+    /// <summary>
+    /// X축 미사일 이동 속도 초기화
+    /// </summary>
+    /// <param name="speed">이동 속도 (units/second)</param>
+    public override void Initialize(float speed)
+    {
+        SetSpeed(speed, transform.forward);
+        missileMoveTime = missileMaxMoveTime;
+    }
+
     public void SetHP(int HP) => missileHP = HP;
     public void SetMoveTime(float moveTime) => missileMaxMoveTime = moveTime;
-    public void SetMoveSpeed(float moveSpeed) => missileMoveSpeed = moveSpeed;
+    public void SetMoveSpeed(float moveSpeed)
+    {
+        physics.speed = moveSpeed;
+    }
     public void SetRotateTime(float rotateTime) => missileRotateTime = rotateTime;
     public void SetRotateSpeed(float rotateSpeed) => missileRotateSpeed = rotateSpeed;
 
