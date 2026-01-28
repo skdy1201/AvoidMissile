@@ -1,8 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Runtime.ConstrainedExecution;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
@@ -80,7 +77,8 @@ public class MissileSpawner : Spawner<MissileType>
     [SerializeField] public int curMaxMissileCount;
     [SerializeField] public float maxMissileTimer;
     [SerializeField] public float missileCycle;
-    [SerializeField] public float baseMissileSpeed;
+    [SerializeField] public float minFallSpeed;
+    [SerializeField] public float maxFallSpeed;
     [SerializeField] private bool coroutineActive = false;
 
     [Header("Cur Queue Info")]
@@ -164,12 +162,21 @@ public class MissileSpawner : Spawner<MissileType>
     }
 
     /// <summary>
-    /// 미사일 기본 속도
+    /// 미사일 최소 낙하 속도 (units/second)
     /// </summary>
-    public float MissileBaseSpeed
+    public float MinFallSpeed
     {
-        get => baseMissileSpeed;
-        set => baseMissileSpeed = value;
+        get => minFallSpeed;
+        set => minFallSpeed = value;
+    }
+
+    /// <summary>
+    /// 미사일 최대 낙하 속도 (units/second)
+    /// </summary>
+    public float MaxFallSpeed
+    {
+        get => maxFallSpeed;
+        set => maxFallSpeed = value;
     }
 
     #endregion
@@ -382,6 +389,7 @@ public class MissileSpawner : Spawner<MissileType>
         float rotateSpeed = Random.Range(180f, xAxisMissileInfo.MissileRotateSpeed);
 
         missile.SetMissileStat(healthPoint, moveTime, moveSpeed, rotateTime, rotateSpeed);
+        missile.Initialize(moveSpeed);
     }
 
     /// <summary>
@@ -391,9 +399,6 @@ public class MissileSpawner : Spawner<MissileType>
     {
         base.OnPlayerDeath();
     }
-
-    // NOTE: GET, SET이 아니라서 이건 안바꾼건가?
-    // set 함수 2개 바꿀지 생각해보기
 
     /// <summary>
     /// 미사일 생성 개수 제한 변경
@@ -516,13 +521,14 @@ public class MissileSpawner : Spawner<MissileType>
         curMaxMissileCount = yMissileSetting.CurMaxMissileCount;
         maxMissileTimer = yMissileSetting.MaxMissileTimer;
         missileCycle = yMissileSetting.MissileCycle;
-        baseMissileSpeed = yMissileSetting.baseMissileSpeed;
+        minFallSpeed = yMissileSetting.MinFallSpeed;
+        maxFallSpeed = yMissileSetting.MaxFallSpeed;
 
         xAxisMissileInfo = new XMissileInfo
         {
             MissileHp = 1,
             MissileMoveTime = 5f,
-            MissileMoveSpeed = 1f,
+            MissileMoveSpeed = 5f,
             MissileRotateTime = 3.5f,
             MissileRotateSpeed = 180f,
         };
@@ -608,22 +614,15 @@ public class MissileSpawner : Spawner<MissileType>
                 missileObject.GetComponent<MissileYAxis>().ChangeAlpha(alpha);
             }
 
-            missileObject.SetActive(true);
-
             Vector2 xzCoordinate = new Vector2(tileTransform.x, tileTransform.z);
-            missileObject.GetComponent<MissileYAxis>().XZCoord = xzCoordinate;
+            MissileYAxis yAxisMissile = missileObject.GetComponent<MissileYAxis>();
+            yAxisMissile.XZCoord = xzCoordinate;
 
-            // 드래그로 미사일 속도 설정
-            Rigidbody missileRigidBody = missileObject.GetComponent<Rigidbody>();
+            // 낙하 속도 설정 (units/second)
+            float randomSpeed = Random.Range(minFallSpeed, maxFallSpeed);
+            yAxisMissile.Initialize(randomSpeed);
 
-            if (missileRigidBody == null)
-            {
-                Debug.LogError($"[SpawnMissile] No Rigidbody on {missileObject.name}!");
-                continue;
-            }
-
-            float randomDrag = Random.Range(1.5f, baseMissileSpeed);
-            missileRigidBody.linearDamping = randomDrag;
+            missileObject.SetActive(true);
 
             currentYAxisMissiles.AddLast(missileObject);
         }
