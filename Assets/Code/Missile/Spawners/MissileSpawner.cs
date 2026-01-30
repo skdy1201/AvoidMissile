@@ -123,7 +123,12 @@ public class MissileSpawner : Spawner<MissileType>
     /// </summary>
     public new static MissileSpawner Instance
     {
-        get { return Singleton<Spawner<MissileType>>.Instance as MissileSpawner; }
+        get { return Singleton<MissileSpawner>.Instance; }
+    }
+
+    public FallingMissileSetting FallingData
+    {
+        set { fallingMissileData = value; }
     }
 
     /// <summary>
@@ -181,7 +186,6 @@ public class MissileSpawner : Spawner<MissileType>
     }
 
     #endregion
-
 
     #region Unity Lifecycle
 

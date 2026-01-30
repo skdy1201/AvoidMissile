@@ -288,8 +288,6 @@ public class ConvertBinary : EditorWindow
         {
             using (var writer = new BinaryWriter(stream, Encoding.UTF8, false))
             {
-                writer.Write(9);
-                
                 writer.Write(fallingMissileSetting.missileCount);
                 writer.Write(fallingMissileSetting.missileIncrement);
                 writer.Write(fallingMissileSetting.maxCount);

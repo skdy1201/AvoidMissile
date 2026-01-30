@@ -5,6 +5,7 @@ using UnityEngine.Rendering.Universal;
 /// <summary>
 /// 바이너리 파일로 변환한 레벨 별 낙하 미사일 세팅
 /// </summary>
+[System.Serializable]
 public struct FallingMissileSetting
 {
     [Header("Count")]
