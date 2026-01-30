@@ -14,6 +14,15 @@ using System.Text;
 /// </remarks>
 public class ConvertBinary : EditorWindow
 {
+    private enum CSVType
+    {
+        Item,
+        //MissileY,
+        //MissileX,
+
+    }
+
+    #region Readcsv
     /// <summary>
     /// csv 파일의 내용을 확인
     /// </summary>
@@ -76,7 +85,9 @@ public class ConvertBinary : EditorWindow
 
 
     }
+    #endregion Readcsv
 
+    #region ChangeBinary
     /// <summary>
     /// 바이너리 파일 변환 함수
     /// </summary>
@@ -86,83 +97,33 @@ public class ConvertBinary : EditorWindow
     [MenuItem("Custom/WriteBinary")]
     private static void ChangeBinary()
     {
-        string filename = "ItemSetting.csv";
 
-        // Unity Project's Asset Folder
-        string csvPath = UnityEngine.Application.dataPath + "/Resources/" + filename;
+        CSVlist file = (CSVlist)AssetDatabase.LoadAssetAtPath("Assets/Editor/BinaryData/CSVlist.asset", typeof(CSVlist));
 
-        char changechar = ',';
+        int csvCount  = System.Enum.GetValues(typeof(CSVType)).Length;
 
-        List<ItemData> itemDatas = new List<ItemData>();
-
-        if (File.Exists(csvPath))
+        for(int curcsv = 0; curcsv < csvCount; ++curcsv)
         {
-            // change string array in file's
-            string[] datas = File.ReadAllLines(csvPath);
+            string fileName = file[curcsv];
 
-            for (int lineIndex = 1; lineIndex < datas.Length; lineIndex++)
+            // Unity Project's Asset Folder
+            string csvPath = UnityEngine.Application.dataPath + "/Resources/" + fileName;
+
+            switch (curcsv)
             {
-                ItemData now = new ItemData();
-
-
-                string cur = "";
-
-                for (int i = 0; i < datas[lineIndex].Length; ++i)
-                {
-                    if (datas[lineIndex][i] != changechar)
-                        cur += datas[lineIndex][i];
-                    else
-                    {
-                        if (string.IsNullOrEmpty(now.Name))
-                            now.Name = cur;
-                        else if (string.IsNullOrEmpty(now.Percent))
-                            now.Percent = cur;
-                        else if (string.IsNullOrEmpty(now.Value))
-                            now.Value = cur;
-
-                        cur = "";
-                    }
-
-                }
-
-                now.Time = cur;
-
-                itemDatas.Add(now);
+                case 0:
+                    BinaryItem(csvPath);
+                    break;
             }
-        }
-        else
-        {
-            Debug.Log("csv fail");
-            return;
+
+
         }
 
-        string binaryFilePath = UnityEngine.Application.dataPath + "/Resources/" + "itemBinary" + ".bytes";
-
-        if(File.Exists(binaryFilePath))
-        {
-            File.Delete(binaryFilePath);
-        }
-
-        using(var stream = File.Open(binaryFilePath, FileMode.Create))
-        {
-            using(var writer = new BinaryWriter(stream, Encoding.UTF8, false))
-            {
-                writer.Write(itemDatas.Count);
-
-                for(int i = 0; i <  itemDatas.Count; ++i)
-                {
-                    writer.Write(itemDatas[i].Name);
-                    writer.Write(itemDatas[i].Percent);
-                    writer.Write(itemDatas[i].Value);
-                    writer.Write(itemDatas[i].Time);
-                }
-            }
-        }
-
-        Debug.Log("Convert Binary Finish");
-        AssetDatabase.Refresh();
+        
     }
+    #endregion ChangeBinary
 
+    #region ReadBinary
     /// <summary>
     /// 만든 바이너리 파일을 확인하는 함수
     /// </summary>
@@ -195,4 +156,76 @@ public class ConvertBinary : EditorWindow
             }
         }
     }
+    #endregion
+
+
+    #region ConvertMethod
+
+    private static void BinaryItem(string csvPath)
+    {
+
+        List<ItemData> itemDatas = new List<ItemData>();
+
+        if (File.Exists(csvPath))
+        {
+            // change string array in file's
+            string[] datas = File.ReadAllLines(csvPath);
+
+            char spliter = ',';
+
+            for (int lineIndex = 1; lineIndex < datas.Length; lineIndex++)
+            {
+                ItemData now = new ItemData();
+
+                string[] result = datas[lineIndex].Split(spliter);
+               
+                for(int curItemData = 0; curItemData < result.Length; curItemData++) 
+                {
+                   if (string.IsNullOrEmpty(now.Name))
+                       now.Name = result[curItemData];
+                   else if (string.IsNullOrEmpty(now.Percent))
+                       now.Percent = result[curItemData];
+                    else if (string.IsNullOrEmpty(now.Value))
+                       now.Value = result[curItemData];
+                    else
+                        now.Time = result[curItemData];
+
+                }
+                itemDatas.Add(now);
+            }
+        }
+        else
+        {
+            Debug.Log("csv fail");
+            return;
+        }
+
+        string binaryFilePath = UnityEngine.Application.dataPath + "/Resources/" + "itemBinary" + ".bytes";
+
+        if (File.Exists(binaryFilePath))
+        {
+            File.Delete(binaryFilePath);
+        }
+
+        using (var stream = File.Open(binaryFilePath, FileMode.Create))
+        {
+            using (var writer = new BinaryWriter(stream, Encoding.UTF8, false))
+            {
+                writer.Write(itemDatas.Count);
+
+                for (int i = 0; i < itemDatas.Count; ++i)
+                {
+                    writer.Write(itemDatas[i].Name);
+                    writer.Write(itemDatas[i].Percent);
+                    writer.Write(itemDatas[i].Value);
+                    writer.Write(itemDatas[i].Time);
+                }
+            }
+        }
+
+        Debug.Log("Convert Binary Finish");
+        AssetDatabase.Refresh();
+    }
+
+    #endregion
 }
