@@ -1,6 +1,38 @@
 ﻿using System.Collections;
 using UnityEngine;
 
+/// <summary>
+/// 바이너리 파일로 변환한 레벨 별 추적 미사일 세팅
+/// </summary>
+[System.Serializable]
+public struct HoverMissileSetting
+{
+    [Header("HP")]
+    [SerializeField] public int hp;
+    [SerializeField] public int hpIncrement;
+    [SerializeField] public int hpMax;
+
+    [Header("Flight")]
+    [SerializeField] public float flight;
+    [SerializeField] public float flightIncrement;
+    [SerializeField] public float flightMax;
+
+    [Header("FlightSpeed")]
+    [SerializeField] public float flightSpeed;
+    [SerializeField] public float flightSpeedIncrement;
+    [SerializeField] public float flightSpeedMax;
+
+    [Header("Turn")]
+    [SerializeField] public float turn;
+    [SerializeField] public float turnIncrement;
+    [SerializeField] public float turnMax;
+
+    [Header("TurnRate")]
+    [SerializeField] public float turnRate;
+    [SerializeField] public float turnRateIncrement;
+    [SerializeField] public float turnRateMax;
+}
+
 public enum HomingMissileType
 {
     Custom,

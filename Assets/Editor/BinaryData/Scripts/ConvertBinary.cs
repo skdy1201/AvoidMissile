@@ -18,7 +18,7 @@ public class ConvertBinary : EditorWindow
     {
         Item,
         FallingMissile,
-        //MissileX,
+        HoverMissile,
 
     }
 
@@ -117,7 +117,9 @@ public class ConvertBinary : EditorWindow
                 case 1:
                     BinaryFallingMissile(csvPath);
                     break;
-
+                case 2:
+                    BinaryHoverMissile(csvPath);
+                    break;
             }
 
 
@@ -303,6 +305,99 @@ public class ConvertBinary : EditorWindow
         }
 
         Debug.Log("Convert FallingMissileBinary Finish");
+        AssetDatabase.Refresh();
+    }
+
+    /// <summary>
+    /// 추적 미사일 바이너리 데이터를 만드는 함수
+    /// </summary>
+    /// <param name="csvPath"> 추적 미사일 설정 csv 파일 경로 </param>
+    private static void BinaryHoverMissile(string csvPath)
+    {
+        HoverMissileSetting hoverMissileSetting = new HoverMissileSetting();
+
+        if (File.Exists(csvPath))
+        {
+            string[] datas = File.ReadAllLines(csvPath);
+
+            char spliter = ',';
+
+            for (int i = 1; i < datas.Length; ++i)
+            {
+                string[] cur = datas[i].Split(spliter);
+
+                if (cur[0] == "HP")
+                {
+                    int.TryParse(cur[1], out hoverMissileSetting.hp);
+                    int.TryParse(cur[2], out hoverMissileSetting.hpIncrement);
+                    int.TryParse(cur[3], out hoverMissileSetting.hpMax);
+                }
+                else if (cur[0] == "Flight")
+                {
+                    float.TryParse(cur[1], out hoverMissileSetting.flight);
+                    float.TryParse(cur[2], out hoverMissileSetting.flightIncrement);
+                    float.TryParse(cur[3], out hoverMissileSetting.flightMax);
+                }
+                else if (cur[0] == "FlightSpeed")
+                {
+                    float.TryParse(cur[1], out hoverMissileSetting.flightSpeed);
+                    float.TryParse(cur[2], out hoverMissileSetting.flightSpeedIncrement);
+                    float.TryParse(cur[3], out hoverMissileSetting.flightSpeedMax);
+                }
+                else if (cur[0] == "Turn")
+                {
+                    float.TryParse(cur[1], out hoverMissileSetting.turn);
+                    float.TryParse(cur[2], out hoverMissileSetting.turnIncrement);
+                    float.TryParse(cur[3], out hoverMissileSetting.turnMax);
+                }
+                else if (cur[0] == "TurnRate")
+                {
+                    float.TryParse(cur[1], out hoverMissileSetting.turnRate);
+                    float.TryParse(cur[2], out hoverMissileSetting.turnRateIncrement);
+                    float.TryParse(cur[3], out hoverMissileSetting.turnRateMax);
+                }
+            }
+        }
+        else
+        {
+            Debug.Log("csv fail");
+            return;
+        }
+
+        string binaryFilePath = UnityEngine.Application.dataPath + "/Resources/" + "hoverMissileData" + ".bytes";
+
+        if (File.Exists(binaryFilePath))
+        {
+            File.Delete(binaryFilePath);
+        }
+
+        using (var stream = File.Open(binaryFilePath, FileMode.Create))
+        {
+            using (var writer = new BinaryWriter(stream, Encoding.UTF8, false))
+            {
+                writer.Write(hoverMissileSetting.hp);
+                writer.Write(hoverMissileSetting.hpIncrement);
+                writer.Write(hoverMissileSetting.hpMax);
+
+                writer.Write(hoverMissileSetting.flight);
+                writer.Write(hoverMissileSetting.flightIncrement);
+                writer.Write(hoverMissileSetting.flightMax);
+
+                writer.Write(hoverMissileSetting.flightSpeed);
+                writer.Write(hoverMissileSetting.flightSpeedIncrement);
+                writer.Write(hoverMissileSetting.flightSpeedMax);
+
+                writer.Write(hoverMissileSetting.turn);
+                writer.Write(hoverMissileSetting.turnIncrement);
+                writer.Write(hoverMissileSetting.turnMax);
+
+                writer.Write(hoverMissileSetting.turnRate);
+                writer.Write(hoverMissileSetting.turnRateIncrement);
+                writer.Write(hoverMissileSetting.turnRateMax);
+            }
+        }
+
+        Debug.Log("Convert HoverMissileBinary Finish");
         AssetDatabase.Refresh();
     }
 
