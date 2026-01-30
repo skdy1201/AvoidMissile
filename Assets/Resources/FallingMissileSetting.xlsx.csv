@@ -1,0 +1,4 @@
+﻿FallingMissile,Currnet,Increment,Max
+MissileCount,5,5,60
+FallSpeed,1,3,10
+Waiting,5,-0.2,3
