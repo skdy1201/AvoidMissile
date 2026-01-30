@@ -278,7 +278,7 @@ public class ConvertBinary : EditorWindow
             return;
         }
 
-        string binaryFilePath = UnityEngine.Application.dataPath + "/Resources/" + "fallingMissieData" + ".bytes";
+        string binaryFilePath = UnityEngine.Application.dataPath + "/Resources/" + "fallingMissileData" + ".bytes";
 
 
         if (File.Exists(binaryFilePath))
@@ -299,7 +299,7 @@ public class ConvertBinary : EditorWindow
                 writer.Write(fallingMissileSetting.fallSpeedMax);
 
                 writer.Write(fallingMissileSetting.waiting);
-                writer.Write(fallingMissileSetting.fallIncrement);
+                writer.Write(fallingMissileSetting.waitIncrement);
                 writer.Write(fallingMissileSetting.waitingMax);
             }
         }

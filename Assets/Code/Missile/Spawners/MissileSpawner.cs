@@ -67,6 +67,7 @@ public class MissileSpawner : Spawner<MissileType>
     [SerializeField] XMissileInfo xAxisMissileInfo;
 
     [SerializeField] FallingMissileSetting fallingMissileData;
+    [SerializeField] HoverMissileSetting hoverMissileData;
 
     [Header("SpawnPoint")]
     [FormerlySerializedAs("xAsixmissileSpawnPoints")]
@@ -129,6 +130,11 @@ public class MissileSpawner : Spawner<MissileType>
     public FallingMissileSetting FallingData
     {
         set { fallingMissileData = value; }
+    }
+
+    public HoverMissileSetting HoverData
+    {
+        set { hoverMissileData = value; }
     }
 
     /// <summary>
