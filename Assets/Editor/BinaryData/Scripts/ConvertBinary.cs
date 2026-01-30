@@ -17,7 +17,7 @@ public class ConvertBinary : EditorWindow
     private enum CSVType
     {
         Item,
-        //MissileY,
+        FallingMissile,
         //MissileX,
 
     }
@@ -114,6 +114,10 @@ public class ConvertBinary : EditorWindow
                 case 0:
                     BinaryItem(csvPath);
                     break;
+                case 1:
+                    BinaryFallingMissile(csvPath);
+                    break;
+
             }
 
 
@@ -161,6 +165,10 @@ public class ConvertBinary : EditorWindow
 
     #region ConvertMethod
 
+    /// <summary>
+    /// 아이템 바이너리 데이터를 만드는 함수
+    /// </summary>
+    /// <param name="csvPath"> 아이템 설정 csv 파일 경로 </param>
     private static void BinaryItem(string csvPath)
     {
 
@@ -223,7 +231,80 @@ public class ConvertBinary : EditorWindow
             }
         }
 
-        Debug.Log("Convert Binary Finish");
+        Debug.Log("Convert ItemBinary Finish");
+        AssetDatabase.Refresh();
+    }
+
+    private static void BinaryFallingMissile(string csvPath)
+    {
+        FallingMissileSetting fallingMissileSetting = new FallingMissileSetting();
+
+        if (File.Exists(csvPath))
+        {
+            // change string array in file's
+            string[] datas = File.ReadAllLines(csvPath);
+
+            char spliter = ',';
+
+            for(int i = 1; i < datas.Length; ++i)
+            {
+                string[] cur = datas[i].Split(spliter);
+
+                if (cur[0] == "MissileCount")
+                {
+                    int.TryParse(cur[1], out fallingMissileSetting.missileCount);
+                    int.TryParse(cur[2], out fallingMissileSetting.missileIncrement);
+                    int.TryParse(cur[3], out fallingMissileSetting.maxCount);
+                }
+                else if (cur[0] == "FallSpeed")
+                {
+                    float.TryParse(cur[1], out fallingMissileSetting.fallSpeed);
+                    float.TryParse(cur[2], out fallingMissileSetting.fallIncrement);
+                    float.TryParse(cur[3], out fallingMissileSetting.fallSpeedMax);
+                }
+                else if(cur[0] == "Waiting")
+                {
+                    float.TryParse(cur[1], out fallingMissileSetting.waiting);
+                    float.TryParse(cur[2], out fallingMissileSetting.waitIncrement);
+                    float.TryParse(cur[3], out fallingMissileSetting.waitingMax);
+                }
+            }
+        }
+        else
+        {
+            Debug.Log("csv fail");
+            return;
+        }
+
+        string binaryFilePath = UnityEngine.Application.dataPath + "/Resources/" + "fallingMissieData" + ".bytes";
+
+
+        if (File.Exists(binaryFilePath))
+        {
+            File.Delete(binaryFilePath);
+        }
+
+        using (var stream = File.Open(binaryFilePath, FileMode.Create))
+        {
+            using (var writer = new BinaryWriter(stream, Encoding.UTF8, false))
+            {
+                writer.Write(9);
+                
+                writer.Write(fallingMissileSetting.missileCount);
+                writer.Write(fallingMissileSetting.missileIncrement);
+                writer.Write(fallingMissileSetting.maxCount);
+
+                writer.Write(fallingMissileSetting.fallSpeed);
+                writer.Write(fallingMissileSetting.fallIncrement);
+                writer.Write(fallingMissileSetting.fallSpeedMax);
+
+                writer.Write(fallingMissileSetting.waiting);
+                writer.Write(fallingMissileSetting.fallIncrement);
+                writer.Write(fallingMissileSetting.waitingMax);
+            }
+        }
+
+        Debug.Log("Convert FallingMissileBinary Finish");
         AssetDatabase.Refresh();
     }
 
