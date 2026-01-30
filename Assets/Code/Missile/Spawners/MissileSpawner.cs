@@ -265,8 +265,8 @@ public class MissileSpawner : Spawner<MissileType>
             obj.GetComponent<Missile>().Number = missileNumber;
             missileNumber++;
 
-            if (obj.GetComponent<MissileYAxis>() != null)
-                obj.GetComponent<MissileYAxis>().Returned = false;
+            if (obj.GetComponent<FallingMissile>() != null)
+                obj.GetComponent<FallingMissile>().Returned = false;
 
             return obj;
         }
@@ -377,10 +377,10 @@ public class MissileSpawner : Spawner<MissileType>
     }
 
     /// <summary>
-    /// X축 미사일 무작위 설정을 적용
+    /// 추적 미사일 무작위 설정을 적용
     /// </summary>
     /// <param name="missile"> 미사일 오브젝트 </param>
-    public void GetRandomSettingXAxis(MissileXAxis missile)
+    public void GetRandomSettingHoming(HomingMissile missile)
     {
         int healthPoint = Random.Range(1, xAxisMissileInfo.MissileHp);
         float moveTime = Random.Range(xAxisMissileInfo.MissileMoveTime / 2f, xAxisMissileInfo.MissileMoveTime);
@@ -600,22 +600,22 @@ public class MissileSpawner : Spawner<MissileType>
                 continue;
             }
 
-            if (missileObject.GetComponent<MissileYAxis>() != null)
+            if (missileObject.GetComponent<FallingMissile>() != null)
             {
-                missileObject.GetComponent<MissileYAxis>().SpawnTime = missileObject.GetComponent<MissileYAxis>().SpawnTime + 1;
+                missileObject.GetComponent<FallingMissile>().SpawnTime = missileObject.GetComponent<FallingMissile>().SpawnTime + 1;
             }
 
             missileObject.transform.position = tileTransform;
 
             float alpha = GameData.Instance.GetSettingValue(OptionType.Alpha);
 
-            if (alpha != missileObject.GetComponent<MissileYAxis>().GetAlpha())
+            if (alpha != missileObject.GetComponent<FallingMissile>().GetAlpha())
             {
-                missileObject.GetComponent<MissileYAxis>().ChangeAlpha(alpha);
+                missileObject.GetComponent<FallingMissile>().ChangeAlpha(alpha);
             }
 
             Vector2 xzCoordinate = new Vector2(tileTransform.x, tileTransform.z);
-            MissileYAxis yAxisMissile = missileObject.GetComponent<MissileYAxis>();
+            FallingMissile yAxisMissile = missileObject.GetComponent<FallingMissile>();
             yAxisMissile.XZCoord = xzCoordinate;
 
             // 낙하 속도 설정 (units/second)

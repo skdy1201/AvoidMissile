@@ -127,7 +127,7 @@ public class Missile : MonoBehaviour
 
                 gameObject.SetActive(false);
 
-                if (gameObject.GetComponent<MissileYAxis>() != null)
+                if (gameObject.GetComponent<FallingMissile>() != null)
                     MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, gameObject);
                 else
                     Destroy(gameObject);

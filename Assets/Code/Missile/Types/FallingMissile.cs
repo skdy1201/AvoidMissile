@@ -2,9 +2,9 @@
 using UnityEngine.Rendering.Universal;
 
 /// <summary>
-/// Y축 미사일 스크립트
+/// 낙하 미사일 스크립트
 /// </summary>
-public class MissileYAxis : Missile
+public class FallingMissile : Missile
 {
     #region Serialized Fields
 
@@ -165,7 +165,7 @@ public class MissileYAxis : Missile
         {
             // Y축 미사일과 충돌했다면 두 미사일의 Y 값을 비교해서 위에 있으면 풀 반환
             // 더 높이 있는 미사일이라면 아래 미사일이 더 빨리 떨어지게
-            if (collision.gameObject.GetComponent<MissileYAxis>() != null)
+            if (collision.gameObject.GetComponent<FallingMissile>() != null)
             {
                 float otherMissileY = collision.gameObject.transform.position.y;
 
@@ -179,7 +179,7 @@ public class MissileYAxis : Missile
                     physics.speed = Mathf.Min(physics.speed + 1f, 15f);
                 }
             }
-            else if (collision.gameObject.GetComponent<MissileXAxis>() != null)
+            else if (collision.gameObject.GetComponent<HomingMissile>() != null)
             {
                 MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, gameObject);
             }

@@ -1,19 +1,19 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
-public enum EnumXAxisMissile
+public enum HomingMissileType
 {
-    custom,
-    real
+    Custom,
+    Real
 }
 
 /// <summary>
-/// X축으로 움직이는 미사일
+/// 추적 미사일 스크립트
 /// </summary>
 /// <remarks>
 /// 현실의 유도 미사일, 이동 - 회전을 나눠 움직이는 미사일의 종류로 나뉨
 /// </remarks>
-public class MissileXAxis : Missile
+public class HomingMissile : Missile
 {
     #region Serialized Fields
 
@@ -23,7 +23,7 @@ public class MissileXAxis : Missile
     [SerializeField] private float maxMoveTime;
     [SerializeField] private float rotateTime;
     [SerializeField] private float rotateSpeed;
-    [SerializeField] private EnumXAxisMissile xAxisType;
+    [SerializeField] private HomingMissileType homingType;
 
     [Header("State")]
     [SerializeField] private bool movementActive = true;
@@ -59,13 +59,13 @@ public class MissileXAxis : Missile
     }
 
     /// <summary>
-    /// X축 미사일 타입을 랜덤 배정,
+    /// 추적 미사일 타입을 랜덤 배정,
     /// 미사일의 랜덤 설정
     /// </summary>
     void Start()
     {
-        xAxisType = (EnumXAxisMissile)Random.Range((int)EnumXAxisMissile.custom, (int)EnumXAxisMissile.real + 1);
-        MissileSpawner.Instance.GetRandomSettingXAxis(this);
+        homingType = (HomingMissileType)Random.Range((int)HomingMissileType.Custom, (int)HomingMissileType.Real + 1);
+        MissileSpawner.Instance.GetRandomSettingHoming(this);
     }
 
     private void FixedUpdate()
@@ -73,9 +73,9 @@ public class MissileXAxis : Missile
 
         // 커스텀 타입이라면, 이동과 회전을 분리
         // 현실 타입이라면, 매번 방향을 구하며 이동
-        switch (xAxisType)
+        switch (homingType)
         {
-            case EnumXAxisMissile.custom:
+            case HomingMissileType.Custom:
                 if (moveTime > 0 && movementActive == true)
                 {
                     moveTime -= Time.fixedDeltaTime;
@@ -104,7 +104,7 @@ public class MissileXAxis : Missile
                     }
                 }
                 break;
-            case EnumXAxisMissile.real:
+            case HomingMissileType.Real:
                 // 이동 방향 업데이트 및 속도 적용
                 physics.direction = transform.forward;
                 ApplyVelocity();
@@ -124,7 +124,7 @@ public class MissileXAxis : Missile
     #region Public Methods
 
     /// <summary>
-    /// X축 미사일 이동 속도 초기화
+    /// 추적 미사일 이동 속도 초기화
     /// </summary>
     /// <param name="speed">이동 속도 (units/second)</param>
     public override void Initialize(float speed)
@@ -164,7 +164,7 @@ public class MissileXAxis : Missile
     #region Private/Protected Methods
 
     /// <summary>
-    /// Y축 미사일과 맞으면  HP 감소. 0이 되면 소멸.
+    /// 낙하 미사일과 맞으면 HP 감소. 0이 되면 소멸.
     /// 충돌 지점에 폭발 효과
     /// </summary>
     /// <param name="collision"> 충돌 물체 </param>
@@ -176,7 +176,7 @@ public class MissileXAxis : Missile
     {
         base.OnCollisionEnter(collision);
 
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Missile") && collision.gameObject.GetComponent<MissileYAxis>() != null)
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Missile") && collision.gameObject.GetComponent<FallingMissile>() != null)
         {
             hp--;
 
