@@ -55,7 +55,6 @@ public class GameData : Singleton<GameData>
 
     #endregion
 
-
     #region Unity Lifecycle
 
     /// <summary>
@@ -76,6 +75,7 @@ public class GameData : Singleton<GameData>
         SyncPlayerPref();
 
         LoadItemData();
+        LoadMissieData();
     }
 
     #endregion
@@ -261,7 +261,7 @@ public class GameData : Singleton<GameData>
 
         if(itemBinaryData == null)
         {
-            Debug.LogError("binary File Missing");
+            Debug.LogError("Item binary File Missing");
         }
 
         using (MemoryStream memoryStream = new MemoryStream(itemBinaryData.bytes))
@@ -283,6 +283,40 @@ public class GameData : Singleton<GameData>
                 }
             }
         }
+    }
+
+    private void LoadMissieData()
+    {
+        string fallingMissile = "fallingMissieData";
+
+        TextAsset fallingMissileBinaryData = Resources.Load<TextAsset>(fallingMissile);
+
+        if(fallingMissileBinaryData == null)
+        {
+            Debug.LogError("Missile Binary Missing");
+        }
+
+        FallingMissileSetting setting = new FallingMissileSetting();
+
+        using (MemoryStream memoryStream = new MemoryStream(fallingMissileBinaryData.bytes))
+        {
+            using (BinaryReader reader = new BinaryReader(memoryStream, Encoding.UTF8))
+            {
+                setting.missileCount = reader.ReadInt32();
+                setting.missileIncrement = reader.ReadInt32();
+                setting.maxCount = reader.ReadInt32();
+
+                setting.fallSpeed = reader.ReadSingle();
+                setting.fallIncrement = reader.ReadSingle();
+                setting.fallSpeedMax = reader.ReadSingle();
+
+                setting.waiting = reader.ReadSingle();
+                setting.waitIncrement = reader.ReadSingle();
+                setting.waitingMax = reader.ReadSingle();
+            }
+        }
+
+        MissileSpawner.Instance.FallingData = setting;
     }
 
     #endregion
