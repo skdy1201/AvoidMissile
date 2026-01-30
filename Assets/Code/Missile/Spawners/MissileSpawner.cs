@@ -9,8 +9,8 @@ using UnityEngine.Serialization;
 /// </summary>
 public enum MissileType
 {
-    YAxis,
-    XAxis
+    Falling,
+    Hover
 }
 
 /// <summary>
@@ -66,6 +66,8 @@ public class MissileSpawner : Spawner<MissileType>
     [SerializeField] XAxisSetting xMissileSetting;
     [SerializeField] XMissileInfo xAxisMissileInfo;
 
+    [SerializeField] FallingMissileSetting fallingMissileData;
+
     [Header("SpawnPoint")]
     [FormerlySerializedAs("xAsixmissileSpawnPoints")]
     [SerializeField] private List<GameObject> xAxismissileSpawnPoints = new List<GameObject>();
@@ -83,7 +85,6 @@ public class MissileSpawner : Spawner<MissileType>
 
     [Header("Cur Queue Info")]
     [SerializeField] private int yAxisQueueSize;
-
 
     #endregion
 
@@ -202,7 +203,7 @@ public class MissileSpawner : Spawner<MissileType>
     /// </summary>
     void Update()
     {
-        yAxisQueueSize = spawners[(int)MissileType.YAxis].Count;
+        yAxisQueueSize = spawners[(int)MissileType.Falling].Count;
 
         // 미사일 리스트가 25개 이상이면, 일괄 반환
         if (returnMissiles.Count >= 25)
@@ -214,7 +215,7 @@ public class MissileSpawner : Spawner<MissileType>
                     Debug.LogWarning("during return missile is null");
                 }
 
-                ReturnSpawner(MissileType.YAxis, returnMissiles[i]);
+                ReturnSpawner(MissileType.Falling, returnMissiles[i]);
             }
 
             returnMissiles.Clear();
@@ -433,12 +434,12 @@ public class MissileSpawner : Spawner<MissileType>
             }
 
             // Y축 미사일 풀 초기화
-            if (spawners[(int)MissileType.YAxis].Count <= 0)
+            if (spawners[(int)MissileType.Falling].Count <= 0)
             {
                 for (int i = 0; i < 100; ++i)
                 {
                     GameObject missileObject = Instantiate(yAxisMissilePrefab);
-                    spawners[(int)MissileType.YAxis].Enqueue(missileObject);
+                    spawners[(int)MissileType.Falling].Enqueue(missileObject);
                     missileObject.transform.parent = this.transform;
                     missileObject.SetActive(false);
 
@@ -500,9 +501,9 @@ public class MissileSpawner : Spawner<MissileType>
         }
 
         // 큐도 정리
-        while (spawners[(int)MissileType.YAxis].Count > 0)
+        while (spawners[(int)MissileType.Falling].Count > 0)
         {
-            GameObject missile = spawners[(int)MissileType.YAxis].Dequeue();
+            GameObject missile = spawners[(int)MissileType.Falling].Dequeue();
             if (missile != null)
                 Destroy(missile);
         }
@@ -592,7 +593,7 @@ public class MissileSpawner : Spawner<MissileType>
             tileTransform.z += tileZ / 2;
 
             // 미사일을 풀에서 꺼내기
-            GameObject missileObject = RentSpawner(MissileType.YAxis);
+            GameObject missileObject = RentSpawner(MissileType.Falling);
 
             if (missileObject == null)
             {

@@ -1,6 +1,29 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
+
+/// <summary>
+/// 바이너리 파일로 변환한 레벨 별 낙하 미사일 세팅
+/// </summary>
+public struct FallingMissileSetting
+{
+    [Header("Count")]
+    [SerializeField] public int missileCount;
+    [SerializeField] public int missileIncrement;
+    [SerializeField] public int maxCount;
+
+    [Header("Speed")]
+    [SerializeField] public float fallSpeed;
+    [SerializeField] public float fallIncrement;
+    [SerializeField] public float fallSpeedMax;
+
+    [Header("Time")]
+    [SerializeField] public float waiting;
+    [SerializeField] public float waitIncrement;
+    [SerializeField] public float waitingMax;
+}
+
+
 /// <summary>
 /// 낙하 미사일 스크립트
 /// </summary>
@@ -157,7 +180,7 @@ public class FallingMissile : Missile
         {
             col.enabled = false;
 
-            MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, gameObject);
+            MissileSpawner.Instance.ReturnSpawner(MissileType.Falling, gameObject);
 
             GameProgress.Instance.Score = GameProgress.Instance.Score;
         }
@@ -171,7 +194,7 @@ public class FallingMissile : Missile
 
                 if (gameObject.transform.position.y > otherMissileY)
                 {
-                    MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, gameObject);
+                    MissileSpawner.Instance.ReturnSpawner(MissileType.Falling, gameObject);
                 }
                 else
                 {
@@ -181,7 +204,7 @@ public class FallingMissile : Missile
             }
             else if (collision.gameObject.GetComponent<HomingMissile>() != null)
             {
-                MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, gameObject);
+                MissileSpawner.Instance.ReturnSpawner(MissileType.Falling, gameObject);
             }
         }
     }

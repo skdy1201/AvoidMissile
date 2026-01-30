@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Missile들의 최상위 스크립트
@@ -128,7 +128,7 @@ public class Missile : MonoBehaviour
                 gameObject.SetActive(false);
 
                 if (gameObject.GetComponent<FallingMissile>() != null)
-                    MissileSpawner.Instance.ReturnSpawner(MissileType.YAxis, gameObject);
+                    MissileSpawner.Instance.ReturnSpawner(MissileType.Falling, gameObject);
                 else
                     Destroy(gameObject);
             }
