@@ -215,7 +215,7 @@ public class HomingMissile : Missile
             // 체력이 0이 되면 파괴
             if (hp <= 0)
             {
-                MissileSpawner.Instance.SubSpawn(gameObject);
+                MissileSpawner.Instance.RemoveHoverMissile(gameObject);
                 Destroy(gameObject);
             }
 

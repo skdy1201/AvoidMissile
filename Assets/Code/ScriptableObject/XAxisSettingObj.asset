@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: XAxisSettingObj
   m_EditorClassIdentifier: Assembly-CSharp::XAxisMissileSetting
   MaxLimitHP: 3
-  MaxLimitMoveSpeed: 3
+  MaxLimitMoveSpeed: 15
   MaxLimitRotateSpeed: 275
   MaxMoveTime: 7
   MinRotateTime: 1

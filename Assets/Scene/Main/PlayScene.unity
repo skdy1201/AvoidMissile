@@ -371,6 +371,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -545,7 +546,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 444520284}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3241e08a9db489243aef0eb8ddce7046, type: 3}
+  m_Script: {fileID: 11500000, guid: cb425246cd6e9454faf4e61cad84452f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::XAxisSpawnPoint
 --- !u!4 &444520286
@@ -780,14 +781,14 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 712082228}
   m_Enabled: 1
-  serializedVersion: 11
+  serializedVersion: 12
   m_Type: 0
   m_Color: {r: 0.8301887, g: 0.8301887, b: 0.8301887, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 45.399666
   m_InnerSpotAngle: 45
-  m_CookieSize: 10
+  m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
     m_Type: 0
     m_Resolution: -1
@@ -1135,6 +1136,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1352,14 +1354,14 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1194759062}
   m_Enabled: 1
-  serializedVersion: 11
+  serializedVersion: 12
   m_Type: 1
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
+  m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
     m_Type: 2
     m_Resolution: -1
@@ -1546,6 +1548,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -2224,7 +2227,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1740975344}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3241e08a9db489243aef0eb8ddce7046, type: 3}
+  m_Script: {fileID: 11500000, guid: cb425246cd6e9454faf4e61cad84452f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::XAxisSpawnPoint
 --- !u!4 &1740975346
@@ -2268,7 +2271,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1772336688}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3241e08a9db489243aef0eb8ddce7046, type: 3}
+  m_Script: {fileID: 11500000, guid: cb425246cd6e9454faf4e61cad84452f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::XAxisSpawnPoint
 --- !u!4 &1772336690
@@ -2365,7 +2368,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2095631093}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3241e08a9db489243aef0eb8ddce7046, type: 3}
+  m_Script: {fileID: 11500000, guid: cb425246cd6e9454faf4e61cad84452f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::XAxisSpawnPoint
 --- !u!4 &2095631095
