@@ -134,7 +134,7 @@ public class FallingMissile : Missile
     public float GetAlpha() => material.color.a;
 
     /// <summary>
-    /// Y축 미사일 낙하 속도 초기화
+    /// 낙하 미사일 속도 초기화
     /// </summary>
     /// <param name="speed">낙하 속도 (units/second)</param>
     public override void Initialize(float speed)
@@ -160,7 +160,7 @@ public class FallingMissile : Missile
     #region Private/Protected Methods
 
     /// <summary>
-    /// Y축 미사일 충돌 처리
+    /// 낙하 미사일 충돌 처리
     /// </summary>
     /// <param name="collision">충돌한 오브젝트의 Collision 정보</param>
     protected override void OnCollisionEnter(Collision collision)
@@ -187,7 +187,7 @@ public class FallingMissile : Missile
         }
         else if (collision.gameObject.layer == LayerMask.NameToLayer("Missile"))
         {
-            // Y축 미사일과 충돌했다면 두 미사일의 Y 값을 비교해서 위에 있으면 풀 반환
+            // 낙하 미사일과 충돌했다면 두 미사일의 Y 값을 비교해서 위에 있으면 풀 반환
             // 더 높이 있는 미사일이라면 아래 미사일이 더 빨리 떨어지게
             if (collision.gameObject.GetComponent<FallingMissile>() != null)
             {

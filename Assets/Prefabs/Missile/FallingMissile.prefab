@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 8707294801350671428}
   - component: {fileID: 3062242594941218951}
   m_Layer: 7
-  m_Name: YAxisMissile
+  m_Name: FallingMissile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -93,6 +93,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!54 &6574468704940153063
 Rigidbody:
@@ -154,11 +155,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: efe9e93787cb2a445ac32823c2bd138d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  missileNumber: 0
-  missileReturn: 0
+  number: 0
+  returned: 0
   spawnTime: 0
+  physics:
+    speed: 0
+    direction: {x: 0, y: 0, z: 0}
   XZCoord: {x: 0, y: 0}
-  missileMaterial: {fileID: 0}
+  material: {fileID: 0}
   warningDecal: {fileID: 1429531655410251431}
   decal: {fileID: 0}
   platformY: 0

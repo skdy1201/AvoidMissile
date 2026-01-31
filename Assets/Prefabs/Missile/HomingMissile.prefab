@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3837538034599168353}
   - component: {fileID: 7617719121394823317}
   m_Layer: 7
-  m_Name: XAsixMissile
+  m_Name: HomingMissile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -47,18 +47,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6aefa4c4b99f225439346be067006074, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  missileNumber: 0
-  missileReturn: 0
+  number: 0
+  returned: 0
   spawnTime: 0
   physics:
     speed: 0
     direction: {x: 0, y: 0, z: 0}
-  missileHP: 0
-  missileMoveTime: 0
-  missileMaxMoveTime: 0
-  missileRotateTime: 0
-  missileRotateSpeed: 0
-  xAxisType: 0
+  hp: 0
+  moveTime: 0
+  maxMoveTime: 0
+  rotateTime: 0
+  rotateSpeed: 0
+  homingType: 0
   movementActive: 1
   rotationActive: 0
 --- !u!54 &3837538034599168353

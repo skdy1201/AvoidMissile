@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 
 /// <summary>
 /// 미사일 타입 열거형
@@ -12,36 +11,6 @@ public enum MissileType
     Falling,
     Hover
 }
-
-/// <summary>
-/// 추적 미사일 정보 구조체
-/// </summary>
-public struct HoverMissileInfo
-{
-    public int MissileHp;
-    public float MissileMoveTime;
-    public float MissileMoveSpeed;
-    public float MissileRotateTime;
-    public float MissileRotateSpeed;
-}
-
-/*
-7. 🔧 실질적 개선 제안 (우선순위)
-높음:
-
-추적 미사일 스폰 로직의 엣지 케이스 처리
-주석으로 설계 의도 명시 (왜 낙하/추적 미사일을 다르게 처리하는지)
-
-중간:
-
-긴 메서드 분리 (SpawnMissile을 작은 단위로)
-설정값들을 ScriptableObject로 완전 외부화
-
-낮음:
-
-매직넘버를 상수로 (선택사항)
-이벤트 시스템 도입 (확장 시 고려)
-*/
 
 /// <summary>
 /// 미사일 생성 및 관리 시스템
@@ -62,34 +31,30 @@ public class MissileSpawner : Spawner<MissileType>
     [SerializeField] public Platform gamePlatform;
 
     [Header("Instantiate Setting")]
-    [SerializeField] YAxisSetting yMissileSetting;
-    [SerializeField] XAxisSetting xMissileSetting;
-    [SerializeField] HoverMissileInfo hoverMissileInfo;
-
     [SerializeField] FallingMissileSetting fallingMissileData;
     [SerializeField] HoverMissileSetting hoverMissileData;
 
     [Header("SpawnPoint")]
-    [FormerlySerializedAs("xAsixmissileSpawnPoints")]
     [SerializeField] private List<GameObject> hoverMissileSpawnPoints = new List<GameObject>();
 
-    [Header("Cur Spawn State")]
-    [SerializeField] public int limitMissileCount;
-    [SerializeField] public int minMissileCount;
-    [SerializeField] public int limitMinMissileCount;
-    [SerializeField] public int curMaxMissileCount;
-    [SerializeField] public float maxMissileTimer;
-    [SerializeField] public float missileCycle;
-    [SerializeField] public float minFallSpeed;
-    [SerializeField] public float maxFallSpeed;
-    [SerializeField] private bool coroutineActive = false;
-
-    [Header("Cur Queue Info")]
+    [Header("Spawn State")]
+    [SerializeField] private bool homingLoop = false;
+    [SerializeField] private bool fallingLoop = false;
     [SerializeField] private int fallingQueueSize;
 
     #endregion
 
     #region Private/Protected Fields
+
+    /// <summary>
+    /// 낙하 미사일 기본값 (초기화용)
+    /// </summary>
+    private FallingMissileSetting defaultFallingData;
+
+    /// <summary>
+    /// 추적 미사일 기본값 (초기화용)
+    /// </summary>
+    private HoverMissileSetting defaultHoverData;
 
     /// <summary>
     /// 현재 활성화된 낙하 미사일
@@ -127,68 +92,28 @@ public class MissileSpawner : Spawner<MissileType>
         get { return Singleton<MissileSpawner>.Instance; }
     }
 
+    /// <summary>
+    /// 낙하 미사일 초기 데이터 설정
+    /// </summary>
     public FallingMissileSetting FallingData
     {
-        set { fallingMissileData = value; }
+        set
+        {
+            fallingMissileData = value;
+            defaultFallingData = value;
+        }
     }
 
+    /// <summary>
+    /// 추적 미사일 초기 데이터 설정
+    /// </summary>
     public HoverMissileSetting HoverData
     {
-        set { hoverMissileData = value; }
-    }
-
-    /// <summary>
-    /// 현재 최대 미사일 생성 개수
-    /// </summary>
-    public int CurMaxMissileCount
-    {
-        get => curMaxMissileCount;
-        set => curMaxMissileCount = value + 1;
-    }
-
-    /// <summary>
-    /// 최소 미사일 생성 개수
-    /// </summary>
-    public int MinMissileCount
-    {
-        get => minMissileCount;
-        set => minMissileCount = value;
-    }
-
-    /// <summary>
-    /// 최소 미사일 개수 제한
-    /// </summary>
-    public int LimitMinMissileCount
-    {
-        get => limitMinMissileCount;
-        set => limitMinMissileCount = value;
-    }
-
-    /// <summary>
-    /// 미사일 생성 주기
-    /// </summary>
-    public float MissileCycle
-    {
-        get => missileCycle;
-        set => missileCycle = value;
-    }
-
-    /// <summary>
-    /// 미사일 최소 낙하 속도 (units/second)
-    /// </summary>
-    public float MinFallSpeed
-    {
-        get => minFallSpeed;
-        set => minFallSpeed = value;
-    }
-
-    /// <summary>
-    /// 미사일 최대 낙하 속도 (units/second)
-    /// </summary>
-    public float MaxFallSpeed
-    {
-        get => maxFallSpeed;
-        set => maxFallSpeed = value;
+        set
+        {
+            hoverMissileData = value;
+            defaultHoverData = value;
+        }
     }
 
     #endregion
@@ -201,8 +126,6 @@ public class MissileSpawner : Spawner<MissileType>
     protected override void Awake()
     {
         base.Awake();
-
-        yMissileSetting = ScriptableObject.CreateInstance<YAxisSetting>();
 
         Player.OnPlayerDead.AddListener(OnPlayerDeath);
 
@@ -358,33 +281,51 @@ public class MissileSpawner : Spawner<MissileType>
     }
 
     /// <summary>
-    /// 설정을 업데이트
+    /// 레벨에 따라 미사일 설정을 업데이트
     /// </summary>
-    public void UpdateSetting()
+    public void UpdateSetting(int level)
     {
-        // HP 업데이트
-        if (xMissileSetting.MaxLimitHP > hoverMissileInfo.MissileHp)
-            hoverMissileInfo.MissileHp += 1;
-        else
-            hoverMissileInfo.MissileHp = xMissileSetting.MaxLimitHP;
+        UpdateFallingMissile();
+        UpdateHoverMissile(level);
+    }
 
-        // 이동 속도 업데이트
-        if (xMissileSetting.MaxLimitMoveSpeed > hoverMissileInfo.MissileMoveSpeed)
-            hoverMissileInfo.MissileMoveSpeed += 0.25f;
-        else
-            hoverMissileInfo.MissileMoveSpeed = xMissileSetting.MaxLimitMoveSpeed;
+    /// <summary>
+    /// 낙하 미사일 설정 업데이트
+    /// </summary>
+    private void UpdateFallingMissile()
+    {
+        fallingMissileData.missileCount = Mathf.Min(fallingMissileData.missileCount + fallingMissileData.missileIncrement, fallingMissileData.maxCount);
+        fallingMissileData.fallSpeed = Mathf.Min(fallingMissileData.fallSpeed + fallingMissileData.fallIncrement, fallingMissileData.fallSpeedMax);
+        fallingMissileData.waiting = Mathf.Min(fallingMissileData.waiting + fallingMissileData.waitIncrement, fallingMissileData.waitingMax);
+    }
 
-        // 회전 속도 업데이트
-        if (xMissileSetting.MaxLimitRotateSpeed > hoverMissileInfo.MissileRotateSpeed)
-            hoverMissileInfo.MissileRotateSpeed += 15f;
-        else
-            hoverMissileInfo.MissileRotateSpeed = xMissileSetting.MaxLimitRotateSpeed;
+    /// <summary>
+    /// 추적 미사일 설정 업데이트
+    /// </summary>
+    /// <remarks>
+    /// 레벨 10 미만: 업데이트 안 함
+    /// 레벨 10: 스폰 루프 시작
+    /// 레벨 11 이상: 스탯 업데이트
+    /// </remarks>
+    private void UpdateHoverMissile(int level)
+    {
+        if (level < 10)
+            return;
 
-        // 회전 시간 업데이트
-        if (xMissileSetting.MinRotateTime < hoverMissileInfo.MissileRotateTime)
-            hoverMissileInfo.MissileRotateSpeed -= 0.25f;
-        else
-            hoverMissileInfo.MissileRotateSpeed = xMissileSetting.MinRotateTime;
+        // 레벨 10에서 루프 시작
+        if (level == 10 && homingLoop == false)
+        {
+            StartCoroutine(HoverMissileSpawnLoop());
+            homingLoop = true;
+            return;
+        }
+
+        // 레벨 11 이상부터 스탯 업데이트
+        hoverMissileData.hp = Mathf.Min(hoverMissileData.hp + hoverMissileData.hpIncrement, hoverMissileData.hpMax);
+        hoverMissileData.flight = Mathf.Min(hoverMissileData.flight + hoverMissileData.flightIncrement, hoverMissileData.flightMax);
+        hoverMissileData.flightSpeed = Mathf.Min(hoverMissileData.flightSpeed + hoverMissileData.flightSpeedIncrement, hoverMissileData.flightSpeedMax);
+        hoverMissileData.turn = Mathf.Min(hoverMissileData.turn + hoverMissileData.turnIncrement, hoverMissileData.turnMax);
+        hoverMissileData.turnRate = Mathf.Min(hoverMissileData.turnRate + hoverMissileData.turnRateIncrement, hoverMissileData.turnRateMax);
     }
 
     /// <summary>
@@ -393,11 +334,11 @@ public class MissileSpawner : Spawner<MissileType>
     /// <param name="missile"> 미사일 오브젝트 </param>
     public void GetRandomSettingHoming(HomingMissile missile)
     {
-        int healthPoint = Random.Range(1, hoverMissileInfo.MissileHp);
-        float moveTime = Random.Range(hoverMissileInfo.MissileMoveTime / 2f, hoverMissileInfo.MissileMoveTime);
-        float moveSpeed = Random.Range(hoverMissileInfo.MissileMoveSpeed / 2f, hoverMissileInfo.MissileMoveSpeed);
-        float rotateTime = Random.Range(hoverMissileInfo.MissileRotateTime, hoverMissileInfo.MissileRotateTime * 2);
-        float rotateSpeed = Random.Range(180f, hoverMissileInfo.MissileRotateSpeed);
+        int healthPoint = Random.Range(1, hoverMissileData.hp + 1);
+        float moveTime = Random.Range(hoverMissileData.flight / 2f, hoverMissileData.flight);
+        float moveSpeed = Random.Range(hoverMissileData.flightSpeed / 2f, hoverMissileData.flightSpeed);
+        float rotateTime = Random.Range(hoverMissileData.turn / 2f, hoverMissileData.turn);
+        float rotateSpeed = Random.Range(hoverMissileData.turnRate / 2f, hoverMissileData.turnRate);
 
         missile.SetStat(healthPoint, moveTime, moveSpeed, rotateTime, rotateSpeed);
         missile.Initialize(moveSpeed);
@@ -409,19 +350,28 @@ public class MissileSpawner : Spawner<MissileType>
     public override void OnPlayerDeath()
     {
         base.OnPlayerDeath();
+        fallingLoop = false;
+        homingLoop = false;
     }
 
     /// <summary>
-    /// 미사일 생성 개수 제한 변경
+    /// 부활 시 미사일 루프 재시작
     /// </summary>
-    /// <param name="count"> 개수 </param>
-    public void SetMissileSpawnCount(int count) => limitMissileCount = count + 1;
+    /// <param name="level">현재 레벨</param>
+    public void RestartMissileLoops(int level)
+    {
+        if (fallingLoop == false)
+        {
+            StartCoroutine(MissileSpawnLoop());
+            fallingLoop = true;
+        }
 
-    /// <summary>
-    /// 미사일 생성 타이머 설정
-    /// </summary>
-    /// <param name="timer"> 타이머 값 </param>
-    public void SetMissileSpawnTimer(float timer) => maxMissileTimer = timer;
+        if (level >= 10 && homingLoop == false)
+        {
+            StartCoroutine(HoverMissileSpawnLoop());
+            homingLoop = true;
+        }
+    }
 
     #endregion
 
@@ -434,13 +384,12 @@ public class MissileSpawner : Spawner<MissileType>
     {
         if (SceneManager.GetActiveScene().name == GlobalData.Instance.PlayScene)
         {
-            InitializeSettings();
 
             // 미사일 생성 코루틴 시작
-            if (coroutineActive == false)
+            if (fallingLoop == false)
             {
                 StartCoroutine(MissileSpawnLoop());
-                coroutineActive = true;
+                fallingLoop = true;
             }
 
             // 낙하 미사일 풀 초기화
@@ -473,7 +422,15 @@ public class MissileSpawner : Spawner<MissileType>
     {
         gamePlatform = null;
         hoverMissileSpawnPoints.Clear();
-        coroutineActive = false;
+
+        // 플래그 리셋 (OnPlayerDeath와 중복)
+        // 사망 없이 게임 종료 시(일시정지에서 나가기 등) 대응
+        fallingLoop = false;
+        homingLoop = false;
+
+        // 미사일 데이터 초기화
+        fallingMissileData = defaultFallingData;
+        hoverMissileData = defaultHoverData;
 
         // 낙하 미사일 반환
         var currentNode = currentFallingMissiles.First;
@@ -522,30 +479,6 @@ public class MissileSpawner : Spawner<MissileType>
     }
 
     /// <summary>
-    /// 기본 미사일 설정값 초기화
-    /// </summary>
-    private void InitializeSettings()
-    {
-        limitMissileCount = yMissileSetting.LimitMissileCount;
-        minMissileCount = yMissileSetting.MinMissileCount;
-        limitMinMissileCount = yMissileSetting.LimitMinMissileCount;
-        curMaxMissileCount = yMissileSetting.CurMaxMissileCount;
-        maxMissileTimer = yMissileSetting.MaxMissileTimer;
-        missileCycle = yMissileSetting.MissileCycle;
-        minFallSpeed = yMissileSetting.MinFallSpeed;
-        maxFallSpeed = yMissileSetting.MaxFallSpeed;
-
-        hoverMissileInfo = new HoverMissileInfo
-        {
-            MissileHp = 1,
-            MissileMoveTime = 5f,
-            MissileMoveSpeed = 5f,
-            MissileRotateTime = 3.5f,
-            MissileRotateSpeed = 180f,
-        };
-    }
-
-    /// <summary>
     /// 미사일 한 주기
     /// </summary>
     private void SpawnMissile()
@@ -570,7 +503,7 @@ public class MissileSpawner : Spawner<MissileType>
         }
 
 
-        int missileCount = Random.Range(minMissileCount, curMaxMissileCount);
+        int missileCount = Random.Range(fallingMissileData.missileCount / 2, fallingMissileData.missileCount + 1);
 
         // 동일 타일 생성 방지를 위한 체크
         HashSet<int> tileIndexes = new HashSet<int>();
@@ -630,7 +563,7 @@ public class MissileSpawner : Spawner<MissileType>
             fallingMissile.XZCoord = xzCoordinate;
 
             // 낙하 속도 설정 (units/second)
-            float randomSpeed = Random.Range(minFallSpeed, maxFallSpeed);
+            float randomSpeed = Random.Range(fallingMissileData.fallSpeed / 2f, fallingMissileData.fallSpeed);
             fallingMissile.Initialize(randomSpeed);
 
             missileObject.SetActive(true);
@@ -653,9 +586,7 @@ public class MissileSpawner : Spawner<MissileType>
         while (true)
         {
             // 미사일 생성 타이머 설정
-            float missileTimer = Random.Range(2f, missileCycle);
-            missileTimer = Mathf.Floor(missileTimer * 100) / 100f;
-
+            float missileTimer = Random.Range(fallingMissileData.waiting / 2f, fallingMissileData.waiting);
             yield return new WaitForSeconds(missileTimer);
             
             SpawnMissile();
