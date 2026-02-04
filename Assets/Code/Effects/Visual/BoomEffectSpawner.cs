@@ -119,8 +119,6 @@ public class BoomEffectSpawner : Spawner<BoomParticle>
         gameObject = spawners[(int)type].Dequeue();
         gameObject.GetComponent<ParticleController>().ResetParticleCheckBit();
 
-        gameObject.SetActive(false);
-
         activeBoomEffects.AddLast(gameObject);
 
         return gameObject;
@@ -133,9 +131,8 @@ public class BoomEffectSpawner : Spawner<BoomParticle>
     /// <param name="gameObject"> 스포너에 집어넣을 폭팔 파티클 오브젝트</param>
     public override void ReturnSpawner(BoomParticle type, GameObject gameObject)
     {
-
         // 자식 오브젝트의 파티클 시스템 체크.
-        ParticleSystem[] allParticles = gameObject.GetComponentsInChildren<ParticleSystem>();
+        ParticleSystem[] allParticles = gameObject.GetComponent<ParticleController>().Particles;
         
         // 있다면 전부 멈추기
         foreach (ParticleSystem particleSystem in allParticles)
@@ -200,7 +197,7 @@ public class BoomEffectSpawner : Spawner<BoomParticle>
         {
             if (boom != null)
             {
-                ParticleSystem[] allParticles = boom.GetComponentsInChildren<ParticleSystem>();
+                ParticleSystem[] allParticles = boom.GetComponent<ParticleController>().Particles;
 
                 foreach (ParticleSystem ps in allParticles)
                 {
@@ -222,7 +219,7 @@ public class BoomEffectSpawner : Spawner<BoomParticle>
             {
                 if (pooled != null)
                 {
-                    ParticleSystem[] allParticles = pooled.GetComponentsInChildren<ParticleSystem>();
+                    ParticleSystem[] allParticles = pooled.GetComponent<ParticleController>().Particles;
                     foreach (ParticleSystem ps in allParticles)
                     {
                         ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);

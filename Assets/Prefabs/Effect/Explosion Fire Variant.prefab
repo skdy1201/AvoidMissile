@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 417761079494231308, guid: 7800b8f6b712bfe49bd663eeb3ebe1e4, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 417761079494231309, guid: 7800b8f6b712bfe49bd663eeb3ebe1e4, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.5
@@ -35,6 +39,10 @@ PrefabInstance:
     - target: {fileID: 417761080263594737, guid: 7800b8f6b712bfe49bd663eeb3ebe1e4, type: 3}
       propertyPath: m_Name
       value: Explosion Fire Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 417761080263594737, guid: 7800b8f6b712bfe49bd663eeb3ebe1e4, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 417761080263594739, guid: 7800b8f6b712bfe49bd663eeb3ebe1e4, type: 3}
       propertyPath: scalingMode
@@ -187,7 +195,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8baa174b5186bc439471556596b6cf5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ParticleController
-  L_ObjectParticle:
+  particleObjects:
+  - {fileID: 8738302188082770134}
   - {fileID: 8738302187913193258}
-  type: 0
-  particlenumber: 0
+  boomParticleType: 0
+  particles: []
+--- !u!198 &8738302188082770134 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 417761080263594739, guid: 7800b8f6b712bfe49bd663eeb3ebe1e4, type: 3}
+  m_PrefabInstance: {fileID: 8973564059415306789}
+  m_PrefabAsset: {fileID: 0}

@@ -15,17 +15,23 @@ public class ParticleController : MonoBehaviour
 {
     #region Serialized Fields
 
+    /// <summary>
+    /// 인스펙터에서 파티클 시스템을 지정
+    /// </summary>
     [Header("Particle Objects")]
-    [FormerlySerializedAs("L_ObjectParticle")]
     [SerializeField] private List<ParticleSystem> particleObjects = new List<ParticleSystem>();
 
     [Header("ParticleType")]
-    [FormerlySerializedAs("type")]
     [SerializeField] private BoomParticle boomParticleType;
 
     #endregion
 
     #region Private/Protected Fields
+
+    /// <summary>
+    /// 외부에서 GetComponent 호출을 피하기 위한 캐싱 배열
+    /// </summary>
+    private ParticleSystem[] cachedParticles;
 
     /// <summary>
     /// 모든 파티클의 종료 시간을 체크하는 변수
@@ -45,23 +51,36 @@ public class ParticleController : MonoBehaviour
 
     #endregion
 
+    #region Property
+
+    /// <summary>
+    /// 캐싱된 파티클 배열 반환 (GC Allocation 방지)
+    /// </summary>
+    public ParticleSystem[] Particles => cachedParticles;
+
+    #endregion
+
     #region Unity Lifecycle
 
     /// <summary>
-    /// 타겟 넘버 세팅
+    /// 파티클 캐싱 및 타겟 넘버 세팅
     /// </summary>
     private void Awake()
     {
+        // List를 Array로 변환하여 캐싱 (외부 접근 시 GC 방지)
+        cachedParticles = particleObjects.ToArray();
+
+        // 비트마스크 타겟 계산 (예: 3개면 0b111 = 7)
         for (int i = 0; i < particleObjects.Count; ++i)
             targetNumber += 1 << i;
     }
 
-   /// <summary>
-   /// 지정된 비트의 파티클이 종료된다면, 마킹
-   /// </summary>
-   /// <remarks>
-   /// 타겟 넘버 마킹이 다 끝나면, BoomEffectSpawner로 다시 돌려놓는다.
-   /// </remarks>
+    /// <summary>
+    /// 지정된 비트의 파티클이 종료된다면, 마킹
+    /// </summary>
+    /// <remarks>
+    /// 타겟 넘버 마킹이 다 끝나면, BoomEffectSpawner로 다시 돌려놓는다.
+    /// </remarks>
     private void Update()
     {
 
