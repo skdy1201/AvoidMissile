@@ -46,7 +46,7 @@ public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
             if (instance == null)
             {
                 // 씬에 이미 존재하는 인스턴스 먼저 찾기
-                instance = FindObjectOfType<T>();
+                instance = FindAnyObjectByType<T>();
 
                 // 씬에도 없으면 새로 생성
                 if (instance == null)
