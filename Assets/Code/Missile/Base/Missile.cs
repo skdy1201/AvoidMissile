@@ -51,6 +51,19 @@ public class Missile : MonoBehaviour
     {
         gameObject.layer = LayerMask.NameToLayer("Missile");
         rb = GetComponent<Rigidbody>();
+        col = GetComponent<Collider>();
+
+        // Trigger 모드로 설정 (물리 충돌 반응 제거, OnTriggerEnter로 감지)
+        if (col != null)
+        {
+            col.isTrigger = true;
+        }
+
+        // Kinematic 모드로 설정 (Physics.Simulate 비용 제거, transform으로 직접 이동)
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+        }
     }
 
     #endregion
@@ -78,14 +91,11 @@ public class Missile : MonoBehaviour
     }
 
     /// <summary>
-    /// 현재 속도 설정을 Rigidbody에 적용
+    /// 현재 속도 설정으로 이동 (transform 직접 조작)
     /// </summary>
     protected void ApplyVelocity()
     {
-        if (rb != null)
-        {
-            rb.linearVelocity = physics.Velocity;
-        }
+        transform.position += physics.Velocity * Time.fixedDeltaTime;
     }
 
     /// <summary>
@@ -110,18 +120,18 @@ public class Missile : MonoBehaviour
     /// <summary>
     /// PowerJump 상태의 Player와 충돌했을때, 미사일은 파괴
     /// </summary>
-    protected virtual void OnCollisionEnter(Collision collision)
+    protected virtual void OnTriggerEnter(Collider other)
     {
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Player"))
+        if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
         {
-            Player player = collision.gameObject.GetComponent<Player>();
+            Player player = other.gameObject.GetComponent<Player>();
 
             if(player.ActivePowerJump)
             {
                 GameProgress.Instance.Score = GameProgress.Instance.Score;
 
                 // 폭발 이펙트를 정확한 충돌 위치에 표시하기 위해 접점 저장
-                Vector3 contact = collision.contacts[0].point;
+                Vector3 contact = other.ClosestPoint(transform.position);
 
                 ActiveBombEffect(contact);
 

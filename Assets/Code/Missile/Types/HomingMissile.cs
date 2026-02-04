@@ -77,17 +77,8 @@ public class HomingMissile : Missile
     protected override void Awake()
     {
         base.Awake();
-
-        // Rigidbody 설정: 중력 비활성화, 저항 제거, XZ 평면 이동만 허용
-        if (rb != null)
-        {
-            rb.isKinematic = false;
-            rb.useGravity = false;
-            rb.linearDamping = 0f;
-            rb.constraints = RigidbodyConstraints.FreezePositionY
-                                         | RigidbodyConstraints.FreezeRotationX
-                                         | RigidbodyConstraints.FreezeRotationZ;
-        }
+        // Rigidbody 설정은 부모 클래스(Missile)에서 isKinematic = true로 처리
+        // transform 직접 이동 방식이므로 constraints 대신 코드에서 Y축 고정
     }
 
     /// <summary>
@@ -98,6 +89,8 @@ public class HomingMissile : Missile
     {
         homingType = (HomingMissileType)Random.Range((int)HomingMissileType.Custom, (int)HomingMissileType.Real + 1);
         MissileSpawner.Instance.GetRandomSettingHoming(this);
+
+        homingType = HomingMissileType.Real;
     }
 
     private void FixedUpdate()
@@ -118,12 +111,7 @@ public class HomingMissile : Missile
                 }
                 else
                 {
-                    // 회전 중에는 속도 0
-                    if (rb != null)
-                    {
-                        rb.linearVelocity = Vector3.zero;
-                    }
-
+                    // 회전 중에는 이동하지 않음 (ApplyVelocity 호출 안 함)
                     movementActive = false;
                     moveTime = maxMoveTime;
 
@@ -199,16 +187,16 @@ public class HomingMissile : Missile
     /// 낙하 미사일과 맞으면 HP 감소. 0이 되면 소멸.
     /// 충돌 지점에 폭발 효과
     /// </summary>
-    /// <param name="collision"> 충돌 물체 </param>
+    /// <param name="other"> 충돌 물체의 Collider </param>
     /// <remarks>
     /// 미사일의 요소만 관리
     /// 플레이어의 체력 감소는 플레이어가 담당
     /// </remarks>
-    protected override void OnCollisionEnter(Collision collision)
+    protected override void OnTriggerEnter(Collider other)
     {
-        base.OnCollisionEnter(collision);
+        base.OnTriggerEnter(other);
 
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Missile") && collision.gameObject.GetComponent<FallingMissile>() != null)
+        if (other.gameObject.layer == LayerMask.NameToLayer("Missile") && other.gameObject.GetComponent<FallingMissile>() != null)
         {
             hp--;
 
@@ -220,7 +208,7 @@ public class HomingMissile : Missile
             }
 
             // 충돌 지점에 이펙트 스폰
-            Vector3 contact = collision.contacts[0].point;
+            Vector3 contact = other.ClosestPoint(transform.position);
 
             ActiveBombEffect(contact);
         }

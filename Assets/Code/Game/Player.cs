@@ -301,10 +301,10 @@ public class Player : MonoBehaviour
     /// PowerJump일때 충돌을 피해야하기 때문에 조건 추가
     /// 부활이 가능하기 때문에 Layer 체크 추가
     /// </remarks>
-    /// <param name="collision"> 충돌한 물체의 Collision </param>
-    private void OnCollisionEnter(Collision collision)
+    /// <param name="other"> 충돌한 물체의 Collider </param>
+    private void OnTriggerEnter(Collider other)
     {
-        int collisionLayer = collision.gameObject.layer;
+        int collisionLayer = other.gameObject.layer;
 
         if (collisionLayer == LayerMask.NameToLayer("GameBoundary"))
         {

@@ -296,7 +296,7 @@ public class MissileSpawner : Spawner<MissileType>
     {
         fallingMissileData.missileCount = Mathf.Min(fallingMissileData.missileCount + fallingMissileData.missileIncrement, fallingMissileData.maxCount);
         fallingMissileData.fallSpeed = Mathf.Min(fallingMissileData.fallSpeed + fallingMissileData.fallIncrement, fallingMissileData.fallSpeedMax);
-        fallingMissileData.waiting = Mathf.Min(fallingMissileData.waiting + fallingMissileData.waitIncrement, fallingMissileData.waitingMax);
+        fallingMissileData.waiting = Mathf.Max(fallingMissileData.waiting + fallingMissileData.waitIncrement, fallingMissileData.waitingMax);
     }
 
     /// <summary>
@@ -321,11 +321,14 @@ public class MissileSpawner : Spawner<MissileType>
         }
 
         // 레벨 11 이상부터 스탯 업데이트
+        // 증가 스탯: Min으로 최대값 제한
         hoverMissileData.hp = Mathf.Min(hoverMissileData.hp + hoverMissileData.hpIncrement, hoverMissileData.hpMax);
         hoverMissileData.flight = Mathf.Min(hoverMissileData.flight + hoverMissileData.flightIncrement, hoverMissileData.flightMax);
         hoverMissileData.flightSpeed = Mathf.Min(hoverMissileData.flightSpeed + hoverMissileData.flightSpeedIncrement, hoverMissileData.flightSpeedMax);
-        hoverMissileData.turn = Mathf.Min(hoverMissileData.turn + hoverMissileData.turnIncrement, hoverMissileData.turnMax);
         hoverMissileData.turnRate = Mathf.Min(hoverMissileData.turnRate + hoverMissileData.turnRateIncrement, hoverMissileData.turnRateMax);
+
+        // 감소 스탯: Max로 최소값 제한 (turnIncrement가 음수, turnMax가 실제 최소값)
+        hoverMissileData.turn = Mathf.Max(hoverMissileData.turn + hoverMissileData.turnIncrement, hoverMissileData.turnMax);
     }
 
     /// <summary>

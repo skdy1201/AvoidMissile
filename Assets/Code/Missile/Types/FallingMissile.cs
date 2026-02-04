@@ -64,7 +64,6 @@ public class FallingMissile : Missile
     protected override void Awake()
     {
         base.Awake();
-        col = GetComponent<Collider>();
         material = GetComponent<MeshRenderer>().material;
 
         if (material == null)
@@ -74,13 +73,7 @@ public class FallingMissile : Missile
             Debug.LogError("missile Decal missing");
 
         decal = warningDecal.GetComponent<DecalProjector>();
-
-        // Rigidbody 설정: 중력 비활성화 (직접 속도 제어)
-        if (rb != null)
-        {
-            rb.useGravity = false;
-            rb.linearDamping = 0f;
-        }
+        // Rigidbody 설정은 부모 클래스(Missile)에서 isKinematic = true로 처리
     }
 
     private void Start()
@@ -162,22 +155,22 @@ public class FallingMissile : Missile
     /// <summary>
     /// 낙하 미사일 충돌 처리
     /// </summary>
-    /// <param name="collision">충돌한 오브젝트의 Collision 정보</param>
-    protected override void OnCollisionEnter(Collision collision)
+    /// <param name="other">충돌한 오브젝트의 Collider</param>
+    protected override void OnTriggerEnter(Collider other)
     {
         // 이미 충돌했는지 확인
         if (col.enabled == false)
             return;
 
-        base.OnCollisionEnter(collision);
+        base.OnTriggerEnter(other);
 
         // 폭발 이펙트를 정확한 충돌 위치에 표시하기 위해 좌표 저장
-        Vector3 contact = collision.contacts[0].point;
+        Vector3 contact = other.ClosestPoint(transform.position);
 
         ActiveBombEffect(contact);
 
         // 충돌체의 레이어에 따라 분기
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Platform"))
+        if (other.gameObject.layer == LayerMask.NameToLayer("Platform"))
         {
             col.enabled = false;
 
@@ -185,13 +178,13 @@ public class FallingMissile : Missile
 
             GameProgress.Instance.Score = GameProgress.Instance.Score;
         }
-        else if (collision.gameObject.layer == LayerMask.NameToLayer("Missile"))
+        else if (other.gameObject.layer == LayerMask.NameToLayer("Missile"))
         {
             // 낙하 미사일과 충돌했다면 두 미사일의 Y 값을 비교해서 위에 있으면 풀 반환
             // 더 높이 있는 미사일이라면 아래 미사일이 더 빨리 떨어지게
-            if (collision.gameObject.GetComponent<FallingMissile>() != null)
+            if (other.gameObject.GetComponent<FallingMissile>() != null)
             {
-                float otherMissileY = collision.gameObject.transform.position.y;
+                float otherMissileY = other.gameObject.transform.position.y;
 
                 if (gameObject.transform.position.y > otherMissileY)
                 {
@@ -203,7 +196,7 @@ public class FallingMissile : Missile
                     physics.speed = Mathf.Min(physics.speed + 1f, 15f);
                 }
             }
-            else if (collision.gameObject.GetComponent<HomingMissile>() != null)
+            else if (other.gameObject.GetComponent<HomingMissile>() != null)
             {
                 MissileSpawner.Instance.ReturnSpawner(MissileType.Falling, gameObject);
             }
