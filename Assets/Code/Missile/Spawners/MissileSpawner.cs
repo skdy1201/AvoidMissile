@@ -33,7 +33,7 @@ public class MissileSpawner : Spawner<MissileType>
     [Header("Instantiate Setting")]
     [SerializeField] FallingMissileSetting fallingMissileData;
     [SerializeField] HoverMissileSetting hoverMissileData;
-    [SerializeField] GrandMissileSetting grnadMissileData;
+    [SerializeField] GrandMissileSetting grandMissileData;
 
     [Header("SpawnPoint")]
     [SerializeField] private List<GameObject> hoverMissileSpawnPoints = new List<GameObject>();
@@ -41,6 +41,8 @@ public class MissileSpawner : Spawner<MissileType>
     [Header("Spawn State")]
     [SerializeField] private bool homingLoop = false;
     [SerializeField] private bool fallingLoop = false;
+    [SerializeField] private bool grandLoop = false;
+
     [SerializeField] private int fallingQueueSize;
 
     #endregion
@@ -130,11 +132,11 @@ public class MissileSpawner : Spawner<MissileType>
     /// <summary>
     /// 대형 미사일 초기 데이터 설정
     /// </summary>
-    public GrandMissileSetting GrnadData
+    public GrandMissileSetting GrandData
     {
         set
         {
-            grnadMissileData = value;
+            grandMissileData = value;
             defaultGrandData = value;
         }
     }
@@ -267,25 +269,6 @@ public class MissileSpawner : Spawner<MissileType>
     }
 
     /// <summary>
-    /// 미사일을 관리하는 컨테이너를 변경
-    /// </summary>
-    /// <param name="obj"> 미사일 오브젝트 </param>
-    public void ReserveReturn(GameObject obj)
-    {
-        if (obj == null)
-        {
-            Debug.LogWarning("ReserveRetrun problem");
-        }
-
-        if (obj.GetComponent<Missile>().Returned == false)
-        {
-            obj.GetComponent<Missile>().Returned = true;
-            currentFallingMissiles.Remove(obj);
-            returnMissiles.Add(obj);
-        }
-    }
-
-    /// <summary>
     /// 추적 미사일 스폰 포인트 추가
     /// </summary>
     /// <param name="gameObject"> 스폰 포인트 </param>
@@ -310,6 +293,7 @@ public class MissileSpawner : Spawner<MissileType>
     {
         UpdateFallingMissile();
         UpdateHoverMissile(level);
+        UpdateGrandMissile(level);
     }
 
     /// <summary>
@@ -354,6 +338,30 @@ public class MissileSpawner : Spawner<MissileType>
         hoverMissileData.turn = Mathf.Max(hoverMissileData.turn + hoverMissileData.turnIncrement, hoverMissileData.turnMax);
     }
 
+    private void UpdateGrandMissile(int level)
+    {
+        if (level < 25)
+            return;
+
+        // 레벨 25에서 루프 시작
+        if (level == 25 && grandLoop == false)
+        {
+            //todo : 루프 만들기
+            //StartCoroutine(());
+            grandLoop = true;
+            return;
+        }
+
+        // 레벨 25 이상부터 5레벨 단위로 업데이트
+        if (level % 5 != 0)
+            return;
+        grandMissileData.count = Mathf.Min(grandMissileData.count + grandMissileData.countIncrement, grandMissileData.maxCount);
+        
+        grandMissileData.speed = Mathf.Min(grandMissileData.speed + grandMissileData.speedIncrement, grandMissileData.speedMax);
+        grandMissileData.size = Mathf.Min(grandMissileData.size + grandMissileData.sizeIncrement, grandMissileData.sizeMax);
+
+    }
+
     /// <summary>
     /// 추적 미사일 무작위 설정을 적용
     /// </summary>
@@ -378,6 +386,7 @@ public class MissileSpawner : Spawner<MissileType>
         base.OnPlayerDeath();
         fallingLoop = false;
         homingLoop = false;
+        grandLoop = false;
     }
 
     /// <summary>
@@ -396,6 +405,12 @@ public class MissileSpawner : Spawner<MissileType>
         {
             StartCoroutine(HoverMissileSpawnLoop());
             homingLoop = true;
+        }
+
+        if(level >= 25 && grandLoop == false)
+        {
+            //StartCoroutine(HoverMissileSpawnLoop());
+            grandLoop = true;
         }
     }
 
@@ -453,11 +468,12 @@ public class MissileSpawner : Spawner<MissileType>
         // 사망 없이 게임 종료 시(일시정지에서 나가기 등) 대응
         fallingLoop = false;
         homingLoop = false;
+        grandLoop = false;
 
         // 미사일 데이터 초기화
         fallingMissileData = defaultFallingData;
         hoverMissileData = defaultHoverData;
-        grnadMissileData = defaultGrandData;
+        grandMissileData = defaultGrandData;
 
         // 낙하 미사일 반환
         var currentNode = currentFallingMissiles.First;

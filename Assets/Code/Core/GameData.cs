@@ -414,7 +414,7 @@ public class GameData : Singleton<GameData>
             }
         }
 
-        MissileSpawner.Instance.GrnadData = setting;
+        MissileSpawner.Instance.GrandData = setting;
     }
 
     #endregion
