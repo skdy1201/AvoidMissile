@@ -1,7 +1,7 @@
 ﻿using Unity.VisualScripting;
 using UnityEngine;
 
-public class XAxisSpawnPoint : MonoBehaviour
+public class HoverSpawnPoint : MonoBehaviour
 {
 
     #region Unity Lifecycle
@@ -11,7 +11,7 @@ public class XAxisSpawnPoint : MonoBehaviour
     /// </summary>
     void Start()
     {
-        MissileSpawner.Instance.AddXSpawnPoint(this.gameObject);
+        MissileSpawner.Instance.AddHoverSpawnPoint(this.gameObject);
     }
 
     #endregion

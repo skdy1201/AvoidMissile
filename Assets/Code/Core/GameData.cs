@@ -55,7 +55,6 @@ public class GameData : Singleton<GameData>
 
     #endregion
 
-
     #region Unity Lifecycle
 
     /// <summary>
@@ -76,6 +75,7 @@ public class GameData : Singleton<GameData>
         SyncPlayerPref();
 
         LoadItemData();
+        LoadMissileData();
     }
 
     #endregion
@@ -261,7 +261,7 @@ public class GameData : Singleton<GameData>
 
         if(itemBinaryData == null)
         {
-            Debug.LogError("binary File Missing");
+            Debug.LogError("Item binary File Missing");
         }
 
         using (MemoryStream memoryStream = new MemoryStream(itemBinaryData.bytes))
@@ -283,6 +283,99 @@ public class GameData : Singleton<GameData>
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// 미사일 데이터 로드
+    /// </summary>
+    private void LoadMissileData()
+    {
+        LoadFallingMissileData();
+        LoadHoverMissileData();
+    }
+
+    /// <summary>
+    /// 낙하 미사일 바이너리 데이터를 읽어서 MissileSpawner에 전달
+    /// </summary>
+    private void LoadFallingMissileData()
+    {
+        string fallingMissile = "fallingMissileData";
+
+        TextAsset fallingMissileBinaryData = Resources.Load<TextAsset>(fallingMissile);
+
+        if (fallingMissileBinaryData == null)
+        {
+            Debug.LogError("Falling Missile Binary Missing");
+            return;
+        }
+
+        FallingMissileSetting setting = new FallingMissileSetting();
+
+        using (MemoryStream memoryStream = new MemoryStream(fallingMissileBinaryData.bytes))
+        {
+            using (BinaryReader reader = new BinaryReader(memoryStream, Encoding.UTF8))
+            {
+                setting.missileCount = reader.ReadInt32();
+                setting.missileIncrement = reader.ReadInt32();
+                setting.maxCount = reader.ReadInt32();
+
+                setting.fallSpeed = reader.ReadSingle();
+                setting.fallIncrement = reader.ReadSingle();
+                setting.fallSpeedMax = reader.ReadSingle();
+
+                setting.waiting = reader.ReadSingle();
+                setting.waitIncrement = reader.ReadSingle();
+                setting.waitingMax = reader.ReadSingle();
+            }
+        }
+
+        MissileSpawner.Instance.FallingData = setting;
+    }
+
+    /// <summary>
+    /// 추적 미사일 바이너리 데이터를 읽어서 MissileSpawner에 전달
+    /// </summary>
+    private void LoadHoverMissileData()
+    {
+        string hoverMissile = "hoverMissileData";
+
+        TextAsset hoverMissileBinaryData = Resources.Load<TextAsset>(hoverMissile);
+
+        if (hoverMissileBinaryData == null)
+        {
+            Debug.LogError("Hover Missile Binary Missing");
+            return;
+        }
+
+        HoverMissileSetting setting = new HoverMissileSetting();
+
+        using (MemoryStream memoryStream = new MemoryStream(hoverMissileBinaryData.bytes))
+        {
+            using (BinaryReader reader = new BinaryReader(memoryStream, Encoding.UTF8))
+            {
+                setting.hp = reader.ReadInt32();
+                setting.hpIncrement = reader.ReadInt32();
+                setting.hpMax = reader.ReadInt32();
+
+                setting.flight = reader.ReadSingle();
+                setting.flightIncrement = reader.ReadSingle();
+                setting.flightMax = reader.ReadSingle();
+
+                setting.flightSpeed = reader.ReadSingle();
+                setting.flightSpeedIncrement = reader.ReadSingle();
+                setting.flightSpeedMax = reader.ReadSingle();
+
+                setting.turn = reader.ReadSingle();
+                setting.turnIncrement = reader.ReadSingle();
+                setting.turnMax = reader.ReadSingle();
+
+                setting.turnRate = reader.ReadSingle();
+                setting.turnRateIncrement = reader.ReadSingle();
+                setting.turnRateMax = reader.ReadSingle();
+            }
+        }
+
+        MissileSpawner.Instance.HoverData = setting;
     }
 
     #endregion

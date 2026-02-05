@@ -697,14 +697,14 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 410087039}
   m_Enabled: 1
-  serializedVersion: 11
+  serializedVersion: 12
   m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 2
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
+  m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
     m_Type: 2
     m_Resolution: -1
@@ -843,8 +843,6 @@ MonoBehaviour:
   playerScore: 0
   isPlayerDead: 0
   playerAlive: 0
-  spawnXAxis: 0
-  spawnYAxis: 1
   soundfadeTime: 0.25
   spawnItem: 0
   reviveSpotLight: {fileID: 0}
@@ -893,21 +891,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71c5a8115fd10fc47ae6c2d38cfe2f62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  yAxisMissilePrefab: {fileID: 4702976934742720838, guid: 8fc4ccd0f013de54aa42e869c9b6ca73, type: 3}
-  xAxisMissilePrefab: {fileID: 4606004508970681605, guid: 8aaa6a727f4a9fe4a9e4550bb3c62770, type: 3}
+  fallingMissilePrefab: {fileID: 4702976934742720838, guid: 8fc4ccd0f013de54aa42e869c9b6ca73, type: 3}
+  hoverMissilePrefab: {fileID: 4606004508970681605, guid: 8aaa6a727f4a9fe4a9e4550bb3c62770, type: 3}
   gamePlatform: {fileID: 0}
-  yMissileSetting: {fileID: 11400000, guid: be223b7d6a28d0b4c85bf71b1e0d6385, type: 2}
-  xMissileSetting: {fileID: 11400000, guid: 34c9f8929c8b6b643af5a428a835986e, type: 2}
-  xAxismissileSpawnPoints: []
-  limitMissileCount: 0
-  minMissileCount: 0
-  limitMinMissileCount: 0
-  curMaxMissileCount: 0
-  maxMissileTimer: 0
-  missileCycle: 0
-  baseMissileSpeed: 3.5
-  coroutineActive: 0
-  yAxisQueueSize: 0
+  fallingMissileData:
+    missileCount: 0
+    missileIncrement: 0
+    maxCount: 0
+    fallSpeed: 0
+    fallIncrement: 0
+    fallSpeedMax: 0
+    waiting: 0
+    waitIncrement: 0
+    waitingMax: 0
+  hoverMissileData:
+    hp: 0
+    hpIncrement: 0
+    hpMax: 0
+    flight: 0
+    flightIncrement: 0
+    flightMax: 0
+    flightSpeed: 0
+    flightSpeedIncrement: 0
+    flightSpeedMax: 0
+    turn: 0
+    turnIncrement: 0
+    turnMax: 0
+    turnRate: 0
+    turnRateIncrement: 0
+    turnRateMax: 0
+  hoverMissileSpawnPoints: []
+  homingLoop: 0
+  fallingLoop: 0
+  fallingQueueSize: 0
 --- !u!4 &471068745
 Transform:
   m_ObjectHideFlags: 0
@@ -2117,6 +2133,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0

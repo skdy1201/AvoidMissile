@@ -185,6 +185,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
                 else
                 {
                     currentRetryCount = 0;
+                    Debug.LogError($"Rewarded Ad load failed after {maxRetryCount} retries: { error.GetMessage()}");
                 }
 
                 return;

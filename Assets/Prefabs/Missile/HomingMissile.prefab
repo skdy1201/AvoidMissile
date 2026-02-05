@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3837538034599168353}
   - component: {fileID: 7617719121394823317}
   m_Layer: 7
-  m_Name: XAsixMissile
+  m_Name: HomingMissile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -48,17 +48,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   number: 0
-  bReturn: 0
-  bCollision: 0
-  MissileHP: 1
-  MissileCurMoveTime: 0
-  MissileMoveTime: 5
-  MissileMoveSpeed: 1
-  MissileRotateTime: 5
-  MissileRotateSpeed: 180
-  MissileIsMoving: 1
-  MissileRotating: 0
-  xAxisStyle: 0
+  returned: 0
+  spawnTime: 0
+  physics:
+    speed: 0
+    direction: {x: 0, y: 0, z: 0}
+  hp: 0
+  moveTime: 0
+  maxMoveTime: 0
+  rotateTime: 0
+  rotateSpeed: 0
+  homingType: 0
+  movementActive: 1
+  rotationActive: 0
 --- !u!54 &3837538034599168353
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -81,10 +83,10 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
+  m_UseGravity: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
-  m_Constraints: 126
+  m_Constraints: 116
   m_CollisionDetection: 0
 --- !u!65 &7617719121394823317
 BoxCollider:
@@ -101,7 +103,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
