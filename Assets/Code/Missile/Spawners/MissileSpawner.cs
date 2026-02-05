@@ -28,6 +28,7 @@ public class MissileSpawner : Spawner<MissileType>
     [Header("Reference")]
     [SerializeField] public GameObject fallingMissilePrefab;
     [SerializeField] public GameObject hoverMissilePrefab;
+    [SerializeField] public GameObject grandMissilePrefab;
     [SerializeField] public Platform gamePlatform;
 
     [Header("Instantiate Setting")]
@@ -346,8 +347,7 @@ public class MissileSpawner : Spawner<MissileType>
         // 레벨 25에서 루프 시작
         if (level == 25 && grandLoop == false)
         {
-            //todo : 루프 만들기
-            //StartCoroutine(());
+            StartCoroutine(GrandMissileSpawnLoop());
             grandLoop = true;
             return;
         }
@@ -356,9 +356,8 @@ public class MissileSpawner : Spawner<MissileType>
         if (level % 5 != 0)
             return;
         grandMissileData.count = Mathf.Min(grandMissileData.count + grandMissileData.countIncrement, grandMissileData.maxCount);
-        
         grandMissileData.speed = Mathf.Min(grandMissileData.speed + grandMissileData.speedIncrement, grandMissileData.speedMax);
-        grandMissileData.size = Mathf.Min(grandMissileData.size + grandMissileData.sizeIncrement, grandMissileData.sizeMax);
+        grandMissileData.diameter = Mathf.Min(grandMissileData.diameter + grandMissileData.diameterIncrement, grandMissileData.diameterMax);
 
     }
 
@@ -409,7 +408,7 @@ public class MissileSpawner : Spawner<MissileType>
 
         if(level >= 25 && grandLoop == false)
         {
-            //StartCoroutine(HoverMissileSpawnLoop());
+            StartCoroutine(GrandMissileSpawnLoop());
             grandLoop = true;
         }
     }
@@ -615,6 +614,26 @@ public class MissileSpawner : Spawner<MissileType>
         }
     }
 
+    /// <summary>
+    /// 대형 미사일의 축 위치를 조정하여 범위를 벗어나지 않게 함
+    /// </summary>
+    /// <param name="axis">조정할 축 값 (0~9)</param>
+    /// <param name="diameter">미사일 직경</param>
+    /// <returns>조정된 축 값</returns>
+    private int AdjustGrandAxis(int axis, int diameter)
+    {
+        int radius = diameter / 2;
+
+        // 왼쪽/아래 벗어남: axis를 radius로 설정 → 범위 [0, radius*2]
+        if (axis - radius < 0)
+            return radius;
+        // 오른쪽/위 벗어남: axis를 9-radius로 설정 → 범위 [9-radius*2, 9]
+        else if (axis + radius > 9)
+            return 9 - radius;
+
+        return axis;
+    }
+
     #endregion
 
     #region Coroutines
@@ -687,6 +706,113 @@ public class MissileSpawner : Spawner<MissileType>
             // 다음 사이클 고정 대기 시간
             yield return new WaitForSeconds(15f);
 
+        }
+    }
+
+    /// <summary>
+    /// 대형 미사일 생성 루프
+    /// </summary>
+    /// <returns>코루틴</returns>
+    IEnumerator GrandMissileSpawnLoop()
+    {
+        while (true)
+        {
+            int spawnCount = Random.Range(1, grandMissileData.count + 1);
+
+            for (int i = 0; i < spawnCount; i++)
+            {
+                if (grandMissilePrefab == null)
+                {
+                    Debug.LogWarning("[GrandMissileSpawnLoop] grandMissilePrefab is NOT assigned!");
+                    yield break;
+                }
+
+                // 타입, 속도, 직경 랜덤 결정
+                GrandMissileType type = (GrandMissileType)Random.Range(0, 2);
+                float speed = Random.Range(grandMissileData.speed / 2f, grandMissileData.speed);
+
+                // 0을 방지하기 위한 올림 처리
+                int diameter = Random.Range(Mathf.CeilToInt(grandMissileData.diameter / 2), grandMissileData.diameter + 1);
+
+                // 방향 결정 (0: Vertical, 1: 북, 2: 남, 3: 동, 4: 서)
+                int direction = 0;
+                if (type == GrandMissileType.Horizen)
+                    direction = Random.Range(1, 5);
+
+                // 스폰 위치 계산
+                Vector3 spawnPosition = Vector3.zero;
+                int axis;
+
+                if (type == GrandMissileType.Vertical)
+                {
+                    // Vertical: col 조정, 위에서 아래로
+                    axis = Random.Range(0, 10);
+                    axis = AdjustGrandAxis(axis, diameter);
+
+                    // row는 Vertical에서만 사용
+                    int row = Random.Range(0, 10);
+                    row = AdjustGrandAxis(row, diameter);
+
+                    int index = row * 10 + axis - 1;
+
+                    GameObject centerTile = gamePlatform.GetTile(index);
+                    if (centerTile == null) continue;
+
+                    spawnPosition = centerTile.transform.position;
+                    spawnPosition.y = GlobalData.Instance.MissileDropPoint;
+                }
+                else
+                {
+                    // Horizen: 방향에 따라 조정할 축 결정
+                    // 북/남 (1, 2): col 조정, 동/서 (3, 4): row 조정
+                    bool isNorthSouth = (direction == 1 || direction == 2);
+
+                    axis = Random.Range(0, 10);
+                    axis = AdjustGrandAxis(axis, diameter);
+
+                    if (isNorthSouth)
+                    {
+                        // 북/남: col(axis) 기반으로 x 위치
+                        GameObject centerTile = gamePlatform.GetTile(axis);
+                        if (centerTile == null) continue;
+
+                        spawnPosition = centerTile.transform.position;
+                        spawnPosition.y += 2f;
+                        // 북(1): z 최대, 남(2): z 최소
+                        GameObject edgeTile = gamePlatform.GetTile(direction == 1 ? 90 + axis : axis);
+                        if (edgeTile != null)
+                            spawnPosition.z = edgeTile.transform.position.z + (direction == 1 ? 10f : -10f);
+                    }
+                    else
+                    {
+                        // 동/서: row(axis) 기반으로 z 위치
+                        GameObject centerTile = gamePlatform.GetTile(axis * 10);
+                        if (centerTile == null) continue;
+
+                        spawnPosition = centerTile.transform.position;
+                        spawnPosition.y += 2f;
+                        // 동(3): x 최대, 서(4): x 최소
+                        GameObject edgeTile = gamePlatform.GetTile(direction == 3 ? axis * 10 + 9 : axis * 10);
+                        if (edgeTile != null)
+                            spawnPosition.x = edgeTile.transform.position.x + (direction == 3 ? 10f : -10f);
+                    }
+                }
+
+                // 미사일 생성 및 설정
+                GameObject missileObject = Instantiate(grandMissilePrefab);
+                missileObject.transform.position = spawnPosition;
+
+                GrandMissile grandMissile = missileObject.GetComponent<GrandMissile>();
+                if (grandMissile != null)
+                {
+                    grandMissile.SetStat(type, speed, diameter, direction);
+                }
+
+                currentGrnadMissiles.AddLast(missileObject);
+            }
+
+            // 다음 사이클 대기 시간
+            yield return new WaitForSeconds(Random.Range(8f, 15f));
         }
     }
 
