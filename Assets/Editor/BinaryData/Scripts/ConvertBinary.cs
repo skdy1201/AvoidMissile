@@ -435,11 +435,11 @@ public class ConvertBinary : EditorWindow
                     float.TryParse(cur[2], out grandMissileSetting.speedIncrement);
                     float.TryParse(cur[3], out grandMissileSetting.speedMax);
                 }
-                else if (cur[0] == "Size")
+                else if (cur[0] == "Diameter")
                 {
-                    int.TryParse(cur[1], out grandMissileSetting.size);
-                    int.TryParse(cur[2], out grandMissileSetting.sizeIncrement);
-                    int.TryParse(cur[3], out grandMissileSetting.sizeMax);
+                    int.TryParse(cur[1], out grandMissileSetting.diameter);
+                    int.TryParse(cur[2], out grandMissileSetting.diameterIncrement);
+                    int.TryParse(cur[3], out grandMissileSetting.diameterMax);
                 }
             }
         }
@@ -469,9 +469,9 @@ public class ConvertBinary : EditorWindow
                 writer.Write(grandMissileSetting.speedIncrement);
                 writer.Write(grandMissileSetting.speedMax);
 
-                writer.Write(grandMissileSetting.size);
-                writer.Write(grandMissileSetting.sizeIncrement);
-                writer.Write(grandMissileSetting.sizeMax);
+                writer.Write(grandMissileSetting.diameter);
+                writer.Write(grandMissileSetting.diameterIncrement);
+                writer.Write(grandMissileSetting.diameterMax);
             }
         }
 

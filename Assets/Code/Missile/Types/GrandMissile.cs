@@ -22,10 +22,10 @@ public struct GrandMissileSetting
     [SerializeField] public float speedIncrement;
     [SerializeField] public float speedMax;
 
-    [Header("Size")]
-    [SerializeField] public int size;
-    [SerializeField] public int sizeIncrement;
-    [SerializeField] public int sizeMax;
+    [Header("Diameter")]
+    [SerializeField] public int diameter;
+    [SerializeField] public int diameterIncrement;
+    [SerializeField] public int diameterMax;
 };
 
 public class GrandMissile : Missile
@@ -34,7 +34,8 @@ public class GrandMissile : Missile
 
     [SerializeField] private GrandMissileType type;
     [SerializeField] private float speed;
-    [SerializeField] private int size;
+    [SerializeField] private int diameter;
+    [SerializeField] private int direction;
 
     #endregion
 
@@ -70,5 +71,21 @@ public class GrandMissile : Missile
     {
         //SetSpeed(speed, Vector3.down);
     }
+
+    /// <summary>
+    /// 대형 미사일 스탯 설정
+    /// </summary>
+    /// <param name="randomType">미사일 타입</param>
+    /// <param name="randomSpeed">속도</param>
+    /// <param name="randomDiameter">직경</param>
+    /// <param name="randomDirection">방향 (0: Vertical, 1: 북, 2: 남, 3: 동, 4: 서)</param>
+    public void SetStat(GrandMissileType randomType, float randomSpeed, int randomDiameter, int randomDirection = 0)
+    {
+        type = randomType;
+        speed = randomSpeed;
+        diameter = randomDiameter;
+        direction = randomDirection;
+    }    
+
     #endregion
 }

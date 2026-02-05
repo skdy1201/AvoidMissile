@@ -408,9 +408,9 @@ public class GameData : Singleton<GameData>
                 setting.speedIncrement = reader.ReadSingle();
                 setting.speedMax = reader.ReadSingle();
 
-                setting.size = reader.ReadInt32();
-                setting.sizeIncrement = reader.ReadInt32();
-                setting.sizeMax = reader.ReadInt32();
+                setting.diameter = reader.ReadInt32();
+                setting.diameterIncrement = reader.ReadInt32();
+                setting.diameterMax = reader.ReadInt32();
             }
         }
 
