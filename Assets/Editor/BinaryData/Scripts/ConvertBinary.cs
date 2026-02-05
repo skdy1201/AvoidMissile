@@ -19,6 +19,7 @@ public class ConvertBinary : EditorWindow
         Item,
         FallingMissile,
         HoverMissile,
+        GrandMissile,
 
     }
 
@@ -120,6 +121,9 @@ public class ConvertBinary : EditorWindow
                 case 2:
                     BinaryHoverMissile(csvPath);
                     break;
+                case 3:
+                    BinaryGrandMissile(csvPath);
+                    break;
             }
 
 
@@ -163,7 +167,6 @@ public class ConvertBinary : EditorWindow
         }
     }
     #endregion
-
 
     #region ConvertMethod
 
@@ -398,6 +401,81 @@ public class ConvertBinary : EditorWindow
         }
 
         Debug.Log("Convert HoverMissileBinary Finish");
+        AssetDatabase.Refresh();
+    }
+
+    /// <summary>
+    /// 대형 미사일 바이너리 데이터를 만드는 함수
+    /// </summary>
+    /// <param name="csvPath"> 대형 미사일 설정 csv 파일 경로 </param>
+    private static void BinaryGrandMissile(string csvPath)
+    {
+        GrandMissileSetting grandMissileSetting = new GrandMissileSetting();
+
+        if (File.Exists(csvPath))
+        {
+            // change string array in file's
+            string[] datas = File.ReadAllLines(csvPath);
+
+            char spliter = ',';
+
+            for (int i = 1; i < datas.Length; ++i)
+            {
+                string[] cur = datas[i].Split(spliter);
+
+                if (cur[0] == "Count")
+                {
+                    int.TryParse(cur[1], out grandMissileSetting.count);
+                    int.TryParse(cur[2], out grandMissileSetting.countIncrement);
+                    int.TryParse(cur[3], out grandMissileSetting.maxCount);
+                }
+                else if (cur[0] == "Speed")
+                {
+                    float.TryParse(cur[1], out grandMissileSetting.speed);
+                    float.TryParse(cur[2], out grandMissileSetting.speedIncrement);
+                    float.TryParse(cur[3], out grandMissileSetting.speedMax);
+                }
+                else if (cur[0] == "Size")
+                {
+                    int.TryParse(cur[1], out grandMissileSetting.size);
+                    int.TryParse(cur[2], out grandMissileSetting.sizeIncrement);
+                    int.TryParse(cur[3], out grandMissileSetting.sizeMax);
+                }
+            }
+        }
+        else
+        {
+            Debug.Log("csv fail");
+            return;
+        }
+
+        string binaryFilePath = UnityEngine.Application.dataPath + "/Resources/" + "grandMissileData" + ".bytes";
+
+
+        if (File.Exists(binaryFilePath))
+        {
+            File.Delete(binaryFilePath);
+        }
+
+        using (var stream = File.Open(binaryFilePath, FileMode.Create))
+        {
+            using (var writer = new BinaryWriter(stream, Encoding.UTF8, false))
+            {
+                writer.Write(grandMissileSetting.count);
+                writer.Write(grandMissileSetting.countIncrement);
+                writer.Write(grandMissileSetting.maxCount);
+
+                writer.Write(grandMissileSetting.speed);
+                writer.Write(grandMissileSetting.speedIncrement);
+                writer.Write(grandMissileSetting.speedMax);
+
+                writer.Write(grandMissileSetting.size);
+                writer.Write(grandMissileSetting.sizeIncrement);
+                writer.Write(grandMissileSetting.sizeMax);
+            }
+        }
+
+        Debug.Log("Convert GrandMissileBinary Finish");
         AssetDatabase.Refresh();
     }
 
