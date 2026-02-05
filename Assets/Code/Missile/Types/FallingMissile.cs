@@ -115,11 +115,6 @@ public class FallingMissile : Missile
         decal.size = Vector3.zero;
     }
 
-    private void OnDestroy()
-    {
-        Debug.Log("yaxis missile destroy");
-    }
-
     #endregion
 
     #region Public Methods
