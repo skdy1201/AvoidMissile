@@ -33,6 +33,7 @@ public class MissileSpawner : Spawner<MissileType>
     [Header("Instantiate Setting")]
     [SerializeField] FallingMissileSetting fallingMissileData;
     [SerializeField] HoverMissileSetting hoverMissileData;
+    [SerializeField] GrandMissileSetting grnadMissileData;
 
     [Header("SpawnPoint")]
     [SerializeField] private List<GameObject> hoverMissileSpawnPoints = new List<GameObject>();
@@ -57,6 +58,11 @@ public class MissileSpawner : Spawner<MissileType>
     private HoverMissileSetting defaultHoverData;
 
     /// <summary>
+    /// 대형 미사일 기본값 (초기화용)
+    /// </summary>
+    private GrandMissileSetting defaultGrandData;
+
+    /// <summary>
     /// 현재 활성화된 낙하 미사일
     /// </summary>
     private LinkedList<GameObject> currentFallingMissiles = new LinkedList<GameObject>();
@@ -65,6 +71,11 @@ public class MissileSpawner : Spawner<MissileType>
     /// 현재 활성화된 추적 미사일
     /// </summary>
     private LinkedList<GameObject> currentHoverMissiles = new LinkedList<GameObject>();
+
+    /// <summary>
+    /// 현재 활성화된 대형 미사일
+    /// </summary>
+    private LinkedList<GameObject> currentGrnadMissiles = new LinkedList<GameObject>();
 
     /// <summary>
     /// 미사일 이름 지정을 위한 번호
@@ -113,6 +124,18 @@ public class MissileSpawner : Spawner<MissileType>
         {
             hoverMissileData = value;
             defaultHoverData = value;
+        }
+    }
+
+    /// <summary>
+    /// 대형 미사일 초기 데이터 설정
+    /// </summary>
+    public GrandMissileSetting GrnadData
+    {
+        set
+        {
+            grnadMissileData = value;
+            defaultGrandData = value;
         }
     }
 
@@ -434,6 +457,7 @@ public class MissileSpawner : Spawner<MissileType>
         // 미사일 데이터 초기화
         fallingMissileData = defaultFallingData;
         hoverMissileData = defaultHoverData;
+        grnadMissileData = defaultGrandData;
 
         // 낙하 미사일 반환
         var currentNode = currentFallingMissiles.First;

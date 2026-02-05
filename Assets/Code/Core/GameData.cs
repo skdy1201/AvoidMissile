@@ -292,6 +292,7 @@ public class GameData : Singleton<GameData>
     {
         LoadFallingMissileData();
         LoadHoverMissileData();
+        LoadGrandMissileData();
     }
 
     /// <summary>
@@ -376,6 +377,44 @@ public class GameData : Singleton<GameData>
         }
 
         MissileSpawner.Instance.HoverData = setting;
+    }
+
+    /// <summary>
+    /// 대형 미사일 바이너리 데이터를 읽어서 MissileSpawner에 전달
+    /// </summary>
+    private void LoadGrandMissileData()
+    {
+        string grandMissile = "grandMissileData";
+
+        TextAsset grandMissileBinaryData = Resources.Load<TextAsset>(grandMissile);
+
+        if (grandMissileBinaryData == null)
+        {
+            Debug.LogError("Grand Missile Binary Missing");
+            return;
+        }
+
+        GrandMissileSetting setting = new GrandMissileSetting();
+
+        using (MemoryStream memoryStream = new MemoryStream(grandMissileBinaryData.bytes))
+        {
+            using (BinaryReader reader = new BinaryReader(memoryStream, Encoding.UTF8))
+            {
+                setting.count = reader.ReadInt32();
+                setting.countIncrement = reader.ReadInt32();
+                setting.maxCount = reader.ReadInt32();
+
+                setting.speed = reader.ReadSingle();
+                setting.speedIncrement = reader.ReadSingle();
+                setting.speedMax = reader.ReadSingle();
+
+                setting.size = reader.ReadInt32();
+                setting.sizeIncrement = reader.ReadInt32();
+                setting.sizeMax = reader.ReadInt32();
+            }
+        }
+
+        MissileSpawner.Instance.GrnadData = setting;
     }
 
     #endregion
