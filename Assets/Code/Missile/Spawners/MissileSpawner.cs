@@ -374,7 +374,7 @@ public class MissileSpawner : Spawner<MissileType>
         float rotateSpeed = Random.Range(hoverMissileData.turnRate / 2f, hoverMissileData.turnRate);
 
         missile.SetStat(healthPoint, moveTime, moveSpeed, rotateTime, rotateSpeed);
-        missile.Initialize(moveSpeed);
+        missile.Initialize();
     }
 
     /// <summary>
@@ -425,12 +425,12 @@ public class MissileSpawner : Spawner<MissileType>
         if (SceneManager.GetActiveScene().name == GlobalData.Instance.PlayScene)
         {
 
-            // 미사일 생성 코루틴 시작
-            if (fallingLoop == false)
-            {
-                StartCoroutine(MissileSpawnLoop());
-                fallingLoop = true;
-            }
+            //// 미사일 생성 코루틴 시작
+            //if (fallingLoop == false)
+            //{
+            //    StartCoroutine(MissileSpawnLoop());
+            //    fallingLoop = true;
+            //}
 
             // 낙하 미사일 풀 초기화
             if (spawners[(int)MissileType.Falling].Count <= 0)
@@ -452,6 +452,8 @@ public class MissileSpawner : Spawner<MissileType>
             Vector3 worldSize = Vector3.Scale(GlobalData.Instance.TilePrefab.GetComponent<MeshFilter>().sharedMesh.bounds.size, transform.lossyScale);
             tileX = worldSize.x;
             tileZ = worldSize.z;
+
+            StartCoroutine(GrandMissileSpawnLoop());
         }
     }
 
@@ -606,7 +608,8 @@ public class MissileSpawner : Spawner<MissileType>
 
             // 낙하 속도 설정 (units/second)
             float randomSpeed = Random.Range(fallingMissileData.fallSpeed / 2f, fallingMissileData.fallSpeed);
-            fallingMissile.Initialize(randomSpeed);
+            fallingMissile.SetStat(randomSpeed);
+            fallingMissile.Initialize();
 
             missileObject.SetActive(true);
 
@@ -622,14 +625,14 @@ public class MissileSpawner : Spawner<MissileType>
     /// <returns>조정된 축 값</returns>
     private int AdjustGrandAxis(int axis, int diameter)
     {
-        int radius = diameter / 2;
+        float radius = diameter / 2f;
 
-        // 왼쪽/아래 벗어남: axis를 radius로 설정 → 범위 [0, radius*2]
+        // 왼쪽/아래 벗어남: 홀수 diameter의 0.5타일 오차 방지를 위해 올림 처리
         if (axis - radius < 0)
-            return radius;
-        // 오른쪽/위 벗어남: axis를 9-radius로 설정 → 범위 [9-radius*2, 9]
+            return Mathf.CeilToInt(radius);
+        // 오른쪽/위 벗어남
         else if (axis + radius > 9)
-            return 9 - radius;
+            return 9 - Mathf.CeilToInt(radius);
 
         return axis;
     }
@@ -741,24 +744,24 @@ public class MissileSpawner : Spawner<MissileType>
 
                 // 스폰 위치 계산
                 Vector3 spawnPosition = Vector3.zero;
-                int axis;
+
+                int spawnIndex = Random.Range(0, 100);
+                int row = spawnIndex / 10;
+                int col = spawnIndex % 10;
 
                 if (type == GrandMissileType.Vertical)
                 {
-                    // Vertical: col 조정, 위에서 아래로
-                    axis = Random.Range(0, 10);
-                    axis = AdjustGrandAxis(axis, diameter);
-
-                    // row는 Vertical에서만 사용
-                    int row = Random.Range(0, 10);
                     row = AdjustGrandAxis(row, diameter);
+                    col = AdjustGrandAxis(col, diameter);
 
-                    int index = row * 10 + axis - 1;
+                    spawnIndex = row * 10 + col;
 
-                    GameObject centerTile = gamePlatform.GetTile(index);
+                    GameObject centerTile = gamePlatform.GetTile(spawnIndex);
                     if (centerTile == null) continue;
 
                     spawnPosition = centerTile.transform.position;
+                    spawnPosition.x -= tileX / 2;
+                    spawnPosition.z += tileZ / 2;
                     spawnPosition.y = GlobalData.Instance.MissileDropPoint;
                 }
                 else
@@ -766,6 +769,8 @@ public class MissileSpawner : Spawner<MissileType>
                     // Horizen: 방향에 따라 조정할 축 결정
                     // 북/남 (1, 2): col 조정, 동/서 (3, 4): row 조정
                     bool isNorthSouth = (direction == 1 || direction == 2);
+
+                    int axis = isNorthSouth ? col : row;
 
                     axis = Random.Range(0, 10);
                     axis = AdjustGrandAxis(axis, diameter);
@@ -806,6 +811,8 @@ public class MissileSpawner : Spawner<MissileType>
                 if (grandMissile != null)
                 {
                     grandMissile.SetStat(type, speed, diameter, direction);
+                    grandMissile.Initialize();
+                    grandMissile.SpawnIndex = spawnIndex;
                 }
 
                 currentGrnadMissiles.AddLast(missileObject);
