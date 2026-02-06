@@ -26,6 +26,7 @@ public struct GrandMissileSetting
     [SerializeField] public int diameter;
     [SerializeField] public int diameterIncrement;
     [SerializeField] public int diameterMax;
+
 };
 
 public class GrandMissile : Missile
@@ -37,6 +38,24 @@ public class GrandMissile : Missile
     [SerializeField] private int diameter;
     [SerializeField] private int direction;
 
+    [SerializeField] private int spawnIdx;
+
+    #endregion
+
+    #region Private/Protected Fields
+
+    private Vector3 baseScale;
+    private Vector3 meshSize;
+
+    #endregion
+
+    #region Property
+
+    public int SpawnIndex
+    {
+        set { spawnIdx = value; }
+    }
+
     #endregion
 
     #region Unity Lifecycle
@@ -44,7 +63,23 @@ public class GrandMissile : Missile
     protected override void Awake()
     {
         base.Awake();
+        baseScale = transform.localScale;
 
+        // 자식 오브젝트에서 컴포넌트 동기화 (base.Awake는 루트에서만 검색)
+        if (col == null)
+        {
+            col = GetComponentInChildren<Collider>();
+            if (col != null) col.isTrigger = true;
+        }
+
+        if (rb == null)
+        {
+            rb = GetComponentInChildren<Rigidbody>();
+            if (rb != null) rb.isKinematic = true;
+        }
+
+        MeshFilter meshFilter = GetComponentInChildren<MeshFilter>();
+        meshSize = Vector3.Scale(meshFilter.sharedMesh.bounds.size, meshFilter.transform.lossyScale);
     }
 
     private void OnEnable()
@@ -67,9 +102,45 @@ public class GrandMissile : Missile
 
     #region Public Methods
 
-    public override void Initialize(float speed)
+    /// <summary>
+    /// 내부 스탯으로 physics, 크기, 회전 설정
+    /// </summary>
+    public override void Initialize()
     {
-        //SetSpeed(speed, Vector3.down);
+        // direction에 따른 이동 방향 결정
+        // 0: Vertical (위→아래), 1: 북→남, 2: 남→북, 3: 동→서, 4: 서→동
+        Vector3 moveDirection = direction switch
+        {
+            0 => Vector3.down,
+            1 => -Vector3.forward,
+            2 => Vector3.forward,
+            3 => -Vector3.right,
+            4 => Vector3.right,
+            _ => Vector3.down
+        };
+
+        SetSpeed(speed, moveDirection);
+
+        // 크기 설정 - 메시 실제 크기 기준으로 diameter 타일만큼 확대
+        float tileSize = GlobalData.Instance.TileXScale;
+        float desiredWidth = tileSize * diameter;
+        float scaleFactor = desiredWidth / meshSize.x;
+        transform.localScale = new Vector3(
+            baseScale.x * scaleFactor,
+            baseScale.y * scaleFactor * (2f / 3f),
+            baseScale.z * scaleFactor
+        );
+
+        // 회전 설정 - 이동 방향을 바라보도록
+        if (moveDirection != Vector3.down)
+        {
+            transform.rotation = Quaternion.LookRotation(moveDirection, Vector3.up);
+        }
+        else
+        {
+            // Vertical: 아래를 바라보도록 (x축 90도 회전)
+            transform.rotation = Quaternion.Euler(180f, 0f, 0f);
+        }
     }
 
     /// <summary>
