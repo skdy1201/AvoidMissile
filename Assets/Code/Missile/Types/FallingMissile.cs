@@ -40,6 +40,8 @@ public class FallingMissile : Missile
     [SerializeField] private float platformY;
     [SerializeField] private Vector3 tileScale = Vector3.zero;
 
+    [SerializeField] private float speed;
+
     #endregion
 
     #region Private/Protected Fields
@@ -122,10 +124,18 @@ public class FallingMissile : Missile
     public float GetAlpha() => material.color.a;
 
     /// <summary>
-    /// 낙하 미사일 속도 초기화
+    /// 낙하 미사일 속도 설정
     /// </summary>
-    /// <param name="speed">낙하 속도 (units/second)</param>
-    public override void Initialize(float speed)
+    /// <param name="fallSpeed">낙하 속도 (units/second)</param>
+    public void SetStat(float fallSpeed)
+    {
+        speed = fallSpeed;
+    }
+
+    /// <summary>
+    /// 내부 스탯으로 physics 설정
+    /// </summary>
+    public override void Initialize()
     {
         SetSpeed(speed, Vector3.down);
     }

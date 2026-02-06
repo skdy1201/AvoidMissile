@@ -53,6 +53,7 @@ public class HomingMissile : Missile
     [SerializeField] private int hp;
     [SerializeField] private float moveTime = 0f;
     [SerializeField] private float maxMoveTime;
+    [SerializeField] private float moveSpeed;
     [SerializeField] private float rotateTime;
     [SerializeField] private float rotateSpeed;
     [SerializeField] private HomingMissileType homingType;
@@ -144,21 +145,18 @@ public class HomingMissile : Missile
     #region Public Methods
 
     /// <summary>
-    /// 추적 미사일 이동 속도 초기화
+    /// 내부 스탯으로 physics 설정
     /// </summary>
-    /// <param name="speed">이동 속도 (units/second)</param>
-    public override void Initialize(float speed)
+    public override void Initialize()
     {
-        SetSpeed(speed, transform.forward);
+        physics.speed = moveSpeed;
+        physics.direction = transform.forward;
         moveTime = maxMoveTime;
     }
 
     public void SetHP(int HP) => hp = HP;
-    public void SetMoveTime(float moveTime) => maxMoveTime = moveTime;
-    public void SetMoveSpeed(float moveSpeed)
-    {
-        physics.speed = moveSpeed;
-    }
+    public void SetMoveTime(float time) => maxMoveTime = time;
+    public void SetMoveSpeed(float speed) => moveSpeed = speed;
     public void SetRotateTime(float time) => rotateTime = time;
     public void SetRotateSpeed(float speed) => rotateSpeed = speed;
 

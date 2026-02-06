@@ -71,12 +71,10 @@ public class Missile : MonoBehaviour
     #region Public Methods
 
     /// <summary>
-    /// 미사일 초기화 (속도 설정)
+    /// 미사일 초기화 (내부 스탯으로 physics 설정)
     /// </summary>
-    /// <param name="speed">속도 크기 (units/second)</param>
-    public virtual void Initialize(float speed)
+    public virtual void Initialize()
     {
-        physics.speed = speed;
     }
 
     /// <summary>
