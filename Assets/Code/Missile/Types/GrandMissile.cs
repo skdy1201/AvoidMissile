@@ -131,16 +131,16 @@ public class GrandMissile : Missile
             baseScale.z * scaleFactor
         );
 
-        // 회전 설정 - 이동 방향을 바라보도록
-        if (moveDirection != Vector3.down)
+        // 회전 설정 - 방향별 하드코딩
+        transform.rotation = direction switch
         {
-            transform.rotation = Quaternion.LookRotation(moveDirection, Vector3.up);
-        }
-        else
-        {
-            // Vertical: 아래를 바라보도록 (x축 90도 회전)
-            transform.rotation = Quaternion.Euler(180f, 0f, 0f);
-        }
+            0 => Quaternion.Euler(180f, 0f, 0f),
+            1 => Quaternion.Euler(-90f, 0f, 0f),
+            2 => Quaternion.Euler(90f, 0f, 0f),
+            3 => Quaternion.Euler(0f, 0f, 90f),
+            4 => Quaternion.Euler(0f, 0f, -90f),
+            _ => Quaternion.Euler(180f, 0f, 0f)
+        };
     }
 
     /// <summary>

@@ -38,6 +38,8 @@ public class MissileSpawner : Spawner<MissileType>
 
     [Header("SpawnPoint")]
     [SerializeField] private List<GameObject> hoverMissileSpawnPoints = new List<GameObject>();
+    private SpawnPointGroup spawnPointGroup;
+
 
     [Header("Spawn State")]
     [SerializeField] private bool homingLoop = false;
@@ -453,6 +455,8 @@ public class MissileSpawner : Spawner<MissileType>
             tileX = worldSize.x;
             tileZ = worldSize.z;
 
+            CreateSpawnPoint();
+
             StartCoroutine(GrandMissileSpawnLoop());
         }
     }
@@ -520,6 +524,72 @@ public class MissileSpawner : Spawner<MissileType>
         }
 
         missileNumber = 0;
+    }
+
+    /// <summary>
+    /// 4축을 기준으로 각각의 스폰포인트를 만들기
+    /// </summary>
+    private void CreateSpawnPoint()
+    {
+        float tileXScale = GlobalData.Instance.TileXScale;
+        float tileZScale = GlobalData.Instance.TileZScale;
+
+        GameObject rootObject = new GameObject("SpawnPoints");
+        spawnPointGroup = rootObject.AddComponent<SpawnPointGroup>();
+        Transform root = rootObject.transform;
+
+        //north
+        Vector3 basePoint = gamePlatform.GetTile(0).transform.position;
+        basePoint.z += 10f;
+
+        for(int i = 0; i < 10; ++i)
+        {
+            GameObject gameObject = new GameObject("northPoint" + i);
+            gameObject.transform.position = basePoint + new Vector3(tileXScale * i, 0f, 0f);
+            gameObject.transform.SetParent(root);
+
+            spawnPointGroup.NorthPoints.Add(gameObject);
+        }
+
+        //south
+        basePoint = gamePlatform.GetTile(90).transform.position;
+        basePoint.z -= 10f;
+
+        for (int i = 0; i < 10; ++i)
+        {
+            GameObject gameObject = new GameObject("southPoint" + i);
+            gameObject.transform.position = basePoint + new Vector3(tileXScale * i, 0f, 0f);
+            gameObject.transform.SetParent(root);
+
+            spawnPointGroup.SouthPoints.Add(gameObject);
+        }
+
+        //east
+        basePoint = gamePlatform.GetTile(9).transform.position;
+        basePoint.x += 10f;
+
+        for (int i = 0; i < 10; ++i)
+        {
+            GameObject gameObject = new GameObject("eastPoint" + i);
+            gameObject.transform.position = basePoint + new Vector3(0f, 0f, -tileZScale * i);
+            gameObject.transform.SetParent(root);
+
+            spawnPointGroup.EastPoints.Add(gameObject);
+        }
+
+        //west
+        basePoint = gamePlatform.GetTile(0).transform.position;
+        basePoint.x -= 10f;
+
+        for (int i = 0; i < 10; ++i)
+        {
+            GameObject gameObject = new GameObject("westPoint" + i);
+            gameObject.transform.position = basePoint + new Vector3(0f, 0f, -tileZScale * i);
+            gameObject.transform.SetParent(root);
+
+            spawnPointGroup.WestPoints.Add(gameObject);
+        }
+
     }
 
     /// <summary>
@@ -671,21 +741,23 @@ public class MissileSpawner : Spawner<MissileType>
     {
         while (true)
         {
-            int spawnNumber = Mathf.RoundToInt(Mathf.Clamp((Random.Range(1f, hoverMissileSpawnPoints.Count)), 1, hoverMissileSpawnPoints.Count - 1));
+            int spawnNumber = Random.Range(1, 5);
 
             // 동일 위치 확인
             HashSet<int> spawnPointNum = new HashSet<int>();
+            int pointsPerDirection = spawnPointGroup.NorthPoints.Count;
+            int totalPoints = pointsPerDirection * 4;
 
             for (int i = 0; i < spawnNumber; i++)
             {
-                int spawnTileid = Random.Range(0, hoverMissileSpawnPoints.Count);
+                int spawnTileid = Random.Range(0, totalPoints);
 
                 // 중복 위치 회피
                 if (spawnPointNum.Contains(spawnTileid))
                 {
                     while (true)
                     {
-                        spawnTileid = Random.Range(0, hoverMissileSpawnPoints.Count);
+                        spawnTileid = Random.Range(0, totalPoints);
 
                         if (!spawnPointNum.Contains(spawnTileid))
                             break;
@@ -696,7 +768,7 @@ public class MissileSpawner : Spawner<MissileType>
                 spawnPointNum.Add(spawnTileid);
 
                 // Y좌표 조정
-                Vector3 spawnPosition = hoverMissileSpawnPoints[spawnTileid].transform.position;
+                Vector3 spawnPosition = spawnPointGroup.GetPointPosition(spawnTileid / pointsPerDirection, spawnTileid % pointsPerDirection);
                 spawnPosition.y += 2.5f;
 
                 GameObject hoverMissile = Instantiate(hoverMissilePrefab);
@@ -732,6 +804,7 @@ public class MissileSpawner : Spawner<MissileType>
 
                 // 타입, 속도, 직경 랜덤 결정
                 GrandMissileType type = (GrandMissileType)Random.Range(0, 2);
+                type = GrandMissileType.Horizen;
                 float speed = Random.Range(grandMissileData.speed / 2f, grandMissileData.speed);
 
                 // 0을 방지하기 위한 올림 처리
@@ -766,41 +839,13 @@ public class MissileSpawner : Spawner<MissileType>
                 }
                 else
                 {
-                    // Horizen: 방향에 따라 조정할 축 결정
-                    // 북/남 (1, 2): col 조정, 동/서 (3, 4): row 조정
-                    bool isNorthSouth = (direction == 1 || direction == 2);
-
-                    int axis = isNorthSouth ? col : row;
-
-                    axis = Random.Range(0, 10);
+                    // Horizen: SpawnPointGroup에서 방향별 스폰 위치 가져오기
+                    // Grand direction 1~4 → SpawnPointGroup direction 0~3
+                    int axis = Random.Range(0, spawnPointGroup.NorthPoints.Count);
                     axis = AdjustGrandAxis(axis, diameter);
 
-                    if (isNorthSouth)
-                    {
-                        // 북/남: col(axis) 기반으로 x 위치
-                        GameObject centerTile = gamePlatform.GetTile(axis);
-                        if (centerTile == null) continue;
-
-                        spawnPosition = centerTile.transform.position;
-                        spawnPosition.y += 2f;
-                        // 북(1): z 최대, 남(2): z 최소
-                        GameObject edgeTile = gamePlatform.GetTile(direction == 1 ? 90 + axis : axis);
-                        if (edgeTile != null)
-                            spawnPosition.z = edgeTile.transform.position.z + (direction == 1 ? 10f : -10f);
-                    }
-                    else
-                    {
-                        // 동/서: row(axis) 기반으로 z 위치
-                        GameObject centerTile = gamePlatform.GetTile(axis * 10);
-                        if (centerTile == null) continue;
-
-                        spawnPosition = centerTile.transform.position;
-                        spawnPosition.y += 2f;
-                        // 동(3): x 최대, 서(4): x 최소
-                        GameObject edgeTile = gamePlatform.GetTile(direction == 3 ? axis * 10 + 9 : axis * 10);
-                        if (edgeTile != null)
-                            spawnPosition.x = edgeTile.transform.position.x + (direction == 3 ? 10f : -10f);
-                    }
+                    spawnPosition = spawnPointGroup.GetPointPosition(direction - 1, axis);
+                    spawnPosition.y += 5f;
                 }
 
                 // 미사일 생성 및 설정
