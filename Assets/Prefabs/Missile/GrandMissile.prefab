@@ -57,6 +57,7 @@ MonoBehaviour:
   diameter: 0
   direction: 0
   spawnIdx: 0
+  knockbackForce: 10
 --- !u!54 &8514505400982070438
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -159,15 +160,15 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3725076731925513393, guid: e3669430356cc1144b5266514b4d8fef, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3777727002334988214}
+      addedObject: {fileID: 672720420801716796}
   m_SourcePrefab: {fileID: 100100000, guid: e3669430356cc1144b5266514b4d8fef, type: 3}
 --- !u!1 &6990871941528511248 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3725076731925513393, guid: e3669430356cc1144b5266514b4d8fef, type: 3}
   m_PrefabInstance: {fileID: 5960146255734843297}
   m_PrefabAsset: {fileID: 0}
---- !u!65 &3777727002334988214
-BoxCollider:
+--- !u!136 &672720420801716796
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -181,11 +182,13 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 4.7130394, y: 11.997683, z: 4.7130404}
+  serializedVersion: 2
+  m_Radius: 2.3565202
+  m_Height: 11.997683
+  m_Direction: 1
   m_Center: {x: 0.0027555227, y: -0.6925094, z: -0.003787756}
 --- !u!4 &7660412208953506218 stripped
 Transform:

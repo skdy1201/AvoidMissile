@@ -69,18 +69,12 @@ public class GrandMissile : Missile
 
         baseScale = transform.localScale;
 
-        // 자식 오브젝트에서 컴포넌트 동기화 (base.Awake는 루트에서만 검색)
-        if (col == null)
-        {
-            col = GetComponentInChildren<Collider>();
-            if (col != null) col.isTrigger = true;
-        }
+        // 자식 오브젝트에서 컴포넌트 캐싱 (base.Awake 결과를 자식 기준으로 덮어씀)
+        col = GetComponentInChildren<Collider>();
+        if (col != null) col.isTrigger = true;
 
-        if (rb == null)
-        {
-            rb = GetComponentInChildren<Rigidbody>();
-            if (rb != null) rb.isKinematic = true;
-        }
+        rb = GetComponentInChildren<Rigidbody>();
+        if (rb != null) rb.isKinematic = true;
 
         MeshFilter meshFilter = GetComponentInChildren<MeshFilter>();
         meshSize = Vector3.Scale(meshFilter.sharedMesh.bounds.size, meshFilter.transform.lossyScale);
@@ -159,18 +153,30 @@ public class GrandMissile : Missile
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
-        {
-            Player player = other.gameObject.GetComponent<Player>();
+            Knockback(other);
 
-            Vector3 missileDir = physics.direction;
-            Vector3 pushDir = (other.transform.position - transform.position).normalized;
+        if (other.gameObject.layer == LayerMask.NameToLayer("Platform"))
+            Destroy(this.gameObject);
+    }
 
-            Vector3 knockbackDir = missileDir + pushDir;
-            knockbackDir.y = 0f;
-            knockbackDir = knockbackDir.normalized;
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
+            Knockback(other);
+    }
 
-            player.ApplyKnockback(knockbackDir, knockbackForce);
-        }
+    private void Knockback(Collider other)
+    {
+        Player player = other.gameObject.GetComponent<Player>();
+
+        Vector3 missileDir = physics.direction;
+        Vector3 pushDir = (other.transform.position - transform.position).normalized;
+
+        Vector3 knockbackDir = missileDir + pushDir;
+        knockbackDir.y = 0f;
+        knockbackDir = knockbackDir.normalized;
+
+        player.ApplyKnockback(knockbackDir, knockbackForce);
     }
 
     #endregion
