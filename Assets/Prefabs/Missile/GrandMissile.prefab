@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4372499167972927732}
   - component: {fileID: 1151344648227445576}
   - component: {fileID: 8514505400982070438}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: GrandMissile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -92,9 +92,25 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4372499167972927732}
     m_Modifications:
+    - target: {fileID: 2932650386367047012, guid: e3669430356cc1144b5266514b4d8fef, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2932650386367047012, guid: e3669430356cc1144b5266514b4d8fef, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7f5dd519f98f2924981f19e31e51dee6, type: 2}
+    - target: {fileID: 2932650386367047012, guid: e3669430356cc1144b5266514b4d8fef, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 565175fc23adbb8479f5ec980a7227a5, type: 2}
     - target: {fileID: 3725076731925513393, guid: e3669430356cc1144b5266514b4d8fef, type: 3}
       propertyPath: m_Name
       value: GrandMissileModel
+      objectReference: {fileID: 0}
+    - target: {fileID: 3725076731925513393, guid: e3669430356cc1144b5266514b4d8fef, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 4105577662545534475, guid: e3669430356cc1144b5266514b4d8fef, type: 3}
       propertyPath: m_LocalPosition.x
