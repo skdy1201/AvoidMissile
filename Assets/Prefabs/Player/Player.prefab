@@ -507,6 +507,9 @@ MonoBehaviour:
   homingDangerRadius: 3
   safeColor: {r: 0, g: 0, b: 0, a: 1}
   dangerColor: {r: 1, g: 0, b: 0, a: 1}
+  clipRadius: 0.3
+  clipEdgeWidth: 0.05
+  clipEdgeColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!4 &820480541538669907 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 81bb9eea30387e442899949a80011e55, type: 3}
