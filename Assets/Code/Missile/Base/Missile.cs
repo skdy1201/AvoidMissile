@@ -22,6 +22,8 @@ public class Missile : MonoBehaviour
     protected Rigidbody rb;
     [SerializeField] protected PhysicsData physics;
 
+    protected bool onDamage = true;
+
     #endregion
 
     #region Properties
@@ -38,6 +40,12 @@ public class Missile : MonoBehaviour
     {
         get => spawnTime;
         set => spawnTime = value;
+    }
+
+    public bool Damage
+    {
+        get => onDamage;
+        set => onDamage = value;
     }
 
     #endregion
@@ -109,38 +117,6 @@ public class Missile : MonoBehaviour
         boomEffect.SetActive(true);
 
         AudioController.Instance.PlayExploreSound();
-    }
-
-    #endregion
-
-    #region Private/Protected Methods
-
-    /// <summary>
-    /// PowerJump 상태의 Player와 충돌했을때, 미사일은 파괴
-    /// </summary>
-    protected virtual void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
-        {
-            Player player = other.gameObject.GetComponent<Player>();
-
-            if(player.ActivePowerJump)
-            {
-                GameProgress.Instance.Score = GameProgress.Instance.Score;
-
-                // 폭발 이펙트를 정확한 충돌 위치에 표시하기 위해 접점 저장
-                Vector3 contact = other.ClosestPoint(transform.position);
-
-                ActiveBombEffect(contact);
-
-                gameObject.SetActive(false);
-
-                if (gameObject.GetComponent<FallingMissile>() != null)
-                    MissileSpawner.Instance.ReturnSpawner(MissileType.Falling, gameObject);
-                else
-                    Destroy(gameObject);
-            }
-        }
     }
 
     #endregion

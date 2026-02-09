@@ -190,9 +190,25 @@ public class HomingMissile : Missile
     /// 미사일의 요소만 관리
     /// 플레이어의 체력 감소는 플레이어가 담당
     /// </remarks>
-    protected override void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
-        base.OnTriggerEnter(other);
+        // PowerJump 상태의 Player와 충돌 시 미사일 파괴
+        if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
+        {
+            Player player = other.gameObject.GetComponent<Player>();
+
+            if (player.ActivePowerJump)
+            {
+                GameProgress.Instance.Score = GameProgress.Instance.Score;
+
+                Vector3 contact = other.ClosestPoint(transform.position);
+                ActiveBombEffect(contact);
+
+                gameObject.SetActive(false);
+                Destroy(gameObject);
+            }
+            return;
+        }
 
         if (other.gameObject.layer == LayerMask.NameToLayer("Missile") && other.gameObject.GetComponent<FallingMissile>() != null)
         {

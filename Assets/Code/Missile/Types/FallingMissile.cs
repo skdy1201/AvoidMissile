@@ -161,13 +161,29 @@ public class FallingMissile : Missile
     /// 낙하 미사일 충돌 처리
     /// </summary>
     /// <param name="other">충돌한 오브젝트의 Collider</param>
-    protected override void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
         // 이미 충돌했는지 확인
         if (col.enabled == false)
             return;
 
-        base.OnTriggerEnter(other);
+        // PowerJump 상태의 Player와 충돌 시 미사일 파괴
+        if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
+        {
+            Player player = other.gameObject.GetComponent<Player>();
+
+            if (player.ActivePowerJump)
+            {
+                GameProgress.Instance.Score = GameProgress.Instance.Score;
+
+                Vector3 contactPoint = other.ClosestPoint(transform.position);
+                ActiveBombEffect(contactPoint);
+
+                gameObject.SetActive(false);
+                MissileSpawner.Instance.ReturnSpawner(MissileType.Falling, gameObject);
+            }
+            return;
+        }
 
         // 폭발 이펙트를 정확한 충돌 위치에 표시하기 위해 좌표 저장
         Vector3 contact = other.ClosestPoint(transform.position);

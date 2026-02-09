@@ -39,6 +39,7 @@ public class GrandMissile : Missile
     [SerializeField] private int direction;
 
     [SerializeField] private int spawnIdx;
+    [SerializeField] private float knockbackForce = 10f;
 
     #endregion
 
@@ -63,6 +64,9 @@ public class GrandMissile : Missile
     protected override void Awake()
     {
         base.Awake();
+
+        onDamage = false;
+
         baseScale = transform.localScale;
 
         // 자식 오브젝트에서 컴포넌트 동기화 (base.Awake는 루트에서만 검색)
@@ -80,16 +84,6 @@ public class GrandMissile : Missile
 
         MeshFilter meshFilter = GetComponentInChildren<MeshFilter>();
         meshSize = Vector3.Scale(meshFilter.sharedMesh.bounds.size, meshFilter.transform.lossyScale);
-    }
-
-    private void OnEnable()
-    {
-        
-    }
-
-    private void Start()
-    {
-        
     }
 
     private void FixedUpdate()
@@ -156,7 +150,28 @@ public class GrandMissile : Missile
         speed = randomSpeed;
         diameter = randomDiameter;
         direction = randomDirection;
-    }    
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
+        {
+            Player player = other.gameObject.GetComponent<Player>();
+
+            Vector3 missileDir = physics.direction;
+            Vector3 pushDir = (other.transform.position - transform.position).normalized;
+
+            Vector3 knockbackDir = missileDir + pushDir;
+            knockbackDir.y = 0f;
+            knockbackDir = knockbackDir.normalized;
+
+            player.ApplyKnockback(knockbackDir, knockbackForce);
+        }
+    }
 
     #endregion
 }
