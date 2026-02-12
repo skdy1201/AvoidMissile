@@ -1,4 +1,4 @@
-Shader "Custom/GrandMissileStencil"
+﻿Shader "Custom/GrandMissileStencil"
 {
     Properties
     {
@@ -76,6 +76,7 @@ Shader "Custom/GrandMissileStencil"
             float _PlayerClipRadius;
             float _PlayerClipEdgeWidth;
             half4 _PlayerClipEdgeColor;
+            float4 _GameCamPos;
 
             Varyings vert(Attributes input)
             {
@@ -95,22 +96,36 @@ Shader "Custom/GrandMissileStencil"
 
             half4 frag(Varyings input) : SV_Target
             {
-                // 플레이어 주변 관통 처리 (스크린 스페이스 기준)
-                float4 playerClip = TransformWorldToHClip(_PlayerWorldPos.xyz);
-                float2 playerNDC = playerClip.xy / playerClip.w;
+                // 수평면(XZ) 기준 방향 비교로 플레이어가 미사일 뒤에 있는지 판정
+                // 깊이(view-space Z) 비교는 탑다운 카메라에서 부정확하므로 방향 기반 사용
+                float3 missileCenter = mul(UNITY_MATRIX_M, float4(0, 0, 0, 1)).xyz;
+                float2 missileToCamera = _GameCamPos.xz - missileCenter.xz;
+                float2 missileToPlayer = _PlayerWorldPos.xz - missileCenter.xz;
+                // dot > 0: 카메라와 같은 편(앞) / dot < 0: 반대편(뒤)
+                bool playerBehind = dot(missileToPlayer, missileToCamera) < 0;
 
-                float4 missileClip = TransformWorldToHClip(input.positionWS);
-                float2 missileNDC = missileClip.xy / missileClip.w;
+                // 디버그: playerBehind 판정 시각화 (초록=뒤, 빨강=앞)
+                // return playerBehind ? half4(0, 1, 0, 1) : half4(1, 0, 0, 1);
 
-                // 종횡비 보정 (화면에서 원형으로 보이도록)
-                float2 diff = missileNDC - playerNDC;
-                diff.x *= _ScreenParams.x / _ScreenParams.y;
-                float dist = length(diff);
+                if (playerBehind)
+                {
+                    // 스크린 스페이스 거리 계산
+                    float4 playerClip = TransformWorldToHClip(_PlayerWorldPos.xyz);
+                    float2 playerNDC = playerClip.xy / playerClip.w;
 
-                if (dist < _PlayerClipRadius - _PlayerClipEdgeWidth)
-                    discard;
-                if (dist < _PlayerClipRadius)
-                    return _PlayerClipEdgeColor;
+                    float4 missileClip = TransformWorldToHClip(input.positionWS);
+                    float2 missileNDC = missileClip.xy / missileClip.w;
+
+                    // 종횡비 보정 (화면에서 원형으로 보이도록)
+                    float2 diff = missileNDC - playerNDC;
+                    diff.x *= _ScreenParams.x / _ScreenParams.y;
+                    float dist = length(diff);
+
+                    if (dist < _PlayerClipRadius - _PlayerClipEdgeWidth)
+                        discard;
+                    if (dist < _PlayerClipRadius)
+                        return _PlayerClipEdgeColor;
+                }
 
                 half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
                 half4 color = texColor * _BaseColor;
