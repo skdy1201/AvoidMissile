@@ -47,7 +47,6 @@ public class FallingMissile : Missile
     #region Private/Protected Fields
 
     private float dropPoint;
-
     private const float decalYOffset = 1.1f;
 
     #endregion

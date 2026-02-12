@@ -501,8 +501,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e4b83cd1b14928540899f2357a597250, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerSilhouetteController
-  silhouetteMaterial: {fileID: 2100000, guid: 82fea5e7c5180574da3139e460bc3124, type: 2}
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerVisibilityController
+  visibilityMaterial: {fileID: 2100000, guid: 82fea5e7c5180574da3139e460bc3124, type: 2}
   fallingDangerRadius: 2
   homingDangerRadius: 3
   safeColor: {r: 0, g: 0, b: 0, a: 1}
