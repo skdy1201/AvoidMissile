@@ -1,8 +1,8 @@
-Shader "Custom/PlayerSilhouette"
+Shader "Custom/PlayerVisibility"
 {
     Properties
     {
-        _SilhouetteColor ("Silhouette Color", Color) = (0, 0, 0, 1)
+        _VisibilityColor ("Visibility Color", Color) = (0, 0, 0, 1)
     }
 
     SubShader
@@ -16,7 +16,7 @@ Shader "Custom/PlayerSilhouette"
 
         Pass
         {
-            Name "SilhouettePass"
+            Name "VisibilityPass"
             Tags { "LightMode" = "UniversalForward" }
 
             // ZTest, Stencil은 Render Objects Feature에서 오버라이드
@@ -39,7 +39,7 @@ Shader "Custom/PlayerSilhouette"
             };
 
             CBUFFER_START(UnityPerMaterial)
-                half4 _SilhouetteColor;
+                half4 _VisibilityColor;
             CBUFFER_END
 
             Varyings vert(Attributes input)
@@ -51,7 +51,7 @@ Shader "Custom/PlayerSilhouette"
 
             half4 frag(Varyings input) : SV_Target
             {
-                return _SilhouetteColor;
+                return _VisibilityColor;
             }
             ENDHLSL
         }
