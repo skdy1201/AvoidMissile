@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Security.Cryptography;
+using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 public enum GrandMissileType
 {
@@ -37,16 +39,24 @@ public class GrandMissile : Missile
     [SerializeField] private float speed;
     [SerializeField] private int diameter;
     [SerializeField] private int direction;
-
-    [SerializeField] private int spawnIdx;
     [SerializeField] private float knockbackForce = 10f;
 
+    [SerializeField] private int spawnIdx;
+
+    [SerializeField] private GameObject[] warningDecals = new GameObject[2];
+    [SerializeField] private DecalProjector[] decals = new DecalProjector[2];
     #endregion
 
     #region Private/Protected Fields
 
+    private Transform modelTransform;
     private Vector3 baseScale;
     private Vector3 meshSize;
+
+    private float dropPoint;
+    private float platformY;
+    private Vector3 tileScale;
+    private const float decalYOffset = 0.5f;
 
     #endregion
 
@@ -67,8 +77,6 @@ public class GrandMissile : Missile
 
         onDamage = false;
 
-        baseScale = transform.localScale;
-
         // 자식 오브젝트에서 컴포넌트 캐싱 (base.Awake 결과를 자식 기준으로 덮어씀)
         col = GetComponentInChildren<Collider>();
         if (col != null) col.isTrigger = true;
@@ -77,13 +85,120 @@ public class GrandMissile : Missile
         if (rb != null) rb.isKinematic = true;
 
         MeshFilter meshFilter = GetComponentInChildren<MeshFilter>();
-        meshSize = Vector3.Scale(meshFilter.sharedMesh.bounds.size, meshFilter.transform.lossyScale);
+        modelTransform = meshFilter.transform;
+        baseScale = modelTransform.localScale;
+        meshSize = Vector3.Scale(meshFilter.sharedMesh.bounds.size, modelTransform.lossyScale);
+
+        decals[0] = warningDecals[0].GetComponent<DecalProjector>();
+        decals[1] = warningDecals[1].GetComponent<DecalProjector>();
+    }
+
+    private void Start()
+    {
+        Debug.Log("Length: " + warningDecals.Length);
+
+        dropPoint = GlobalData.Instance.MissileDropPoint - decalYOffset;
+        platformY = MissileSpawner.Instance.gamePlatform.transform.position.y;
+        tileScale = new Vector3(GlobalData.Instance.TileXScale, 1f, GlobalData.Instance.TileZScale);
+
+        if (direction >= 1)
+        {
+            Vector3 platformPos = MissileSpawner.Instance.gamePlatform.transform.position;
+
+            switch (direction)
+            {
+                case 1:
+                Debug.Log("in dir1");
+                warningDecals[1].transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+                break;
+
+                case 2:
+                Debug.Log("in dir2");
+
+                warningDecals[1].transform.rotation = Quaternion.Euler(180f, 0f, 0f);
+                break;
+
+                case 3:
+                Debug.Log("in dir3");
+                warningDecals[1].transform.rotation = Quaternion.Euler(-180f, 90f, -90f);
+                break;
+
+                case 4:
+                Debug.Log("in dir4");
+                warningDecals[1].transform.rotation = Quaternion.Euler(0f, 90f, 90f);
+                break;
+            }
+
+            Vector3 fixPivot = decals[1].pivot;
+
+            switch(diameter)
+            {
+                case 2:
+                    fixPivot.y = -15f;
+                    fixPivot.z = 2.5f;
+                    break;
+                case 3:
+                    fixPivot.y = -15f;
+                    fixPivot.z = 3.5f;
+                    break;                
+                case 4:
+                    fixPivot.y = -15f;
+                    fixPivot.z = 4.5f;
+                    break;                
+                case 5:
+                    fixPivot.y = -15f;
+                    fixPivot.z = 5f;
+                    break;
+            }
+
+            fixPivot.x = -15f;
+            decals[1].pivot = fixPivot;
+            decals[1].size = new Vector3(25f, 10f, 0.5f);
+
+
+
+            // destination = direction switch
+            // {
+            //     1 => platformPos.z - tileScale.z * tileCount,
+            //     2 => platformPos.z,
+            //     3 => platformPos.x,
+            //     4 => platformPos.x + tileScale.x * tileCount,
+            //     _ => 0f
+            // };
+        }
+
+        if(direction > 0)
+        {
+            Debug.Log("in horizen");
+            warningDecals[0].SetActive(false);
+            decals[0].enabled = false;
+        }
+        else
+        {
+            Debug.Log("in vertical");
+            warningDecals[1].SetActive(false);
+            decals[1].enabled = false;
+        }
+
     }
 
     private void FixedUpdate()
     {
-        // 속도 적용 (매 물리 프레임마다 일정한 속도 유지)
         ApplyVelocity();
+
+        if (direction == 0)
+        {
+            UpdateVerticalDecal();
+        }
+
+    }
+
+    private void OnEnable()
+    {
+        col.enabled = true;
+        decals[0].size = Vector3.zero;
+        decals[1].size = Vector3.zero;
+        decals[1].pivot = Vector3.zero;
     }
 
     #endregion
@@ -113,7 +228,7 @@ public class GrandMissile : Missile
         float tileSize = GlobalData.Instance.TileXScale;
         float desiredWidth = tileSize * diameter;
         float scaleFactor = desiredWidth / meshSize.x;
-        transform.localScale = new Vector3(
+        modelTransform.localScale = new Vector3(
             baseScale.x * scaleFactor,
             baseScale.y * scaleFactor * (2f / 3f),
             baseScale.z * scaleFactor
@@ -149,6 +264,27 @@ public class GrandMissile : Missile
     #endregion
 
     #region Private Methods
+
+    private void UpdateVerticalDecal()
+    {
+        warningDecals[0].transform.SetPositionAndRotation(
+            new Vector3(transform.position.x, platformY + decalYOffset, transform.position.z),
+            Quaternion.Euler(90f, 0f, 0f)
+        );
+
+        float currentHeight = transform.position.y - (platformY + decalYOffset);
+        float scaleValue = 100f - ((currentHeight / dropPoint) * 100f);
+        scaleValue = Mathf.Floor(scaleValue);
+        scaleValue = Mathf.Clamp(scaleValue, 0f, 100f);
+
+        float desiredSize = tileScale.x * diameter;
+
+        decals[0].size = new Vector3(
+            desiredSize * (scaleValue / 100f),
+            desiredSize * (scaleValue / 100f),
+            0.5f
+        );
+    }
 
     private void OnTriggerEnter(Collider other)
     {
