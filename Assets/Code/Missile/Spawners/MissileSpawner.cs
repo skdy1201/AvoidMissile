@@ -295,7 +295,7 @@ public class MissileSpawner : Spawner<MissileType>
     public void UpdateSetting(int level)
     {
         UpdateFallingMissile();
-        UpdateHoverMissile(level);
+        //UpdateHoverMissile(level);
         UpdateGrandMissile(level);
     }
 
@@ -808,7 +808,10 @@ public class MissileSpawner : Spawner<MissileType>
                 float speed = Random.Range(grandMissileData.speed / 2f, grandMissileData.speed);
 
                 // 0을 방지하기 위한 올림 처리
-                int diameter = Random.Range(Mathf.CeilToInt(grandMissileData.diameter / 2), grandMissileData.diameter + 1);
+                int diameter = Random.Range(2, grandMissileData.diameter);
+                
+                // TEST :: 테스트 코드
+                diameter = 3;
 
                 // 방향 결정 (0: Vertical, 1: 북, 2: 남, 3: 동, 4: 서)
                 int direction = 0;
@@ -845,7 +848,22 @@ public class MissileSpawner : Spawner<MissileType>
                     axis = AdjustGrandAxis(axis, diameter);
 
                     spawnPosition = spawnPointGroup.GetPointPosition(direction - 1, axis);
-                    spawnPosition.y += 5f;
+
+                    switch(diameter)
+                    {
+                        case 2:
+                            spawnPosition.y += 3f;
+                            break;
+                        case 3:
+                            spawnPosition.y += 4.5f;
+                            break;
+                        case 4:
+                            spawnPosition.y += 5.5f;
+                            break;
+                        case 5:
+                            spawnPosition.y += 6.5f;
+                            break;
+                    }
                 }
 
                 // 미사일 생성 및 설정
@@ -871,3 +889,4 @@ public class MissileSpawner : Spawner<MissileType>
     #endregion
 
 }
+
