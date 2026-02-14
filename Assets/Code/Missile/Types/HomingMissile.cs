@@ -210,21 +210,26 @@ public class HomingMissile : Missile
             return;
         }
 
-        if (other.gameObject.layer == LayerMask.NameToLayer("Missile") && other.gameObject.GetComponent<FallingMissile>() != null)
+        if (other.gameObject.layer == LayerMask.NameToLayer("Missile"))
         {
-            hp--;
+            if (other.gameObject.GetComponent<FallingMissile>() != null)
+            {
+                hp--;
 
-            // 체력이 0이 되면 파괴
-            if (hp <= 0)
+                if (hp <= 0)
+                {
+                    MissileSpawner.Instance.RemoveHoverMissile(gameObject);
+                    Destroy(gameObject);
+                }
+
+                Vector3 contact = other.ClosestPoint(transform.position);
+                ActiveBombEffect(contact);
+            }
+            else if (other.gameObject.GetComponent<GrandMissile>() != null)
             {
                 MissileSpawner.Instance.RemoveHoverMissile(gameObject);
                 Destroy(gameObject);
             }
-
-            // 충돌 지점에 이펙트 스폰
-            Vector3 contact = other.ClosestPoint(transform.position);
-
-            ActiveBombEffect(contact);
         }
     }
 

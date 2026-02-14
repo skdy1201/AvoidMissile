@@ -220,6 +220,10 @@ public class FallingMissile : Missile
             {
                 MissileSpawner.Instance.ReturnSpawner(MissileType.Falling, gameObject);
             }
+            else if (other.gameObject.GetComponent<GrandMissile>() != null)
+            {
+                MissileSpawner.Instance.ReturnSpawner(MissileType.Falling, gameObject);
+            }
         }
     }
 

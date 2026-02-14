@@ -56,7 +56,7 @@ public class GrandMissile : Missile
     private float dropPoint;
     private float platformY;
     private Vector3 tileScale;
-    private const float decalYOffset = 0.5f;
+    private const float decalYOffset = -0.5f;
 
     #endregion
 
@@ -105,66 +105,67 @@ public class GrandMissile : Missile
         {
             Vector3 platformPos = MissileSpawner.Instance.gamePlatform.transform.position;
 
+            Vector3 fixPivot = decals[1].pivot;
+            fixPivot.z = 1f;
+
             switch (direction)
             {
                 case 1:
                 Debug.Log("in dir1");
-                warningDecals[1].transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+                warningDecals[1].transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+                fixPivot.x = 15f;
+                fixPivot.y = 0f;
+                fixPivot.z = -1f;
                 break;
 
                 case 2:
                 Debug.Log("in dir2");
-
-                warningDecals[1].transform.rotation = Quaternion.Euler(180f, 0f, 0f);
+                warningDecals[1].transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+                fixPivot.x = 15f;
+                fixPivot.y = 0f;
                 break;
 
                 case 3:
                 Debug.Log("in dir3");
-                warningDecals[1].transform.rotation = Quaternion.Euler(-180f, 90f, -90f);
+                warningDecals[1].transform.localRotation = Quaternion.Euler(0f, 90f, 90f);
+                fixPivot.x = 15f;
+                fixPivot.y = 0f;
+                fixPivot.z = -1f;
                 break;
 
                 case 4:
                 Debug.Log("in dir4");
-                warningDecals[1].transform.rotation = Quaternion.Euler(0f, 90f, 90f);
+                warningDecals[1].transform.localRotation = Quaternion.Euler(0f, 90f, 90f);
+                fixPivot.x = 15f;
+                fixPivot.y = 0f;
                 break;
             }
 
-            Vector3 fixPivot = decals[1].pivot;
+            Vector3 decalSize = decals[1].size;
 
             switch(diameter)
             {
                 case 2:
-                    fixPivot.y = -15f;
-                    fixPivot.z = 2.5f;
+                    fixPivot.z *= 3f;
+                    decalSize.y = 4f;
                     break;
                 case 3:
-                    fixPivot.y = -15f;
-                    fixPivot.z = 3.5f;
-                    break;                
+                    fixPivot.z *= 4.5f;
+                    decalSize.y = 6f;
+                    break;
                 case 4:
-                    fixPivot.y = -15f;
-                    fixPivot.z = 4.5f;
-                    break;                
+                    fixPivot.z *= 5.5f;
+                    decalSize.y = 8f;
+                    break;
                 case 5:
-                    fixPivot.y = -15f;
-                    fixPivot.z = 5f;
+                    fixPivot.z *= 6.5f;
+                    decalSize.y = 10f;
                     break;
             }
 
-            fixPivot.x = -15f;
             decals[1].pivot = fixPivot;
-            decals[1].size = new Vector3(25f, 10f, 0.5f);
+            decals[1].size = decalSize;
 
-
-
-            // destination = direction switch
-            // {
-            //     1 => platformPos.z - tileScale.z * tileCount,
-            //     2 => platformPos.z,
-            //     3 => platformPos.x,
-            //     4 => platformPos.x + tileScale.x * tileCount,
-            //     _ => 0f
-            // };
         }
 
         if(direction > 0)
@@ -197,8 +198,6 @@ public class GrandMissile : Missile
     {
         col.enabled = true;
         decals[0].size = Vector3.zero;
-        decals[1].size = Vector3.zero;
-        decals[1].pivot = Vector3.zero;
     }
 
     #endregion
@@ -284,15 +283,39 @@ public class GrandMissile : Missile
             desiredSize * (scaleValue / 100f),
             0.5f
         );
+
+        Vector3 decalPivot = new Vector3(0f, 0f, -1.5f);
+        decals[0].pivot = decalPivot;
     }
 
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log($"[GrandMissile] OnTriggerEnter: {other.gameObject.name} (Layer: {LayerMask.LayerToName(other.gameObject.layer)})");
+
+        if (other.gameObject.layer == LayerMask.NameToLayer("GameBoundary"))
+        {
+            Destroy(this.gameObject);
+            return;
+        }
+
         if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
             Knockback(other);
 
-        if (other.gameObject.layer == LayerMask.NameToLayer("Platform"))
+        GrandMissile otherGrand = other.GetComponentInParent<GrandMissile>();
+
+        if (other.gameObject.layer == LayerMask.NameToLayer("Platform")
+            || otherGrand != null)
+        {
+            Vector3 contact = other.ClosestPoint(transform.position);
+            ActiveBombEffect(contact, BoomParticle.Grand);
             Destroy(this.gameObject);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        Debug.Log($"[GrandMissile] OnDestroy called! direction={direction}, pos={transform.position}", this);
+        Debug.Log($"[GrandMissile] StackTrace: {System.Environment.StackTrace}");
     }
 
     private void OnTriggerStay(Collider other)
@@ -312,7 +335,7 @@ public class GrandMissile : Missile
         knockbackDir.y = 0f;
         knockbackDir = knockbackDir.normalized;
 
-        player.ApplyKnockback(knockbackDir, knockbackForce);
+        player.ApplyKnockback(knockbackDir, diameter * 10f);
     }
 
     #endregion
