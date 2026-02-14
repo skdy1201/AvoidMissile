@@ -294,7 +294,7 @@ public class MissileSpawner : Spawner<MissileType>
     /// </summary>
     public void UpdateSetting(int level)
     {
-        UpdateFallingMissile();
+        //UpdateFallingMissile();
         //UpdateHoverMissile(level);
         UpdateGrandMissile(level);
     }
@@ -457,7 +457,8 @@ public class MissileSpawner : Spawner<MissileType>
 
             CreateSpawnPoint();
 
-            StartCoroutine(GrandMissileSpawnLoop());
+            //StartCoroutine(GrandMissileSpawnLoop());
+            StartCoroutine(TestGrandMissileSpawnLoop());
         }
     }
 
@@ -802,23 +803,14 @@ public class MissileSpawner : Spawner<MissileType>
                     yield break;
                 }
 
-                // 타입, 속도, 직경 랜덤 결정
                 GrandMissileType type = (GrandMissileType)Random.Range(0, 2);
-                type = GrandMissileType.Horizen;
                 float speed = Random.Range(grandMissileData.speed / 2f, grandMissileData.speed);
-
-                // 0을 방지하기 위한 올림 처리
                 int diameter = Random.Range(2, grandMissileData.diameter);
-                
-                // TEST :: 테스트 코드
-                diameter = 3;
 
-                // 방향 결정 (0: Vertical, 1: 북, 2: 남, 3: 동, 4: 서)
                 int direction = 0;
                 if (type == GrandMissileType.Horizen)
                     direction = Random.Range(1, 5);
 
-                // 스폰 위치 계산
                 Vector3 spawnPosition = Vector3.zero;
 
                 int spawnIndex = Random.Range(0, 100);
@@ -842,8 +834,6 @@ public class MissileSpawner : Spawner<MissileType>
                 }
                 else
                 {
-                    // Horizen: SpawnPointGroup에서 방향별 스폰 위치 가져오기
-                    // Grand direction 1~4 → SpawnPointGroup direction 0~3
                     int axis = Random.Range(0, spawnPointGroup.NorthPoints.Count);
                     axis = AdjustGrandAxis(axis, diameter);
 
@@ -851,22 +841,13 @@ public class MissileSpawner : Spawner<MissileType>
 
                     switch(diameter)
                     {
-                        case 2:
-                            spawnPosition.y += 3f;
-                            break;
-                        case 3:
-                            spawnPosition.y += 4.5f;
-                            break;
-                        case 4:
-                            spawnPosition.y += 5.5f;
-                            break;
-                        case 5:
-                            spawnPosition.y += 6.5f;
-                            break;
+                        case 2: spawnPosition.y += 4f; break;
+                        case 3: spawnPosition.y += 5.5f; break;
+                        case 4: spawnPosition.y += 6.5f; break;
+                        case 5: spawnPosition.y += 7.5f; break;
                     }
                 }
 
-                // 미사일 생성 및 설정
                 GameObject missileObject = Instantiate(grandMissilePrefab);
                 missileObject.transform.position = spawnPosition;
 
@@ -881,8 +862,94 @@ public class MissileSpawner : Spawner<MissileType>
                 currentGrnadMissiles.AddLast(missileObject);
             }
 
-            // 다음 사이클 대기 시간
             yield return new WaitForSeconds(Random.Range(8f, 15f));
+        }
+    }
+
+    IEnumerator TestGrandMissileSpawnLoop()
+    {
+        int[] diameters = { 2, 3, 4, 5 };
+        int diameterIdx = 0;
+        bool spawnVertical = true;
+
+        while (true)
+        {
+            int diameter = diameters[diameterIdx];
+            float speed = 3f;
+
+            if (spawnVertical)
+            {
+                int row = 5;
+                int col = 5;
+                row = AdjustGrandAxis(row, diameter);
+                col = AdjustGrandAxis(col, diameter);
+
+                int spawnIndex = row * 10 + col;
+                GameObject centerTile = gamePlatform.GetTile(spawnIndex);
+
+                if (centerTile != null)
+                {
+                    Vector3 spawnPosition = centerTile.transform.position;
+                    spawnPosition.x -= tileX / 2;
+                    spawnPosition.z += tileZ / 2;
+                    spawnPosition.y = GlobalData.Instance.MissileDropPoint;
+
+                    GameObject missileObject = Instantiate(grandMissilePrefab);
+                    missileObject.transform.position = spawnPosition;
+
+                    GrandMissile grandMissile = missileObject.GetComponent<GrandMissile>();
+                    if (grandMissile != null)
+                    {
+                        grandMissile.SetStat(GrandMissileType.Vertical, speed, diameter, 0);
+                        grandMissile.Initialize();
+                        grandMissile.SpawnIndex = spawnIndex;
+                    }
+
+                    currentGrnadMissiles.AddLast(missileObject);
+                }
+
+                Debug.Log($"[TestGrand] Vertical diameter={diameter}");
+            }
+            else
+            {
+                for (int direction = 1; direction <= 4; direction++)
+                {
+                    int axis = 5;
+                    axis = AdjustGrandAxis(axis, diameter);
+
+                    Vector3 spawnPosition = spawnPointGroup.GetPointPosition(direction - 1, axis);
+
+                    switch (diameter)
+                    {
+                        case 2: spawnPosition.y += 4f; break;
+                        case 3: spawnPosition.y += 5.5f; break;
+                        case 4: spawnPosition.y += 6.5f; break;
+                        case 5: spawnPosition.y += 7.5f; break;
+                    }
+
+                    GameObject missileObject = Instantiate(grandMissilePrefab);
+                    missileObject.transform.position = spawnPosition;
+
+                    GrandMissile grandMissile = missileObject.GetComponent<GrandMissile>();
+                    if (grandMissile != null)
+                    {
+                        grandMissile.SetStat(GrandMissileType.Horizen, speed, diameter, direction);
+                        grandMissile.Initialize();
+                    }
+
+                    currentGrnadMissiles.AddLast(missileObject);
+                }
+
+                Debug.Log($"[TestGrand] Horizen diameter={diameter} in all 4 directions");
+            }
+
+            // Vertical → Horizen 교대, Horizen 끝나면 다음 diameter
+            if (!spawnVertical)
+                diameterIdx = (diameterIdx + 1) % diameters.Length;
+
+            spawnVertical = !spawnVertical;
+
+            yield return new WaitForSeconds(10f);
         }
     }
 
