@@ -108,15 +108,19 @@ public class Missile : MonoBehaviour
     /// 충돌 지점의 폭발 효과를 동작시키기 위한 함수
     /// </summary>
     /// <param name="targetPosition"> 충돌한 지점 </param>
-    public void ActiveBombEffect(Vector3 targetPosition)
+    /// <param name="type"> 폭발 파티클 타입 </param>
+    public void ActiveBombEffect(Vector3 targetPosition, BoomParticle type = BoomParticle.Normal)
     {
         // 폭발 이펙트 빌려와서 동작
-        GameObject boomEffect = BoomEffectSpawner.Instance.RentSpawner(BoomParticle.Normal);
+        GameObject boomEffect = BoomEffectSpawner.Instance.RentSpawner(type);
 
         boomEffect.transform.position = targetPosition;
         boomEffect.SetActive(true);
 
-        AudioController.Instance.PlayExploreSound();
+        if (type == BoomParticle.Grand)
+            AudioController.Instance.PlayBoomSound(2);
+        else
+            AudioController.Instance.PlayExploreSound();
     }
 
     #endregion

@@ -11,6 +11,7 @@ using UnityEngine.Serialization;
 public enum BoomParticle
 {
     Normal,
+    Grand,
 }
 
 // todo : Spawner의 OnPlayerDeath와 PlayerDeadonBoomSpawner
