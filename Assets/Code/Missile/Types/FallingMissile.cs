@@ -216,7 +216,7 @@ public class FallingMissile : Missile
                     physics.speed = Mathf.Min(physics.speed + 1f, 15f);
                 }
             }
-            else if (other.gameObject.GetComponent<HomingMissile>() != null)
+            else if (other.gameObject.GetComponent<HoverMissile>() != null)
             {
                 MissileSpawner.Instance.ReturnSpawner(MissileType.Falling, gameObject);
             }
