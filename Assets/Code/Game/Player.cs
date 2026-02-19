@@ -335,6 +335,8 @@ public class Player : MonoBehaviour
         {
             if (readyRevive == false)
                 OnPlayerDead?.Invoke();
+            else
+                ActiveRevive();
         }
         else if (collisionLayer == LayerMask.NameToLayer("Missile") && activePowerJump == false)
         {

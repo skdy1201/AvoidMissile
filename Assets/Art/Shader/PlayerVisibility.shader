@@ -42,6 +42,8 @@ Shader "Custom/PlayerVisibility"
                 half4 _VisibilityColor;
             CBUFFER_END
 
+            float _PlayerVisibilityEnabled;
+
             Varyings vert(Attributes input)
             {
                 Varyings output;
@@ -51,6 +53,7 @@ Shader "Custom/PlayerVisibility"
 
             half4 frag(Varyings input) : SV_Target
             {
+                clip(_PlayerVisibilityEnabled - 0.5);
                 return _VisibilityColor;
             }
             ENDHLSL

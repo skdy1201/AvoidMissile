@@ -13,6 +13,9 @@ public class PlayerVisibilityController : MonoBehaviour
     [SerializeField] private float clipEdgeWidth = 0.3f;
     [SerializeField] private Color clipEdgeColor = Color.red;
 
+    [Header("Visibility Toggle")]
+    [SerializeField] private float disableHeightThreshold = -1f;
+
     #endregion
 
     #region Private Fields
@@ -22,6 +25,7 @@ public class PlayerVisibilityController : MonoBehaviour
     private static readonly int playerClipEdgeWidthId = Shader.PropertyToID("_PlayerClipEdgeWidth");
     private static readonly int playerClipEdgeColorId = Shader.PropertyToID("_PlayerClipEdgeColor");
     private static readonly int gameCamPosId = Shader.PropertyToID("_GameCamPos");
+    private static readonly int visibilityEnabledId = Shader.PropertyToID("_PlayerVisibilityEnabled");
 
     private Camera cachedCam;
 
@@ -31,6 +35,9 @@ public class PlayerVisibilityController : MonoBehaviour
 
     private void Update()
     {
+        float enabled = transform.position.y >= disableHeightThreshold ? 1f : 0f;
+        Shader.SetGlobalFloat(visibilityEnabledId, enabled);
+
         Shader.SetGlobalVector(playerWorldPosId, transform.position);
         Shader.SetGlobalFloat(playerClipRadiusId, clipRadius);
         Shader.SetGlobalFloat(playerClipEdgeWidthId, clipEdgeWidth);
