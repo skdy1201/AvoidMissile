@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 public enum GrandMissileType
@@ -95,8 +94,6 @@ public class GrandMissile : Missile
 
     private void Start()
     {
-        Debug.Log("Length: " + warningDecals.Length);
-
         dropPoint = GlobalData.Instance.MissileDropPoint - decalYOffset;
         platformY = MissileSpawner.Instance.gamePlatform.transform.position.y;
         tileScale = new Vector3(GlobalData.Instance.TileXScale, 1f, GlobalData.Instance.TileZScale);
@@ -111,7 +108,6 @@ public class GrandMissile : Missile
             switch (direction)
             {
                 case 1:
-                Debug.Log("in dir1");
                 warningDecals[1].transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
                 fixPivot.x = 15f;
                 fixPivot.y = 0f;
@@ -119,14 +115,12 @@ public class GrandMissile : Missile
                 break;
 
                 case 2:
-                Debug.Log("in dir2");
                 warningDecals[1].transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
                 fixPivot.x = 15f;
                 fixPivot.y = 0f;
                 break;
 
                 case 3:
-                Debug.Log("in dir3");
                 warningDecals[1].transform.localRotation = Quaternion.Euler(0f, 90f, 90f);
                 fixPivot.x = 15f;
                 fixPivot.y = 0f;
@@ -134,7 +128,6 @@ public class GrandMissile : Missile
                 break;
 
                 case 4:
-                Debug.Log("in dir4");
                 warningDecals[1].transform.localRotation = Quaternion.Euler(0f, 90f, 90f);
                 fixPivot.x = 15f;
                 fixPivot.y = 0f;
@@ -170,13 +163,11 @@ public class GrandMissile : Missile
 
         if(direction > 0)
         {
-            Debug.Log("in horizen");
             warningDecals[0].SetActive(false);
             decals[0].enabled = false;
         }
         else
         {
-            Debug.Log("in vertical");
             warningDecals[1].SetActive(false);
             decals[1].enabled = false;
         }
@@ -290,8 +281,6 @@ public class GrandMissile : Missile
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log($"[GrandMissile] OnTriggerEnter: {other.gameObject.name} (Layer: {LayerMask.LayerToName(other.gameObject.layer)})");
-
         if (other.gameObject.layer == LayerMask.NameToLayer("GameBoundary"))
         {
             Destroy(this.gameObject);
@@ -310,12 +299,6 @@ public class GrandMissile : Missile
             ActiveBombEffect(contact, BoomParticle.Grand);
             Destroy(this.gameObject);
         }
-    }
-
-    private void OnDestroy()
-    {
-        Debug.Log($"[GrandMissile] OnDestroy called! direction={direction}, pos={transform.position}", this);
-        Debug.Log($"[GrandMissile] StackTrace: {System.Environment.StackTrace}");
     }
 
     private void OnTriggerStay(Collider other)
