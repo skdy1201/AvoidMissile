@@ -2,7 +2,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 4방향 스폰 포인트를 관리하는 컴포넌트
+/// 8방향 스폰 포인트를 관리하는 컴포넌트 (직선 4 + 대각선 4)
 /// </summary>
 public class SpawnPointGroup : MonoBehaviour
 {
@@ -13,6 +13,11 @@ public class SpawnPointGroup : MonoBehaviour
     private List<GameObject> eastPoints = new List<GameObject>();
     private List<GameObject> westPoints = new List<GameObject>();
 
+    private List<GameObject> nePoints = new List<GameObject>();
+    private List<GameObject> nwPoints = new List<GameObject>();
+    private List<GameObject> sePoints = new List<GameObject>();
+    private List<GameObject> swPoints = new List<GameObject>();
+
     #endregion
 
     #region Properties
@@ -22,6 +27,11 @@ public class SpawnPointGroup : MonoBehaviour
     public List<GameObject> EastPoints => eastPoints;
     public List<GameObject> WestPoints => westPoints;
 
+    public List<GameObject> NEPoints => nePoints;
+    public List<GameObject> NWPoints => nwPoints;
+    public List<GameObject> SEPoints => sePoints;
+    public List<GameObject> SWPoints => swPoints;
+
     #endregion
 
     #region Public Method
@@ -29,7 +39,7 @@ public class SpawnPointGroup : MonoBehaviour
     /// <summary>
     /// 스폰 포인트를 얻어오는 함수
     /// </summary>
-    /// <param name="direction"> 0 = 북, 1 = 남, 2 = 동, 3 = 서 </param>
+    /// <param name="direction"> 0=북, 1=남, 2=동, 3=서, 4=NE, 5=NW, 6=SE, 7=SW </param>
     /// <param name="index"> 해당 축의 인덱스 </param>
     public Vector3 GetPointPosition(int direction, int index)
     {
@@ -39,7 +49,11 @@ public class SpawnPointGroup : MonoBehaviour
             1 => southPoints[index].transform.position,
             2 => eastPoints[index].transform.position,
             3 => westPoints[index].transform.position,
-            _ => throw new System.ArgumentOutOfRangeException(nameof(direction), direction, "direction은 0~3이어야 합니다.")
+            4 => nePoints[index].transform.position,
+            5 => nwPoints[index].transform.position,
+            6 => sePoints[index].transform.position,
+            7 => swPoints[index].transform.position,
+            _ => throw new System.ArgumentOutOfRangeException(nameof(direction), direction, "direction은 0~7이어야 합니다.")
         };
     }
 

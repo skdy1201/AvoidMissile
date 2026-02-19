@@ -427,11 +427,10 @@ public class MissileSpawner : Spawner<MissileType>
         if (SceneManager.GetActiveScene().name == GlobalData.Instance.PlayScene)
         {
 
-            // 미사일 생성 코루틴 시작
             if (fallingLoop == false)
             {
-               StartCoroutine(MissileSpawnLoop());
-               fallingLoop = true;
+                StartCoroutine(MissileSpawnLoop());
+                fallingLoop = true;
             }
 
             // 낙하 미사일 풀 초기화
@@ -528,7 +527,7 @@ public class MissileSpawner : Spawner<MissileType>
     }
 
     /// <summary>
-    /// 4축을 기준으로 각각의 스폰포인트를 만들기
+    /// 8방향(직선 4 + 대각선 4)의 스폰포인트를 생성
     /// </summary>
     private void CreateSpawnPoint()
     {
@@ -542,6 +541,7 @@ public class MissileSpawner : Spawner<MissileType>
         //north
         Vector3 basePoint = gamePlatform.GetTile(0).transform.position;
         basePoint.z += 10f;
+        basePoint.x -= tileXScale / 2f;
 
         for(int i = 0; i < 10; ++i)
         {
@@ -555,6 +555,7 @@ public class MissileSpawner : Spawner<MissileType>
         //south
         basePoint = gamePlatform.GetTile(90).transform.position;
         basePoint.z -= 10f;
+        basePoint.x -= tileXScale / 2f;
 
         for (int i = 0; i < 10; ++i)
         {
@@ -568,6 +569,7 @@ public class MissileSpawner : Spawner<MissileType>
         //east
         basePoint = gamePlatform.GetTile(9).transform.position;
         basePoint.x += 10f;
+        basePoint.z += tileZScale / 2f;
 
         for (int i = 0; i < 10; ++i)
         {
@@ -581,6 +583,7 @@ public class MissileSpawner : Spawner<MissileType>
         //west
         basePoint = gamePlatform.GetTile(0).transform.position;
         basePoint.x -= 10f;
+        basePoint.z += tileZScale / 2f;
 
         for (int i = 0; i < 10; ++i)
         {
@@ -589,6 +592,67 @@ public class MissileSpawner : Spawner<MissileType>
             gameObject.transform.SetParent(root);
 
             spawnPointGroup.WestPoints.Add(gameObject);
+        }
+
+        //diagonal - 코너당 1개씩, 플랫폼 중앙 방향으로 이동
+        GameObject diagonalRoot = new GameObject("DiagonalPoints");
+        diagonalRoot.transform.SetParent(root);
+        Transform diagRoot = diagonalRoot.transform;
+
+        //ne: GetTile(9) 기준, center 보정 후 (+10, 0, +10)
+        basePoint = gamePlatform.GetTile(9).transform.position;
+        basePoint.x -= tileXScale / 2f;
+        basePoint.z += tileZScale / 2f;
+        basePoint.x += 10f;
+        basePoint.z += 10f;
+
+        {
+            GameObject gameObject = new GameObject("nePoint0");
+            gameObject.transform.position = basePoint;
+            gameObject.transform.SetParent(diagRoot);
+            spawnPointGroup.NEPoints.Add(gameObject);
+        }
+
+        //nw: GetTile(0) 기준, center 보정 후 (-10, 0, +10)
+        basePoint = gamePlatform.GetTile(0).transform.position;
+        basePoint.x -= tileXScale / 2f;
+        basePoint.z += tileZScale / 2f;
+        basePoint.x -= 10f;
+        basePoint.z += 10f;
+
+        {
+            GameObject gameObject = new GameObject("nwPoint0");
+            gameObject.transform.position = basePoint;
+            gameObject.transform.SetParent(diagRoot);
+            spawnPointGroup.NWPoints.Add(gameObject);
+        }
+
+        //se: GetTile(99) 기준, center 보정 후 (+10, 0, -10)
+        basePoint = gamePlatform.GetTile(99).transform.position;
+        basePoint.x -= tileXScale / 2f;
+        basePoint.z += tileZScale / 2f;
+        basePoint.x += 10f;
+        basePoint.z -= 10f;
+
+        {
+            GameObject gameObject = new GameObject("sePoint0");
+            gameObject.transform.position = basePoint;
+            gameObject.transform.SetParent(diagRoot);
+            spawnPointGroup.SEPoints.Add(gameObject);
+        }
+
+        //sw: GetTile(90) 기준, center 보정 후 (-10, 0, -10)
+        basePoint = gamePlatform.GetTile(90).transform.position;
+        basePoint.x -= tileXScale / 2f;
+        basePoint.z += tileZScale / 2f;
+        basePoint.x -= 10f;
+        basePoint.z -= 10f;
+
+        {
+            GameObject gameObject = new GameObject("swPoint0");
+            gameObject.transform.position = basePoint;
+            gameObject.transform.SetParent(diagRoot);
+            spawnPointGroup.SWPoints.Add(gameObject);
         }
 
     }

@@ -107,21 +107,28 @@ public class HoverMissile : Missile
             (int)HoverMissileType.Custom,
             (int)HoverMissileType.HorizonLinear + 1
         );
+
         MissileSpawner.Instance.GetRandomSettingHoming(this);
 
-        // HorizonLinear는 스폰 방향의 반대편으로 직선 이동
+        // HorizonLinear는 spawnDirection이 가리키는 방향으로 직선 이동
         if (hoverType == HoverMissileType.HorizonLinear && spawnDirection >= 0)
         {
-            // 0=N→South, 1=S→North, 2=E→West, 3=W→East
+            // 직선: 0=N→S, 1=S→N, 2=E→W, 3=W→E
+            // 대각선: 4=SE, 5=SW, 6=NE, 7=NW
             Vector3 dir = spawnDirection switch
             {
                 0 => Vector3.back,
                 1 => Vector3.forward,
                 2 => Vector3.left,
                 3 => Vector3.right,
+                4 => new Vector3(+1f, 0f, -1f).normalized,
+                5 => new Vector3(-1f, 0f, -1f).normalized,
+                6 => new Vector3(+1f, 0f, +1f).normalized,
+                7 => new Vector3(-1f, 0f, +1f).normalized,
                 _ => Vector3.back
             };
             transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+            Initialize();  // rotation 변경 후 physics.direction 동기화
         }
 
         AssignStrategy();
