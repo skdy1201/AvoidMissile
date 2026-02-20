@@ -184,7 +184,7 @@ public class GameProgress : Singleton<GameProgress>
     {
         MissileSpawner.Instance.UpdateSetting(currentLevel);
 
-        if (!spawnItem && currentLevel >= 1)
+        if (!spawnItem && currentLevel >= 20)
         {
             spawnItem = true;
             ItemSpawner.Instance.StartCoroutine("ItemSpawnLoop");
