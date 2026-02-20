@@ -294,8 +294,8 @@ public class MissileSpawner : Spawner<MissileType>
     /// </summary>
     public void UpdateSetting(int level)
     {
-        //UpdateFallingMissile();
-        //UpdateHoverMissile(level);
+        UpdateFallingMissile();
+        UpdateHoverMissile(level);
         UpdateGrandMissile(level);
     }
 
@@ -370,10 +370,10 @@ public class MissileSpawner : Spawner<MissileType>
     public void GetRandomSettingHoming(HoverMissile missile)
     {
         int healthPoint = Random.Range(1, hoverMissileData.hp + 1);
-        float moveTime = Random.Range(hoverMissileData.flight / 2f, hoverMissileData.flight);
-        float moveSpeed = Random.Range(hoverMissileData.flightSpeed / 2f, hoverMissileData.flightSpeed);
-        float rotateTime = Random.Range(hoverMissileData.turn / 2f, hoverMissileData.turn);
-        float rotateSpeed = Random.Range(hoverMissileData.turnRate / 2f, hoverMissileData.turnRate);
+        float moveTime = Mathf.Round(Random.Range(hoverMissileData.flight / 2f, hoverMissileData.flight) * 100f) / 100f;
+        float moveSpeed = Mathf.Round(Random.Range(hoverMissileData.flightSpeed / 2f, hoverMissileData.flightSpeed) * 100f) / 100f;
+        float rotateTime = Mathf.Round(Random.Range(hoverMissileData.turn / 2f, hoverMissileData.turn) * 100f) / 100f;
+        float rotateSpeed = Mathf.Round(Random.Range(hoverMissileData.turnRate / 2f, hoverMissileData.turnRate) * 100f) / 100f;
 
         missile.SetStat(healthPoint, moveTime, moveSpeed, rotateTime, rotateSpeed);
         missile.Initialize();
@@ -398,7 +398,7 @@ public class MissileSpawner : Spawner<MissileType>
     {
         if (fallingLoop == false)
         {
-            StartCoroutine(MissileSpawnLoop());
+            StartCoroutine(FallingMissileSpawnLoop());
             fallingLoop = true;
         }
 
@@ -429,7 +429,7 @@ public class MissileSpawner : Spawner<MissileType>
 
             if (fallingLoop == false)
             {
-                StartCoroutine(MissileSpawnLoop());
+                StartCoroutine(FallingMissileSpawnLoop());
                 fallingLoop = true;
             }
 
@@ -455,9 +455,6 @@ public class MissileSpawner : Spawner<MissileType>
             tileZ = worldSize.z;
 
             CreateSpawnPoint();
-
-            StartCoroutine(GrandMissileSpawnLoop());
-            grandLoop = true;
         }
     }
 
@@ -742,7 +739,7 @@ public class MissileSpawner : Spawner<MissileType>
             fallingMissile.XZCoord = xzCoordinate;
 
             // 낙하 속도 설정 (units/second)
-            float randomSpeed = Random.Range(fallingMissileData.fallSpeed / 2f, fallingMissileData.fallSpeed);
+            float randomSpeed = Mathf.Round(Random.Range(fallingMissileData.fallSpeed / 2f, fallingMissileData.fallSpeed) * 100f) / 100f;
             fallingMissile.SetStat(randomSpeed);
             fallingMissile.Initialize();
 
@@ -780,20 +777,20 @@ public class MissileSpawner : Spawner<MissileType>
     /// 낙하 미사일 생성 루프
     /// </summary>
     /// <returns> 코루틴 </returns>
-    IEnumerator MissileSpawnLoop()
+    IEnumerator FallingMissileSpawnLoop()
     {
         // 플레이 씬 동안 계속 진행
         while (true)
         {
             // 미사일 생성 타이머 설정
-            float missileTimer = Random.Range(fallingMissileData.waiting / 2f, fallingMissileData.waiting);
+            float missileTimer = Mathf.Round(Random.Range(fallingMissileData.waiting / 2f, fallingMissileData.waiting) * 100f) / 100f;
             yield return new WaitForSeconds(missileTimer);
-            
+
             SpawnMissile();
 
             // 다음 주기 대기 시간
-            float waitTimer = Random.Range(0f, 5f);
-           
+            float waitTimer = Mathf.Round(Random.Range(0f, 5f) * 100f) / 100f;
+
             yield return new WaitForSeconds(waitTimer);
         }
     }
