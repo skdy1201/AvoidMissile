@@ -28,13 +28,13 @@ public class AppUpdateController : Singleton<AppUpdateController>
     {
         base.Awake();
 
-#if UNITY_ANDROID
-
         Debug.Log("Check Update");
-        appUpdateManager = new AppUpdateManager();
-        StartCoroutine(CheckForUpdate());
 
-#endif
+        if (Application.platform == RuntimePlatform.Android)
+        {
+            appUpdateManager = new AppUpdateManager();
+            StartCoroutine(CheckForUpdate());
+        }
     }
 
     #endregion

@@ -383,6 +383,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 81bb9eea30387e442899949a80011e55, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4973369216642944171}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 81bb9eea30387e442899949a80011e55, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7071413064495323152}
   m_SourcePrefab: {fileID: 100100000, guid: 81bb9eea30387e442899949a80011e55, type: 3}
 --- !u!1 &11608747067052009 stripped
 GameObject:
@@ -487,6 +490,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BehaviorTreeRunner
   targetTree: {fileID: 11400000, guid: b4ae1a7b9eeba3443aa02bd3aa39ee2b, type: 2}
+--- !u!114 &7071413064495323152
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 11608747067052009}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4b83cd1b14928540899f2357a597250, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerVisibilityController
+  visibilityMaterial: {fileID: 2100000, guid: 82fea5e7c5180574da3139e460bc3124, type: 2}
+  fallingDangerRadius: 2
+  homingDangerRadius: 3
+  safeColor: {r: 0, g: 0, b: 0, a: 1}
+  dangerColor: {r: 1, g: 0, b: 0, a: 1}
+  clipRadius: 0.3
+  clipEdgeWidth: 0.05
+  clipEdgeColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!4 &820480541538669907 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 81bb9eea30387e442899949a80011e55, type: 3}

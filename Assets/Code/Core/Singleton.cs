@@ -36,7 +36,7 @@ public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
     #region Properties
 
     /// <summary>
-    /// 싱글톤 인스턴스에 접근. 없으면 자동 생성
+    /// 싱글톤 인스턴스에 접근. 없으면 씬에서 찾고, 그래도 없으면 자동 생성
     /// </summary>
     /// <returns> 싱글톤 인스턴스 </returns>
     public static T Instance
@@ -45,8 +45,15 @@ public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
         {
             if (instance == null)
             {
-                GameObject gameObject = new GameObject(typeof(T).Name);
-                instance = gameObject.AddComponent<T>();
+                // 씬에 이미 존재하는 인스턴스 먼저 찾기
+                instance = FindAnyObjectByType<T>();
+
+                // 씬에도 없으면 새로 생성
+                if (instance == null)
+                {
+                    GameObject gameObject = new GameObject(typeof(T).Name);
+                    instance = gameObject.AddComponent<T>();
+                }
             }
 
             return instance;
@@ -68,9 +75,14 @@ public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
             instance = this.GetComponent<T>();
             DontDestroyOnLoad(this.gameObject);
         }
+        else if (instance == this)
+        {
+            // Instance getter에서 FindObjectOfType으로 먼저 찾은 경우
+            DontDestroyOnLoad(this.gameObject);
+        }
         else
         {
-            // 이미 인스턴스가 존재하면, 중복 오브젝트 제거
+            // 이미 다른 인스턴스가 존재하면, 중복 오브젝트 제거
             Destroy(this.gameObject);
         }
     }

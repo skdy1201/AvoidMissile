@@ -10,13 +10,10 @@ public class PlayerMoveNode : LeafNode
         Rigidbody rb = player.Rigidbody;
 
         Vector2 moveValue = player.MoveValue;
-        Vector3 moveVector = new Vector3(moveValue.x, 0, moveValue.y) * player.Speed * Time.fixedDeltaTime;
-
-        // 이동
-        rb.MovePosition(rb.position + moveVector);
+        Vector3 moveDir = new Vector3(moveValue.x, 0, moveValue.y);
 
         // 회전
-        Quaternion dirQuat = Quaternion.LookRotation(moveVector);
+        Quaternion dirQuat = Quaternion.LookRotation(moveDir);
         Quaternion moveQuat = Quaternion.Slerp(rb.rotation, dirQuat, 0.3f);
         rb.MoveRotation(moveQuat);
 
