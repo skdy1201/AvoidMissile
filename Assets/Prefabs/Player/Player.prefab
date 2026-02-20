@@ -364,8 +364,7 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 3
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 5866666021909216657, guid: 81bb9eea30387e442899949a80011e55, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -381,6 +380,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 81bb9eea30387e442899949a80011e55, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1207558795321313167}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 81bb9eea30387e442899949a80011e55, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4973369216642944171}
   m_SourcePrefab: {fileID: 100100000, guid: 81bb9eea30387e442899949a80011e55, type: 3}
 --- !u!1 &11608747067052009 stripped
 GameObject:
@@ -422,8 +424,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   joystick: {fileID: 0}
-  Speed: 5
-  bPlayerUndead: 0
+  moveSpeed: 5
+  undeadPlayer: 0
 --- !u!54 &659190417429530480
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -472,6 +474,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.55, y: 1.7, z: 0.55}
   m_Center: {x: 0, y: 0.85, z: 0}
+--- !u!114 &4973369216642944171
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 11608747067052009}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d950dd86130ccdf4ba552c756edfa123, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BehaviorTreeRunner
+  targetTree: {fileID: 11400000, guid: b4ae1a7b9eeba3443aa02bd3aa39ee2b, type: 2}
 --- !u!4 &820480541538669907 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 81bb9eea30387e442899949a80011e55, type: 3}
