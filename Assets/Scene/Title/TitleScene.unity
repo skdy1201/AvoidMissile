@@ -256,6 +256,7 @@ MonoBehaviour:
   boomEffect:
   - {fileID: 8300000, guid: 8739d8dd2f743ff41a41e22e6f8b8b1c, type: 3}
   - {fileID: 8300000, guid: 54f025e692428654892b604e5e66705e, type: 3}
+  - {fileID: 8300000, guid: 9c2b975c6769db349b3080e75de73fd1, type: 3}
   playerEffect:
   - {fileID: 8300000, guid: 6d18efc634924e744bd68e13ca6ced27, type: 3}
   - {fileID: 8300000, guid: a55c1d248bed6ef4fa1afcdae3b16880, type: 3}
@@ -893,6 +894,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fallingMissilePrefab: {fileID: 4702976934742720838, guid: 8fc4ccd0f013de54aa42e869c9b6ca73, type: 3}
   hoverMissilePrefab: {fileID: 4606004508970681605, guid: 8aaa6a727f4a9fe4a9e4550bb3c62770, type: 3}
+  grandMissilePrefab: {fileID: 2844906244194635021, guid: 6b3a6c2f7cfdf954888a6c91ec785476, type: 3}
   gamePlatform: {fileID: 0}
   fallingMissileData:
     missileCount: 0
@@ -920,9 +922,20 @@ MonoBehaviour:
     turnRate: 0
     turnRateIncrement: 0
     turnRateMax: 0
+  grandMissileData:
+    count: 0
+    countIncrement: 0
+    maxCount: 0
+    speed: 0
+    speedIncrement: 0
+    speedMax: 0
+    diameter: 0
+    diameterIncrement: 0
+    diameterMax: 0
   hoverMissileSpawnPoints: []
   homingLoop: 0
   fallingLoop: 0
+  grandLoop: 0
   fallingQueueSize: 0
 --- !u!4 &471068745
 Transform:
@@ -1273,6 +1286,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BoomSpawner
   boomEffects:
   - {fileID: 8738302188082770132, guid: 2a52ce98422c33e469ad6e0ba678189f, type: 3}
+  - {fileID: 1186645206995854699, guid: 7ee02ba838e8a1842b102ccec61c15c9, type: 3}
 --- !u!4 &877433180
 Transform:
   m_ObjectHideFlags: 0
