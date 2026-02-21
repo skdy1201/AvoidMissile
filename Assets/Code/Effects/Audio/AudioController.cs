@@ -154,6 +154,15 @@ public class AudioController : Singleton<AudioController>
     }
 
     /// <summary>
+    /// 지정 인덱스의 폭발 이펙트 사운드 재생
+    /// </summary>
+    /// <param name="index"> boomEffect 배열 인덱스 </param>
+    public void PlayBoomSound(int index)
+    {
+        effectAudioInstance.GetComponent<AudioSource>().PlayOneShot(boomEffect[index], GameData.Instance.GetSettingValue(OptionType.EffectSound));
+    }
+
+    /// <summary>
     /// 아이템 이펙트 사운드 재생
     /// </summary>
     /// <param name="effectSoundidx"></param>

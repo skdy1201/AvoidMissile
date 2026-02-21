@@ -67,6 +67,9 @@ public abstract class Item : MonoBehaviour
         if (itemCollider == null)
             Debug.LogError("item doesn't have collider");
 
+        // Trigger 모드로 설정 (물리 충돌 반응 제거, OnTriggerEnter로 감지)
+        itemCollider.isTrigger = true;
+
         itemMaterial = gameObject.GetComponent<MeshRenderer>().material;
 
     }
@@ -133,10 +136,10 @@ public abstract class Item : MonoBehaviour
     /// <summary>
     /// 플레이어와 충돌한다면, 아이템의 효과를 발동시키고, 스포너에 반환한다.
     /// </summary>
-    /// <param name="otherCollider"> 충돌한 다른 오브젝트 </param>
-    private void OnCollisionEnter(Collision otherCollider)
+    /// <param name="other"> 충돌한 다른 오브젝트의 Collider </param>
+    private void OnTriggerEnter(Collider other)
     {
-        if (otherCollider.gameObject.layer == LayerMask.NameToLayer("Player"))
+        if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
         {
             EffectItem();
 

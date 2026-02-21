@@ -4,9 +4,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 
-// TODO : UPDATE LELVEL을 좀 더 간소화 시킬 방법을 찾아야 할 것 같다.
-// 이름을 매번 update에서 캐싱하는게 별로일수도
-
 /// <summary>
 /// 게임의 전반적인 진행사항을 다루는 싱글톤
 /// </summary>
@@ -23,7 +20,7 @@ public class GameProgress : Singleton<GameProgress>
 
     [SerializeField] private float levelTimer = 0f;
 
-    [SerializeField] private float currentLevel = 1f;
+    [SerializeField] private int currentLevel = 1;
 
     [SerializeField] private int playerScore = 0;
 
@@ -31,10 +28,6 @@ public class GameProgress : Singleton<GameProgress>
 
     // 광고 부활과 부활 아이템의 중복 사용을 막기 위한 변수
     [SerializeField] private bool playerAlive = false;
-
-    [SerializeField] private bool spawnXAxis = false;
-
-    [SerializeField] private bool spawnYAxis = false;
 
     [SerializeField] private float soundfadeTime = 1f;
 
@@ -91,7 +84,7 @@ public class GameProgress : Singleton<GameProgress>
     /// </summary>
     /// <remarks>
     /// 레벨이 증가했을 때, 게임의 난이도를 UpdateLevel로 재조정
-    /// 10 레벨 이상일 때, X축 미사일 스폰을 시작
+    /// 10 레벨 이상일 때, 추적 미사일 스폰을 시작
     /// </remarks>
     void Update()
     {
@@ -135,12 +128,7 @@ public class GameProgress : Singleton<GameProgress>
         GlobalData.Instance.Player.GetComponent<Player>().ActiveRevive();
         greyScale.ResetGreyScale();
 
-        MissileSpawner.Instance.StartCoroutine("MissileSpawnLoop");
-
-        if (currentLevel >= 10)
-            MissileSpawner.Instance.StartCoroutine("XAxisMissileSpawnLoop");
-        else
-            spawnXAxis = false;
+        MissileSpawner.Instance.RestartMissileLoops(currentLevel);
 
         if (currentLevel >= 20)
             ItemSpawner.Instance.StartCoroutine("ItemSpawnLoop");
@@ -160,7 +148,7 @@ public class GameProgress : Singleton<GameProgress>
     /// 타임 스케일을 조정, PlayScene라면, 진행에 필요한 변수들을 초기화
     /// </summary>
     /// <remarks>
-    /// 타이머, 점수, 레벨, Y축 미사일 스폰, 플레이어 사망 여부
+    /// 타이머, 점수, 레벨, 플레이어 사망 여부
     /// </remarks>
     protected override void StartProtocol()
     {
@@ -173,13 +161,11 @@ public class GameProgress : Singleton<GameProgress>
         {
             gameTimer = 0f;
             levelTimer = 0f;
-            currentLevel = 1f;
+            currentLevel = 1;
 
             playerScore = 0;
 
             isPlayerDead = false;
-
-            spawnXAxis = false;
 
             playerAlive = false;
         }
@@ -187,7 +173,6 @@ public class GameProgress : Singleton<GameProgress>
 
     protected override void EndProtocol()
     {
-        spawnXAxis = false;
         spawnItem = false;
         reviveSpotLight = null;
     }
@@ -195,62 +180,9 @@ public class GameProgress : Singleton<GameProgress>
     /// <summary>
     /// 난이도 변경 함수
     /// </summary>
-    /// <remarks>
-    /// 다음 최소 미사일 개수,
-    /// 현재 최대 미사일 개수,
-    /// 미사일 스폰 사이클,
-    /// 미사일 기본 속도,
-    /// X축 미사일 세팅,
-    /// </remarks>
     private void UpdateLevel()
     {
-        // 제곱근 방식으로 레벨 증가하도록 수정(25 레벨에 50 도달)
-        int nextLimitMissileCount = Mathf.FloorToInt(Mathf.Sqrt(currentLevel * 100));
-
-        // Y축 미사일 스폰시
-        if (spawnYAxis)
-        {
-            nextLimitMissileCount = Mathf.FloorToInt(Mathf.Clamp(nextLimitMissileCount, 1, (float)MissileSpawner.Instance.limitMissileCount - 1));
-
-            //최대 미사일 개수 설정
-            if (nextLimitMissileCount > MissileSpawner.Instance.CurMaxMissileCount && nextLimitMissileCount < MissileSpawner.Instance.limitMissileCount)
-            {
-                MissileSpawner.Instance.CurMaxMissileCount = nextLimitMissileCount;
-            }
-            else
-            {
-                MissileSpawner.Instance.CurMaxMissileCount = MissileSpawner.Instance.limitMinMissileCount;
-                nextLimitMissileCount = MissileSpawner.Instance.limitMissileCount;
-            }
-
-            // 최소 미사일 개수 설정
-            MissileSpawner.Instance.LimitMinMissileCount = nextLimitMissileCount / 2;
-        }
-
-        // 미사일 사이클 설정
-        float missileCycle = MissileSpawner.Instance.MissileCycle - 0.05f;
-        missileCycle = Mathf.Clamp(missileCycle, 1f, 3f);
-
-        MissileSpawner.Instance.MissileCycle = missileCycle;
-
-        // 미사일 기초 속도 설정
-        float nextMissileSpeed = MissileSpawner.Instance.MissileBaseSpeed - 0.05f;
-        nextMissileSpeed = Mathf.Max(nextMissileSpeed, 2f);
-
-        MissileSpawner.Instance.MissileBaseSpeed = nextMissileSpeed;
-
-        if (spawnXAxis == false && currentLevel >= 10)
-        {
-            spawnXAxis = true;
-            MissileSpawner.Instance.StartCoroutine("XAxisMissileSpawnLoop");
-        }
-
-        // X축 미사일 스폰 상태라면
-        if (spawnXAxis)
-        {
-            MissileSpawner.Instance.UpdateSetting();
-        }
-
+        MissileSpawner.Instance.UpdateSetting(currentLevel);
 
         if (!spawnItem && currentLevel >= 20)
         {

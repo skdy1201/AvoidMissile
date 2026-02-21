@@ -43,6 +43,9 @@ public class Player : MonoBehaviour
     private float nowSpeed = 0f;
     private float bonusSpeed = 0f;
 
+    private Vector3 knockbackVelocity;
+    private const float knockbackDamping = 0.9f;
+
     /// <summary>
     /// 버프가 슬라이드에서 powerJump의 경우가 있기 때문에, 이를 구분하기 위한 변수
     /// </summary>
@@ -159,8 +162,16 @@ public class Player : MonoBehaviour
         if (nowSpeed <= 0f)
             nowSpeed = 0.1f;
 
-        // BT 실행 (이동/회전은 Leaf 노드에서 처리)
+        // 넉백 감쇠
+        knockbackVelocity *= knockbackDamping;
+        if (knockbackVelocity.sqrMagnitude < 0.01f)
+            knockbackVelocity = Vector3.zero;
+
+        // BT 실행 (회전/애니메이션은 Leaf 노드에서 처리)
         runner.RunBT();
+
+        // 이동 속도 적용
+        ApplyVelocity();
     }
 
     /// <summary>
@@ -186,20 +197,14 @@ public class Player : MonoBehaviour
     /// </summary>
     /// <remarks>
     /// PowerJump 상태일 때는 미사일과 충돌 가능 (미사일 파괴)
-    /// 일반 슬라이드는 미사일과 충돌 무시
+    /// 일반 슬라이드는 Damage 미사일 무시, 넉백 미사일은 여전히 밀림
     /// </remarks>
     public void ActivateSlide()
     {
-        // 강화 상태알림, 충돌해서 미사일을 없앨 수 있기 때문에, 일반 슬라이드와 다른 처리
         if (powerJump)
-        {
             activePowerJump = true;
-            slide = true;
-            return;
-        }
 
         slide = true;
-        Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), true);
     }
 
     /// <summary>
@@ -211,7 +216,6 @@ public class Player : MonoBehaviour
             activePowerJump = false;
 
         slide = false;
-        Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Missile"), false);
     }
 
     /// <summary>
@@ -258,6 +262,16 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
+    /// 넉백 적용 (Grand Missile 등에서 호출)
+    /// </summary>
+    /// <param name="direction">밀림 방향 (정규화)</param>
+    /// <param name="force">밀림 세기</param>
+    public void ApplyKnockback(Vector3 direction, float force)
+    {
+        knockbackVelocity = direction * force;
+    }
+
+    /// <summary>
     /// 미사일 스킬을 중첩으로 작용시키지 않기 때문에, 이미 스킬 상태이면 효과 발동이 무효화
     /// </summary>
     /// <param name="time"> 지속시간 </param>
@@ -295,31 +309,57 @@ public class Player : MonoBehaviour
     #region Private/Protected Methods
 
     /// <summary>
+    /// 이동 입력 + 넉백을 합산하여 위치 적용
+    /// </summary>
+    private void ApplyVelocity()
+    {
+        Vector3 moveVelocity = new Vector3(joystickInput.x, 0f, joystickInput.y) * nowSpeed;
+        Vector3 totalVelocity = moveVelocity + knockbackVelocity;
+        transform.position += totalVelocity * Time.fixedDeltaTime;
+    }
+
+    /// <summary>
     /// 플레이어의 충돌 관리
     /// </summary>
     /// <remarks>
-    /// PowerJump일때 충돌을 피해야하기 때문에 조건 추가
-    /// 부활이 가능하기 때문에 Layer 체크 추가
+    /// Damage 미사일: 슬라이드 중이면 무시, 아니면 사망
+    /// 넉백 미사일 (Grand 등): 넉백은 미사일 측에서 처리, 여기선 무시
+    /// PowerJump: 미사일 파괴는 미사일 측 OnTriggerEnter에서 처리
     /// </remarks>
-    /// <param name="collision"> 충돌한 물체의 Collision </param>
-    private void OnCollisionEnter(Collision collision)
+    /// <param name="other"> 충돌한 물체의 Collider </param>
+    private void OnTriggerEnter(Collider other)
     {
-        int collisionLayer = collision.gameObject.layer;
+        int collisionLayer = other.gameObject.layer;
 
         if (collisionLayer == LayerMask.NameToLayer("GameBoundary"))
         {
             if (readyRevive == false)
                 OnPlayerDead?.Invoke();
+            else
+                ActiveRevive();
         }
         else if (collisionLayer == LayerMask.NameToLayer("Missile") && activePowerJump == false)
         {
+            Missile missile = other.GetComponentInParent<Missile>();
+
+            if (missile == null)
+            {
+                Debug.Log("missile script is null");
+                return;
+            }
+
+            // 넉백 미사일 (Damage == false)은 미사일 측에서 넉백 처리
+            if (missile.Damage == false)
+                return;
+
+            // 슬라이드 중에는 Damage 미사일 무시
+            if (slide)
+                return;
+
             if (readyRevive == false)
                 OnPlayerDead?.Invoke();
             else
-            {
-                // 부활 동작 및 효과 발동
                 ActiveRevive();
-            }
         }
     }
 
