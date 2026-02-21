@@ -76,3 +76,6 @@ crashlytics-build.properties
 
 # Claude Code
 CLAUDE.md
+
+# VSCode
+.vscode/
