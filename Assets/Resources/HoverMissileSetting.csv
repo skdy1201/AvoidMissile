@@ -1,6 +1,6 @@
 ﻿Type,Current,Increase,Max
 HP,1,1,2
 Flight,2,0.2,5
-FlightSpeed,1,0.25,5
+FlightSpeed,1,0.25,3.5
 Turn,5,-0.2,2
 TurnRate,90,5,180
