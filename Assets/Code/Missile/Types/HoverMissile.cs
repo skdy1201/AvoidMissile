@@ -259,7 +259,7 @@ public class HoverMissile : Missile
                 Vector3 contact = other.ClosestPoint(transform.position);
                 ActiveBombEffect(contact);
             }
-            else if (other.gameObject.GetComponent<GrandMissile>() != null)
+            else if (other.GetComponentInParent<GrandMissile>() != null)
             {
                 MissileSpawner.Instance.RemoveHoverMissile(gameObject);
                 Destroy(gameObject);

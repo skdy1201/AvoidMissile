@@ -290,14 +290,23 @@ public class GrandMissile : Missile
         if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
             Knockback(other);
 
-        GrandMissile otherGrand = other.GetComponentInParent<GrandMissile>();
-
-        if (other.gameObject.layer == LayerMask.NameToLayer("Platform")
-            || otherGrand != null)
+        if (other.gameObject.layer == LayerMask.NameToLayer("Platform"))
         {
             Vector3 contact = other.ClosestPoint(transform.position);
             ActiveBombEffect(contact, BoomParticle.Grand);
             Destroy(this.gameObject);
+            return;
+        }
+
+        if (other.gameObject.layer == LayerMask.NameToLayer("Missile"))
+        {
+            GrandMissile otherGrand = other.GetComponentInParent<GrandMissile>();
+            if (otherGrand != null)
+            {
+                Vector3 contact = other.ClosestPoint(transform.position);
+                ActiveBombEffect(contact, BoomParticle.Grand);
+                Destroy(this.gameObject);
+            }
         }
     }
 
