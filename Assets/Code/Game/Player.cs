@@ -45,6 +45,7 @@ public class Player : MonoBehaviour
 
     private Vector3 knockbackVelocity;
     private const float knockbackDamping = 0.9f;
+    private Vector3 slideVelocity = Vector3.zero;
 
     /// <summary>
     /// 버프가 슬라이드에서 powerJump의 경우가 있기 때문에, 이를 구분하기 위한 변수
@@ -99,6 +100,11 @@ public class Player : MonoBehaviour
     public bool PowerJump => powerJump;
 
     public bool LockSkill => lockSkill;
+
+    /// <summary>
+    /// SlideNode에서 계산한 슬라이드 이동 속도 (ApplyVelocity에서 통합 적용)
+    /// </summary>
+    public Vector3 SlideVelocity { set => slideVelocity = value; }
 
     public bool Revive
     {
@@ -309,13 +315,19 @@ public class Player : MonoBehaviour
     #region Private/Protected Methods
 
     /// <summary>
-    /// 이동 입력 + 넉백을 합산하여 위치 적용
+    /// 이동 입력 + 슬라이드 + 넉백을 합산하여 위치 적용
     /// </summary>
+    /// <remarks>
+    /// 슬라이드 중에는 slideVelocity(SlideNode에서 설정), 그 외에는 joystick 입력 속도 사용
+    /// rb.MovePosition으로 통합하여 물리 방식 일관성 유지
+    /// </remarks>
     private void ApplyVelocity()
     {
-        Vector3 moveVelocity = new Vector3(joystickInput.x, 0f, joystickInput.y) * nowSpeed;
+        Vector3 moveVelocity = slide
+            ? slideVelocity
+            : new Vector3(joystickInput.x, 0f, joystickInput.y) * nowSpeed;
         Vector3 totalVelocity = moveVelocity + knockbackVelocity;
-        transform.position += totalVelocity * Time.fixedDeltaTime;
+        rigidBody.MovePosition(rigidBody.position + totalVelocity * Time.fixedDeltaTime);
     }
 
     /// <summary>

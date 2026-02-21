@@ -8,15 +8,10 @@ public class SlideNode : LeafNode
         Player player = owner.GetComponent<Player>();
 
         if (player.Slide == false)
-        {
             return NodeResult.FAILURE;
-        }
 
-        Rigidbody rb = player.Rigidbody;
-        Vector3 moveVector = owner.transform.forward * (player.Speed + 2.5f) * Time.fixedDeltaTime;
-
-        // 이동
-        rb.MovePosition(rb.position + moveVector);
+        // 슬라이드 속도 설정 (이동은 Player.ApplyVelocity에서 통합 처리)
+        player.SlideVelocity = owner.transform.forward * (player.Speed + 2.5f);
 
         // 애니메이션 플래그 (슬라이드 중에는 Move = false)
         player.Move = false;
