@@ -924,7 +924,7 @@ public class MissileSpawner : Spawner<MissileType>
                 currentGrnadMissiles.AddLast(missileObject);
             }
 
-            yield return new WaitForSeconds(Random.Range(8f, 15f));
+            yield return new WaitForSeconds(Random.Range(15f, 30f));
         }
     }
 

@@ -2431,6 +2431,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 7071413064495323152, guid: e3cdd8be6b3359e4ba015f7355a7a13e, type: 3}
+      propertyPath: clipEdgeWidth
+      value: 0.015
+      objectReference: {fileID: 0}
+    - target: {fileID: 7071413064495323152, guid: e3cdd8be6b3359e4ba015f7355a7a13e, type: 3}
+      propertyPath: clipEdgeColor.b
+      value: 0.509804
+      objectReference: {fileID: 0}
+    - target: {fileID: 7071413064495323152, guid: e3cdd8be6b3359e4ba015f7355a7a13e, type: 3}
+      propertyPath: clipEdgeColor.r
+      value: 0.2941177
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
