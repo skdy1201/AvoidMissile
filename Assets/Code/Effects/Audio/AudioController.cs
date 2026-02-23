@@ -143,20 +143,20 @@ public class AudioController : Singleton<AudioController>
     }
 
     /// <summary>
-    /// 랜덤 폭발 이펙트 사운드 재생
+    /// 일반 폭발 이펙트 사운드 랜덤 재생 (index 0, 1만 사용)
     /// </summary>
-    public void PlayExploreSound()
+    public void PlayNormalBoomSound()
     {
-        int randomIndex = Random.Range(0, boomEffect.Length);
+        int randomIndex = Random.Range(0, 2);
 
         effectAudioInstance.GetComponent<AudioSource>().PlayOneShot(boomEffect[randomIndex], GameData.Instance.GetSettingValue(OptionType.EffectSound));
 
     }
 
     /// <summary>
-    /// 지정 인덱스의 폭발 이펙트 사운드 재생
+    /// 일반 폭발 이펙트 사운드 재생 (index 0, 1만 허용)
     /// </summary>
-    /// <param name="index"> boomEffect 배열 인덱스 </param>
+    /// <param name="index"> boomEffect 배열 인덱스 (0 또는 1) </param>
     public void PlayBoomSound(int index)
     {
         effectAudioInstance.GetComponent<AudioSource>().PlayOneShot(boomEffect[index], GameData.Instance.GetSettingValue(OptionType.EffectSound));

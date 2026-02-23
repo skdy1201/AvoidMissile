@@ -120,7 +120,7 @@ public class Missile : MonoBehaviour
         if (type == BoomParticle.Grand)
             AudioController.Instance.PlayBoomSound(2);
         else
-            AudioController.Instance.PlayExploreSound();
+            AudioController.Instance.PlayNormalBoomSound();
     }
 
     #endregion
