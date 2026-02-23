@@ -1,10 +1,10 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// ?꾩씠???곗씠??吏곷젹??援ъ“泥?
+/// 아이템 데이터 직렬화 구조체
 /// </summary>
 public struct ItemData
 {
@@ -15,7 +15,7 @@ public struct ItemData
 }
 
 /// <summary>
-/// ?꾩씠??????닿굅??
+/// 아이템 타입 열거형
 /// </summary>
 public enum ItemType
 {
@@ -28,19 +28,19 @@ public enum ItemType
 };
 
 /// <summary>
-/// ?꾩씠???앹꽦 留ㅻ땲?
+/// 아이템 생성 매니저
 /// </summary>
 /// <remarks>
-/// ?꾩씠?쒕뱾???앹꽦 諛?愿由?諛?諛섑솚???대떦
+/// 아이템들의 생성 및 관리 및 반환을 담당
 /// </remarks>
 public class ItemSpawner : Spawner<ItemType>
 {
     #region Serialized Fields
 
-    // ?꾩씠?쒕뱾???꾨━?뱀쑝濡?愿由?
+    // 아이템들을 프리팹으로 관리
     [SerializeField] List<GameObject> ItemPrefabs;
 
-    // ??쇰뱾??醫뚰몴媛믪쓣 ??ν븯怨??ъ슜?섍린 ?꾪븳 ?뚮옯??
+    // 타일들의 좌표값을 참조하고 사용하기 위한 플랫폼
     [SerializeField] private Platform gamePlatform;
 
     [SerializeField] private int maxItemSpawn = 4;
@@ -59,7 +59,7 @@ public class ItemSpawner : Spawner<ItemType>
 
     private List<bool> itemSpawnTies = Enumerable.Repeat(false, 100).ToList();
 
-    // 遺???꾩씠?쒖쓣 癒뱀뿀?붿? 泥댄겕
+    // 부활 아이템을 먹었는지 체크
     private bool activeRevive = false;
 
     #endregion
@@ -76,7 +76,7 @@ public class ItemSpawner : Spawner<ItemType>
     #region Unity Lifecycle
 
     /// <summary>
-    /// ?щ쭩 ?대깽???깅줉 諛??ㅻ툕?앺듃 ? 珥덇린??
+    /// 사망 이벤트 등록 및 오브젝트 풀 초기화
     /// </summary>
     protected override void Awake()
     {
@@ -85,7 +85,7 @@ public class ItemSpawner : Spawner<ItemType>
 
         SyncItemData();
 
-        // ?꾩씠???ㅽ룷?덈뱾???섎굹???ㅻ툕?앺듃 ?ㅽ룷?덉뿉 ?ｌ뼱?먭린
+        // 아이템 오브젝트들을 하나씩 오브젝트 스포너에 넣어두기
         int itemcount = System.Enum.GetValues(typeof(ItemType)).Length;
 
         Debug.Log($"item count is {itemcount}");
@@ -102,7 +102,7 @@ public class ItemSpawner : Spawner<ItemType>
             spawners[i].Enqueue(item);
         }
 
-        // ?ㅽ룷?덉뿉?쒕뒗 ?덉씠??異⑸룎??誘몄궗?? ?꾩씠??媛꾩뿉 臾댁떆
+        // 스포너에서는 레이어 충돌: 미사일, 아이템 간에 무시
         Physics.IgnoreLayerCollision(LayerMask.NameToLayer("GameItem"), LayerMask.NameToLayer("Missile"), true);
 
     }
@@ -117,7 +117,7 @@ public class ItemSpawner : Spawner<ItemType>
 
     #region Public Methods
 
-    // item Type???곕씪, Spawner?먯꽌 ?뺤씤?대낫怨? ?놁쑝硫??앹꽦 ?꾨땲硫?諛섑솚
+    // item Type에 따라, Spawner에서 확인해보고, 없으면 생성 아니면 반환
     public override GameObject RentSpawner(ItemType type)
     {
         GameObject item = null;
@@ -143,7 +143,7 @@ public class ItemSpawner : Spawner<ItemType>
         return item;
     }
 
-    // ?ㅼ떆 ?먯뿉 ?섎룎?ㅼ＜湲?
+    // 다시 풀에 되돌려주기
     public override void ReturnSpawner(ItemType type, GameObject item)
     {
         item.SetActive(false);
@@ -152,7 +152,7 @@ public class ItemSpawner : Spawner<ItemType>
         itemcomponent.ResetItemAlpha();
 
 
-        // ?꾩씠???ㅽ룿 泥댄겕 由ъ뒪??媛깆떊
+        // 아이템 스폰 체크 리스트 갱신
         if(itemcomponent != null)
         {
             int spawnidx = itemcomponent.SpawnTile;
@@ -160,7 +160,7 @@ public class ItemSpawner : Spawner<ItemType>
             if (spawnidx > -1)
                 itemSpawnTies[spawnidx] = false;
         }
-        
+
         if(activeItems.Contains(item))
             activeItems.Remove(item);
 
@@ -170,14 +170,14 @@ public class ItemSpawner : Spawner<ItemType>
 
     }
 
-    // ?뚮옯???깅줉 ?⑥닔
+    // 플랫폼 등록 함수
     public void SetPlatform(Platform platform)
     {
         gamePlatform = platform;
     }
 
     /// <summary>
-    /// ?뺣쪧怨꾩궛 ?뺤긽?묐룞 ?뺤씤??100踰??쒕??덉씠??
+    /// 확률계산 정상동작 확인용 100번 테스트 레이어
     /// </summary>
     public void TestPercent()
     {
@@ -191,11 +191,11 @@ public class ItemSpawner : Spawner<ItemType>
     }
 
     /// <summary>
-    /// 遺???꾩씠?쒖쓣 癒밴퀬 ?뺣쪧???щ텇諛??섍린 ?꾪븳 ?⑥닔
+    /// 부활 아이템을 먹고 확률을 재분배하기 위한 함수
     /// </summary>
     /// <remarks>
-    /// Control, Slide, Lock ?꾩씠?쒖뿉寃?媛?1%??遺꾨같 ??
-    /// Revive ?뺣쪧 ?쒓굅
+    /// Control, Slide, Lock 아이템에게 각 1%씩 분배 전달
+    /// Revive 확률 제거
     /// </remarks>
     public void TakeRevive()
     {
@@ -240,7 +240,7 @@ public class ItemSpawner : Spawner<ItemType>
         while (activeItems.Count > 0)
         {
             GameObject item = activeItems.First.Value;
-            activeItems.RemoveFirst(); 
+            activeItems.RemoveFirst();
             Destroy(item);
         }
 
@@ -248,10 +248,10 @@ public class ItemSpawner : Spawner<ItemType>
     }
 
     /// <summary>
-    /// 諛붿씠?덈━ ?곗씠?곕줈 吏곷젹???대룄 ?곗씠???좎? ?덈맖, 吏곸젒 ?꾨━?밴낵 ?곕룞
+    /// 바이너리 데이터로 직렬화된 아이템 데이터 동기화, 직접 프리팹과 연동
     /// </summary>
     /// <remarks>
-    /// ?꾨━?뱀쓽 ?대쫫???듯빐 ?곌껐 ?쒕룄
+    /// 프리팹의 이름을 통해 연결 시도
     /// </remarks>
     private void SyncItemData()
     {
@@ -296,10 +296,10 @@ public class ItemSpawner : Spawner<ItemType>
     }
 
     /// <summary>
-    /// ?쒕뜡媛믪뿉 ?곕Ⅸ ?뺣쪧??怨꾩궛?섎뒗 ?⑥닔
+    /// 랜덤값에 따른 확률을 계산하는 함수
     /// </summary>
-    /// <param name="value">?쒕뜡 ?앹꽦??媛?/param>
-    /// <returns>?뺣쪧 怨꾩궛?쇰줈 ?좏깮???꾩씠??index</returns>
+    /// <param name="value">랜덤 생성된 값</param>
+    /// <returns>확률 계산으로 선택된 아이템 index</returns>
     private int CalculatePercent(int value)
     {
         int itemIndex = 0;
@@ -308,7 +308,7 @@ public class ItemSpawner : Spawner<ItemType>
 
         for(int i = 0; i < ItemPrefabs.Count; ++i)
         {
-            // ItemPercent[i]???대? ?꾩쟻 寃쎄퀎媛?
+            // ItemPercent[i]는 이미 누적 경계값
             int percentEnd = ItemPercent[i];
 
             if (percentStart <= value && value < percentEnd)
@@ -326,11 +326,8 @@ public class ItemSpawner : Spawner<ItemType>
     }
 
     /// <summary>
-    /// ?꾩씠???뺣쪧 怨꾩궛
+    /// 아이템 확률 경계 계산
     /// </summary>
-    /// <remarks>
-    /// 
-    /// </remarks>
     private void CalculatePercentBoundary()
     {
         int percentStart = 0;
@@ -338,12 +335,12 @@ public class ItemSpawner : Spawner<ItemType>
         for (int i = 0; i < ItemPrefabs.Count; ++i)
         {
             Item currentItem = ItemPrefabs[i].GetComponent<Item>();
-            
+
             int percentEnd = percentStart + currentItem.Percent;
 
             ItemPercent[i] = percentEnd;
 
-            // ?뺣쪧??0 ~ 100源뚯??닿린 ?뚮Ц?? ?ъ슜?섏? ?딅뒗 ?꾩씠?쒖? 101濡?留뚮벉
+            // 확률이 0 ~ 100까지이기 때문에, 사용하지 않는 아이템은 101로 만듦
             if (currentItem.Percent == 0)
                 ItemPercent[i] = 101;
 
@@ -359,7 +356,7 @@ public class ItemSpawner : Spawner<ItemType>
     #region Coroutines
 
     /// <summary>
-    /// ?꾩씠???ㅽ룿 猷⑦봽
+    /// 아이템 스폰 루프
     /// </summary>
     IEnumerator ItemSpawnLoop()
     {
@@ -373,7 +370,7 @@ public class ItemSpawner : Spawner<ItemType>
 
                 bool researchFail = false;
 
-                // 3占쏙옙 占쌕쏙옙 찾占승듸옙 占쌩븝옙占싱띰옙占?占쌓놂옙 占싼어가占쏙옙
+                // 3번 재시도, 찾아도 없으면 다음 스폰으로 넘어가기
                 if (itemSpawnTies[randomrange] == true)
                 {
                     int count = 3;
@@ -391,18 +388,18 @@ public class ItemSpawner : Spawner<ItemType>
                 if (researchFail)
                     continue;
 
-                // ???泥댄겕
+                // 중복 체크
                 itemSpawnTies[randomrange] = true;
 
                 int itemPercent = (int)(Random.value * 100);
                 int itemType = CalculatePercent(itemPercent);
 
-                // ?ㅽ룿 ?꾩튂 怨꾩궛??
+                // 스폰 위치 계산
                 Vector3 tilePos = gamePlatform.GetTile(randomrange).transform.position;
                 tilePos.y += 2f;
                 tilePos.x -= GlobalData.Instance.TileXScale / 2f;
                 tilePos.z += GlobalData.Instance.TileZScale / 2f;
-                
+
                 GameObject item = RentSpawner((ItemType)itemType);
 
                 item.transform.position = tilePos;
