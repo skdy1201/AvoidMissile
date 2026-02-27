@@ -94,7 +94,7 @@ public class ParticleController : MonoBehaviour
 
         // 모든 파티클 재생이 완료되면(비트마스크가 목표값과 일치) 오브젝트 풀로 반환
         if (particleStatusBits == targetNumber)
-            BoomEffectSpawner.Instance.ReturnSpawner(BoomParticle.Normal, this.gameObject);
+            BoomEffectSpawner.Instance.ReturnSpawner(boomParticleType, this.gameObject);
     }
 
     #endregion

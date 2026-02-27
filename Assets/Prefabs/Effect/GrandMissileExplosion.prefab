@@ -84,4 +84,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ParticleController
   particleObjects:
   - {fileID: 1186645206995854697}
-  boomParticleType: 0
+  boomParticleType: 1
