@@ -1,17 +1,26 @@
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine.SceneManagement;
 
 public class MissilePatternEditor : EditorWindow
 {
+    #region Enums
+    private enum ViewMode { TopDown, SceneView }
+    #endregion
+
     #region Layout Constants
-    private const float ToolbarHeight      = 40f;
-    private const float PlaybarHeight      = 60f;
-    private const float TilePixelSize      = 40f;   // scale=1 기준 픽셀/타일
-    private const float MinScale           = 0.3f;
-    private const float MaxScale           = 3.0f;
-    private const int   GridCols           = 10;
-    private const int   GridRows           = 10;
-    private const float FullViewHalfExtent = 17f;   // Reset View 시 커버할 world 반경 (스폰포인트 ~15 + 여백)
+    private const float  ToolbarHeight      = 40f;
+    private const float  PlaybarHeight      = 60f;
+    private const float  TilePixelSize      = 40f;   // scale=1 기준 픽셀/타일
+    private const float  MinScale           = 0.3f;
+    private const float  MaxScale           = 3.0f;
+    private const int    GridCols           = 10;
+    private const int    GridRows           = 10;
+    private const float  FullViewHalfExtent = 17f;   // Reset View 시 커버할 world 반경 (스폰포인트 ~15 + 여백)
+    private const string PlatformTilePath   = "Assets/Prefabs/Platform/GrassTile.prefab";
+    // 게임 MissileSpawner.CreateSpawnPoint() 와 동일한 오프셋 (플랫폼 가장자리 타일 중심에서 +10)
+    private const float  SpawnOffset        = 10f;
     #endregion
 
     #region Colors
@@ -25,29 +34,55 @@ public class MissilePatternEditor : EditorWindow
     private static readonly Color SpawnPointDiagonalColor = new Color(1.00f, 0.65f, 0.25f);  // 주황 — NE/NW/SE/SW
     #endregion
 
-    #region Viewport State
-    private Vector2 viewOffset    = Vector2.zero;
-    private float   viewScale     = 1f;
+    #region Top-Down Viewport State
+    private Vector2 viewOffset      = Vector2.zero;
+    private float   viewScale       = 1f;
     private bool    viewInitialized = false;
+    #endregion
+
+    #region Scene View State
+    // 뷰 모드 (ADR-001 참조)
+    private ViewMode currentMode = ViewMode.TopDown;
+
+    // Additive 씬 기반 렌더링 (ADR-002 참조)
+    // PlayScene을 강제 로드하는 대신 에디터 전용 임시 씬을 생성해 카메라·플랫폼을 배치.
+    // 이펙트 테스트 시 MissileSpawner를 씬 컨텍스트 내에서 활용 가능하도록 Additive 방식 채택.
+    private Scene         editorScene;
+    private Camera        sceneCamera;
+    private RenderTexture renderTexture;
+    private bool          sceneInitialized = false;
+
+    // 씬뷰 카메라 조작 상태
+    private Vector3     sceneCamTarget   = Vector3.zero;
+    private float       sceneCamDistance = 12f;
+    private const float SceneCamAngleX   = 60f;  // PlayScene 메인 카메라와 동일한 X 회전각
     #endregion
 
     [MenuItem("Window/Missile Pattern")]
     private static void ShowWindow() =>
         GetWindow<MissilePatternEditor>("Missile Pattern Editor");
 
-    private void OnEnable()  { }
-    private void OnDisable() { }
+    private void OnEnable()
+    {
+        if (currentMode == ViewMode.SceneView)
+            InitSceneView();
+    }
+
+    private void OnDisable()
+    {
+        CleanupSceneView();
+    }
 
     private void OnGUI()
     {
-        if (!viewInitialized)
+        if (!viewInitialized && currentMode == ViewMode.TopDown)
         {
             ResetView();
             viewInitialized = true;
         }
 
-        DrawToolbar();
         DrawViewport();
+        DrawToolbar();
         DrawPlaybar();
         HandleInput();
     }
@@ -62,6 +97,16 @@ public class MissilePatternEditor : EditorWindow
         GUILayout.BeginHorizontal();
         GUILayout.Label("Missile Pattern Editor", EditorStyles.boldLabel, GUILayout.ExpandHeight(true));
         GUILayout.FlexibleSpace();
+
+        EditorGUI.BeginChangeCheck();
+        int newModeIndex = GUILayout.Toolbar(
+            (int)currentMode,
+            new[] { "탑뷰", "씬뷰" },
+            GUILayout.Height(24), GUILayout.Width(120));
+        if (EditorGUI.EndChangeCheck())
+            SwitchMode((ViewMode)newModeIndex);
+
+        GUILayout.Space(8);
         if (GUILayout.Button("Reset View", GUILayout.Height(ToolbarHeight)))
             ResetView();
         GUILayout.EndHorizontal();
@@ -79,13 +124,21 @@ public class MissilePatternEditor : EditorWindow
         Rect vp = ViewportRect;
         EditorGUI.DrawRect(vp, ViewportBackground);
 
-        if (Event.current.type != EventType.Repaint) return;
+        if (currentMode == ViewMode.SceneView)
+        {
+            if (Event.current.type == EventType.Repaint)
+                DrawSceneViewport(vp);
+            return;
+        }
 
+        if (Event.current.type != EventType.Repaint) return;
         DrawGridArea(vp);
         DrawTiles(vp);
         DrawBorder(vp);
         DrawSpawnPoints(vp);
     }
+
+    // ── 탑뷰 렌더링 ──────────────────────────────────────────────────────────
 
     // 그리드 전체 영역 배경 — 타일 사이 1px 틈새에서 격자선으로 보임
     private void DrawGridArea(Rect vp)
@@ -130,29 +183,42 @@ public class MissilePatternEditor : EditorWindow
     }
 
     // 스폰포인트 표시
-    // 에디터 좌표 기준 (1유닛 = 타일 1칸, 플랫폼 중심 = 0,0):
-    //   N/S: 플랫폼 상하 가장자리에서 +10 (Y=±14.5), X 10개 (-5~4)
-    //   E/W: 플랫폼 좌우 가장자리에서 +10 (X=±14.5), Y 10개 (5~-4)
-    //   대각선: 코너에서 (+10,+10) 오프셋, 각 1개
+    // ※ 이 좌표계는 탑뷰 뷰포트 전용: 1 unit = 1 타일.
+    //    게임 월드의 실제 타일 크기(tileXScale 등)와는 무관.
+    //
+    // 게임 MissileSpawner.CreateSpawnPoint() 로직을 타일 단위로 재현.
+    // 각 값의 유래 (1 unit = 1 tile 기준):
+    //   cardinalD = 경계 타일 중심(halfRows - 0.5f = 4.5) + SpawnOffset(10) = 14.5
+    //             → 카디널은 타일 중심에서 바로 SpawnOffset을 더함 (모서리 보정 없음)
+    //   diagX     = 경계 타일 중심(4.5) - 왼쪽 모서리 보정(0.5) + SpawnOffset(10) = 14
+    //   diagZ     = 경계 타일 중심(4.5) + 위쪽 모서리 보정(0.5) + SpawnOffset(10) = 15
+    //             → 대각선은 코너 타일의 좌상단 모서리를 기준으로 SpawnOffset을 더함
     private void DrawSpawnPoints(Rect vp)
     {
-        for (int i = 0; i < 10; i++)
+        float halfCols  = GridCols * 0.5f;                       // 5
+        float halfRows  = GridRows * 0.5f;                       // 5
+        float cardinalD = halfRows - 0.5f + SpawnOffset;         // 14.5  (N/S Y, E/W X)
+        float diagX     = halfCols - 1f   + SpawnOffset;         // 14    (NE/SE X)
+        float diagZ     = halfRows         + SpawnOffset;         // 15    (N 대각선 Z)
+        float diagZSouth= halfRows - 1f   + SpawnOffset;         // 14    (S 대각선 Z, 남쪽 타일 중심 보정)
+
+        for (int i = 0; i < GridCols; i++)
         {
-            DrawDot(vp, new Vector2(-5f + i,  14.5f), SpawnPointCardinalColor);  // North
-            DrawDot(vp, new Vector2(-5f + i, -14.5f), SpawnPointCardinalColor);  // South
-            DrawDot(vp, new Vector2( 14.5f,   5f - i), SpawnPointCardinalColor); // East
-            DrawDot(vp, new Vector2(-14.5f,   5f - i), SpawnPointCardinalColor); // West
+            DrawDot(vp, new Vector2(-halfCols + i + 0.5f,  cardinalD), SpawnPointCardinalColor);  // North
+            DrawDot(vp, new Vector2(-halfCols + i + 0.5f, -cardinalD), SpawnPointCardinalColor);  // South
+            DrawDot(vp, new Vector2( cardinalD,  halfRows - i - 0.5f), SpawnPointCardinalColor);  // East
+            DrawDot(vp, new Vector2(-cardinalD,  halfRows - i - 0.5f), SpawnPointCardinalColor);  // West
         }
 
-        DrawDot(vp, new Vector2( 14f,  15f), SpawnPointDiagonalColor, 7f);  // NE
-        DrawDot(vp, new Vector2(-15f,  15f), SpawnPointDiagonalColor, 7f);  // NW
-        DrawDot(vp, new Vector2( 14f, -14f), SpawnPointDiagonalColor, 7f);  // SE
-        DrawDot(vp, new Vector2(-15f, -14f), SpawnPointDiagonalColor, 7f);  // SW
+        DrawDot(vp, new Vector2( diagX,  diagZ),      SpawnPointDiagonalColor, 7f);  // NE
+        DrawDot(vp, new Vector2(-diagZ,  diagZ),      SpawnPointDiagonalColor, 7f);  // NW
+        DrawDot(vp, new Vector2( diagX, -diagZSouth), SpawnPointDiagonalColor, 7f);  // SE
+        DrawDot(vp, new Vector2(-diagZ, -diagZSouth), SpawnPointDiagonalColor, 7f);  // SW
 
-        DrawWorldLabel(vp, new Vector2(-0.5f,  16f), "N");
-        DrawWorldLabel(vp, new Vector2(-0.5f, -16f), "S");
-        DrawWorldLabel(vp, new Vector2( 16f,   0.5f), "E");
-        DrawWorldLabel(vp, new Vector2(-17f,   0.5f), "W");
+        DrawWorldLabel(vp, new Vector2(-0.5f,  diagZ + 1f), "N");
+        DrawWorldLabel(vp, new Vector2(-0.5f, -diagZ - 1f), "S");
+        DrawWorldLabel(vp, new Vector2( diagZ + 1f,  0.5f), "E");
+        DrawWorldLabel(vp, new Vector2(-diagZ - 1f,  0.5f), "W");
     }
 
     // 뷰포트 안에 있을 때만 dot 그림 (off-screen 스킵)
@@ -171,6 +237,32 @@ public class MissilePatternEditor : EditorWindow
         Rect    labelRect = new Rect(s.x - 10f, s.y - 8f, 20f, 16f);
         if (vp.Overlaps(labelRect))
             GUI.Label(labelRect, text, EditorStyles.centeredGreyMiniLabel);
+    }
+
+    // ── 씬뷰 렌더링 ──────────────────────────────────────────────────────────
+
+    // RenderTexture 크기를 뷰포트에 맞추고 카메라를 수동 렌더
+    private void DrawSceneViewport(Rect vp)
+    {
+        if (!sceneInitialized) return;
+
+        int w = Mathf.Max(1, (int)vp.width);
+        int h = Mathf.Max(1, (int)vp.height);
+
+        if (renderTexture == null || renderTexture.width != w || renderTexture.height != h)
+        {
+            if (renderTexture != null)
+            {
+                sceneCamera.targetTexture = null;
+                renderTexture.Release();
+                DestroyImmediate(renderTexture);
+            }
+            renderTexture             = new RenderTexture(w, h, 24);
+            sceneCamera.targetTexture = renderTexture;
+        }
+
+        sceneCamera.Render();
+        GUI.DrawTexture(vp, renderTexture, ScaleMode.StretchToFill, false);
     }
     #endregion
 
@@ -194,7 +286,13 @@ public class MissilePatternEditor : EditorWindow
         Rect  vp = ViewportRect;
         if (!vp.Contains(e.mousePosition)) return;
 
-        // 스크롤 휠 → 줌
+        if (currentMode == ViewMode.SceneView)
+        {
+            HandleSceneViewInput(e);
+            return;
+        }
+
+        // 탑뷰: 스크롤 휠 → 줌
         if (e.type == EventType.ScrollWheel)
         {
             viewScale = Mathf.Clamp(viewScale - e.delta.y * 0.05f, MinScale, MaxScale);
@@ -202,7 +300,7 @@ public class MissilePatternEditor : EditorWindow
             Repaint();
         }
 
-        // 중간 버튼 / Alt+좌드래그 → 팬
+        // 탑뷰: 중간 버튼 / Alt+좌드래그 → 팬
         if (e.type == EventType.MouseDrag &&
             (e.button == 2 || (e.button == 0 && e.alt)))
         {
@@ -212,6 +310,115 @@ public class MissilePatternEditor : EditorWindow
             e.Use();
             Repaint();
         }
+    }
+
+    private void HandleSceneViewInput(Event e)
+    {
+        // 스크롤 휠 → 카메라 거리 조절 (줌)
+        if (e.type == EventType.ScrollWheel)
+        {
+            sceneCamDistance = Mathf.Clamp(sceneCamDistance + e.delta.y * 0.4f, 3f, 40f);
+            UpdateSceneCameraTransform();
+            e.Use();
+            Repaint();
+        }
+
+        // 중간 버튼 / Alt+좌드래그 → 카메라 타겟 팬
+        if (e.type == EventType.MouseDrag &&
+            (e.button == 2 || (e.button == 0 && e.alt)))
+        {
+            float sensitivity = sceneCamDistance * 0.003f;
+            sceneCamTarget += new Vector3(-e.delta.x * sensitivity, 0f, e.delta.y * sensitivity);
+            UpdateSceneCameraTransform();
+            e.Use();
+            Repaint();
+        }
+    }
+    #endregion
+
+    #region Scene View Lifecycle
+    private void SwitchMode(ViewMode newMode)
+    {
+        if (currentMode == newMode) return;
+        currentMode = newMode;
+
+        if (currentMode == ViewMode.SceneView)
+            InitSceneView();
+        else
+            CleanupSceneView();
+
+        Repaint();
+    }
+
+    private void InitSceneView()
+    {
+        if (sceneInitialized) return;
+
+        // 에디터 전용 임시 씬 생성 (Additive — PlayScene을 건드리지 않음)
+        editorScene      = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+        editorScene.name = "MissilePatternEditor_Preview";
+
+        // 카메라 생성 — PlayScene 메인 카메라와 동일한 FOV / 각도 사용
+        var cameraGO = new GameObject("PreviewCamera");
+        SceneManager.MoveGameObjectToScene(cameraGO, editorScene);
+        sceneCamera                 = cameraGO.AddComponent<Camera>();
+        sceneCamera.fieldOfView     = 60f;
+        sceneCamera.nearClipPlane   = 0.01f;
+        sceneCamera.farClipPlane    = 1000f;
+        sceneCamera.clearFlags      = CameraClearFlags.SolidColor;
+        sceneCamera.backgroundColor = ViewportBackground;
+
+        // 방향광 생성 (기본 조명)
+        var lightGO = new GameObject("PreviewLight");
+        SceneManager.MoveGameObjectToScene(lightGO, editorScene);
+        var light       = lightGO.AddComponent<Light>();
+        light.type      = LightType.Directional;
+        light.intensity = 1f;
+        lightGO.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
+
+        // 플랫폼 타일 배치 (10×10 GrassTile)
+        var tilePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PlatformTilePath);
+        if (tilePrefab != null)
+        {
+            for (int row = 0; row < GridRows; row++)
+            for (int col = 0; col < GridCols; col++)
+            {
+                float x    = -GridCols * 0.5f + col + 0.5f;
+                float z    =  GridRows * 0.5f - row - 0.5f;  // row=0 → +4.5(north), row=9 → -4.5(south)
+                var   tile = (GameObject)PrefabUtility.InstantiatePrefab(tilePrefab, editorScene);
+                tile.transform.position = new Vector3(x, 0f, z);
+            }
+        }
+
+        UpdateSceneCameraTransform();
+        sceneInitialized = true;
+    }
+
+    private void CleanupSceneView()
+    {
+        if (!sceneInitialized) return;
+
+        if (renderTexture != null)
+        {
+            if (sceneCamera != null) sceneCamera.targetTexture = null;
+            renderTexture.Release();
+            DestroyImmediate(renderTexture);
+            renderTexture = null;
+        }
+
+        if (editorScene.IsValid())
+            EditorSceneManager.CloseScene(editorScene, true);
+
+        sceneCamera      = null;
+        sceneInitialized = false;
+    }
+
+    private void UpdateSceneCameraTransform()
+    {
+        if (sceneCamera == null) return;
+        Quaternion rot = Quaternion.Euler(SceneCamAngleX, 0f, 0f);
+        sceneCamera.transform.SetPositionAndRotation(
+            sceneCamTarget + rot * new Vector3(0f, 0f, -sceneCamDistance), rot);
     }
     #endregion
 
@@ -230,6 +437,15 @@ public class MissilePatternEditor : EditorWindow
 
     private void ResetView()
     {
+        if (currentMode == ViewMode.SceneView)
+        {
+            sceneCamTarget   = Vector3.zero;
+            sceneCamDistance = 12f;
+            UpdateSceneCameraTransform();
+            Repaint();
+            return;
+        }
+
         viewOffset = Vector2.zero;
         Rect  vp       = ViewportRect;
         float fullSize = FullViewHalfExtent * 2f * TilePixelSize;
