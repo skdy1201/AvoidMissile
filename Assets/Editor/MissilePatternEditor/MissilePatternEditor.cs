@@ -53,9 +53,10 @@ public class MissilePatternEditor : EditorWindow
     private bool          sceneInitialized = false;
 
     // 씬뷰 카메라 조작 상태
-    private Vector3     sceneCamTarget   = Vector3.zero;
-    private float       sceneCamDistance = 12f;
-    private const float SceneCamAngleX   = 60f;  // PlayScene 메인 카메라와 동일한 X 회전각
+    private Vector3 sceneCamTarget   = Vector3.zero;
+    private float   sceneCamDistance = 12f;
+    private float   sceneCamPitch    = 60f;  // X 회전 (수직각). PlayScene 기본값과 동일 (→ ADR-003)
+    private float   sceneCamYaw      = 0f;   // Y 회전 (수평 궤도)
     #endregion
 
     [MenuItem("Window/Missile Pattern")]
@@ -263,6 +264,74 @@ public class MissilePatternEditor : EditorWindow
 
         sceneCamera.Render();
         GUI.DrawTexture(vp, renderTexture, ScaleMode.StretchToFill, false);
+        DrawOrientationGizmo(vp);
+    }
+
+    // 씬뷰 우측 하단 — XYZ 방향 기즈모 (→ ADR-003)
+    // Handles.DrawLine 으로 GUI 픽셀 좌표계에 직접 그림.
+    // 카메라 right/up 기준으로 월드 축을 2D 투영, 뒤쪽 축을 먼저 그려 depth-sort 효과.
+    private void DrawOrientationGizmo(Rect vp)
+    {
+        if (!sceneInitialized || sceneCamera == null) return;
+
+        const float gizmoHalf  = 30f;   // 배경 정사각형 반경 (픽셀)
+        const float axisRadius = 22f;   // 축 선 길이 (픽셀)
+        const float dotSize    =  5f;   // 끝점 dot 크기 (픽셀)
+        const float margin     =  8f;
+
+        var center = new Vector2(
+            vp.x + vp.width  - gizmoHalf - margin,
+            vp.y + vp.height - gizmoHalf - margin);
+
+        // 반투명 배경
+        EditorGUI.DrawRect(
+            new Rect(center.x - gizmoHalf, center.y - gizmoHalf, gizmoHalf * 2f, gizmoHalf * 2f),
+            new Color(0f, 0f, 0f, 0.35f));
+
+        Vector3 camRight = sceneCamera.transform.right;
+        Vector3 camUp    = sceneCamera.transform.up;
+
+        // 월드 축 방향 → 화면 2D 오프셋 (카메라 right/up 기준 투영)
+        Vector2 Project(Vector3 worldAxis) => new Vector2(
+             Vector3.Dot(worldAxis, camRight) * axisRadius,
+            -Vector3.Dot(worldAxis, camUp)    * axisRadius);
+
+        var axes = new (Vector3 dir, Color color, string label)[]
+        {
+            (Vector3.right,   new Color(0.95f, 0.25f, 0.25f), "X"),
+            (Vector3.up,      new Color(0.25f, 0.90f, 0.25f), "Y"),
+            (Vector3.forward, new Color(0.25f, 0.55f, 1.00f), "Z"),
+        };
+
+        // 뒤쪽 축 먼저 그려 앞쪽 축이 위로 오게 depth-sort
+        System.Array.Sort(axes, (a, b) =>
+            Vector3.Dot(b.dir, sceneCamera.transform.forward)
+                .CompareTo(Vector3.Dot(a.dir, sceneCamera.transform.forward)));
+
+        var labelStyle = new GUIStyle(EditorStyles.miniLabel) { alignment = TextAnchor.MiddleCenter };
+
+        foreach (var (dir, color, label) in axes)
+        {
+            Vector2 end = center + Project(dir);
+
+            // 축 선
+            Handles.color = color;
+            Handles.DrawLine(new Vector3(center.x, center.y), new Vector3(end.x, end.y));
+
+            // 끝점 dot
+            EditorGUI.DrawRect(
+                new Rect(end.x - dotSize * 0.5f, end.y - dotSize * 0.5f, dotSize, dotSize), color);
+
+            // 레이블
+            var labelRect = new Rect(end.x - 8f, end.y - 8f, 16f, 16f);
+            if (vp.Overlaps(labelRect))
+            {
+                labelStyle.normal.textColor = color;
+                GUI.Label(labelRect, label, labelStyle);
+            }
+        }
+
+        Handles.color = Color.white;  // restore
     }
     #endregion
 
@@ -314,7 +383,7 @@ public class MissilePatternEditor : EditorWindow
 
     private void HandleSceneViewInput(Event e)
     {
-        // 스크롤 휠 → 카메라 거리 조절 (줌)
+        // 스크롤 휠 → 줌 (카메라 거리)
         if (e.type == EventType.ScrollWheel)
         {
             sceneCamDistance = Mathf.Clamp(sceneCamDistance + e.delta.y * 0.4f, 3f, 40f);
@@ -323,12 +392,26 @@ public class MissilePatternEditor : EditorWindow
             Repaint();
         }
 
-        // 중간 버튼 / Alt+좌드래그 → 카메라 타겟 팬
+        // 우클릭 드래그 → 궤도 회전 (Yaw / Pitch). 좌클릭은 미사일 배치용으로 예약 (→ ADR-003)
+        if (e.type == EventType.MouseDrag && e.button == 1)
+        {
+            sceneCamYaw   = (sceneCamYaw + e.delta.x * 0.35f) % 360f;
+            sceneCamPitch =  Mathf.Clamp(sceneCamPitch + e.delta.y * 0.35f, 5f, 89f);
+            UpdateSceneCameraTransform();
+            e.Use();
+            Repaint();
+        }
+
+        // 중간 버튼 / Alt+좌드래그 → 카메라 기준 팬
+        // 회전 후에도 팬 방향이 직관적이도록 camRight + XZ-투영 forward 기준으로 이동 (→ ADR-003)
         if (e.type == EventType.MouseDrag &&
             (e.button == 2 || (e.button == 0 && e.alt)))
         {
-            float sensitivity = sceneCamDistance * 0.003f;
-            sceneCamTarget += new Vector3(-e.delta.x * sensitivity, 0f, e.delta.y * sensitivity);
+            float   sensitivity = sceneCamDistance * 0.003f;
+            Vector3 camRight    = sceneCamera.transform.right;
+            Vector3 flatForward = Vector3.ProjectOnPlane(sceneCamera.transform.forward, Vector3.up);
+            if (flatForward.sqrMagnitude > 0.001f) flatForward.Normalize();
+            sceneCamTarget += (-e.delta.x * camRight + e.delta.y * flatForward) * sensitivity;
             UpdateSceneCameraTransform();
             e.Use();
             Repaint();
@@ -416,7 +499,7 @@ public class MissilePatternEditor : EditorWindow
     private void UpdateSceneCameraTransform()
     {
         if (sceneCamera == null) return;
-        Quaternion rot = Quaternion.Euler(SceneCamAngleX, 0f, 0f);
+        Quaternion rot = Quaternion.Euler(sceneCamPitch, sceneCamYaw, 0f);
         sceneCamera.transform.SetPositionAndRotation(
             sceneCamTarget + rot * new Vector3(0f, 0f, -sceneCamDistance), rot);
     }
@@ -441,6 +524,8 @@ public class MissilePatternEditor : EditorWindow
         {
             sceneCamTarget   = Vector3.zero;
             sceneCamDistance = 12f;
+            sceneCamPitch    = 60f;
+            sceneCamYaw      = 0f;
             UpdateSceneCameraTransform();
             Repaint();
             return;
