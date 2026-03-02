@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -57,6 +58,15 @@ public class MissilePatternEditor : EditorWindow
     private float   sceneCamDistance = 12f;
     private float   sceneCamPitch    = 60f;  // X 회전 (수직각). PlayScene 기본값과 동일 (→ ADR-003)
     private float   sceneCamYaw      = 0f;   // Y 회전 (수평 궤도)
+
+    // 스폰포인트 큐브 머티리얼 — CleanupSceneView에서 명시적으로 해제
+    private readonly List<Material> spawnMaterials = new List<Material>();
+
+    // 씬뷰 플랫폼 실제 크기 정보 — Platform.cs와 동일하게 MeshFilter.bounds에서 읽음
+    // platformOrigin = tile(row=0, col=0) 중심 위치 (MissileSpawner의 GetTile(0)에 해당)
+    private float   tileXSize      = 1f;
+    private float   tileZSize      = 1f;
+    private Vector3 platformOrigin = Vector3.zero;
     #endregion
 
     [MenuItem("Window/Missile Pattern")]
@@ -264,7 +274,132 @@ public class MissilePatternEditor : EditorWindow
 
         sceneCamera.Render();
         GUI.DrawTexture(vp, renderTexture, ScaleMode.StretchToFill, false);
+        DrawSceneDirectionLabels(vp);
         DrawOrientationGizmo(vp);
+    }
+
+    // 씬뷰 N/S/E/W 레이블 오버레이 — 실제 플랫폼 크기 기반으로 스폰 영역 바깥에 표시
+    private void DrawSceneDirectionLabels(Rect vp)
+    {
+        if (!sceneInitialized || sceneCamera == null) return;
+
+        float halfPlatX = GridCols * tileXSize * 0.5f;
+        float halfPlatZ = GridRows * tileZSize * 0.5f;
+        float labelPad  = Mathf.Max(tileXSize, tileZSize) * 1.5f;
+
+        DrawSceneWorldLabel(vp, new Vector3(0f,                        0f,  halfPlatZ + SpawnOffset + labelPad), "N");
+        DrawSceneWorldLabel(vp, new Vector3(0f,                        0f, -halfPlatZ - SpawnOffset - labelPad), "S");
+        DrawSceneWorldLabel(vp, new Vector3( halfPlatX + SpawnOffset + labelPad, 0f, 0f),                        "E");
+        DrawSceneWorldLabel(vp, new Vector3(-halfPlatX - SpawnOffset - labelPad, 0f, 0f),                        "W");
+    }
+
+    // 3D 월드 좌표 → 뷰포트 픽셀로 투영 후 레이블 그림
+    private void DrawSceneWorldLabel(Rect vp, Vector3 worldPos, string text)
+    {
+        Vector3 vpPoint = sceneCamera.WorldToViewportPoint(worldPos);
+        if (vpPoint.z <= 0f) return;
+
+        float px        = vp.x + vpPoint.x        * vp.width;
+        float py        = vp.y + (1f - vpPoint.y) * vp.height;
+        Rect  labelRect = new Rect(px - 10f, py - 8f, 20f, 16f);
+        if (vp.Overlaps(labelRect))
+            GUI.Label(labelRect, text, EditorStyles.centeredGreyMiniLabel);
+    }
+
+    // 스폰포인트 큐브 오브젝트 일괄 생성 — InitSceneView에서 한 번만 호출
+    // MissileSpawner.CreateSpawnPoint() 를 에디터 씬에 그대로 재현.
+    // platformOrigin = GetTile(0) 위치, tileXSize/tileZSize = 실제 메시 크기.
+    private void CreateSpawnPointObjects()
+    {
+        Material cardinalMat = CreateSpawnMaterial(SpawnPointCardinalColor);
+        Material diagonalMat = CreateSpawnMaterial(SpawnPointDiagonalColor);
+
+        // tile(row, col) 중심 좌표 헬퍼
+        Vector3 TilePos(int row, int col) => new Vector3(
+            platformOrigin.x + col * tileXSize,
+            0f,
+            platformOrigin.z - row * tileZSize);
+
+        // ── Cardinal ─────────────────────────────────────────────────────────
+
+        // North: GetTile(0), z+10, x-=tileXScale/2
+        Vector3 northBase = TilePos(0, 0);
+        northBase.z += SpawnOffset;
+        northBase.x -= tileXSize * 0.5f;
+        for (int i = 0; i < GridCols; i++)
+            SpawnCube(new Vector3(northBase.x + tileXSize * i, 0.25f, northBase.z), cardinalMat);
+
+        // South: GetTile(90)=tile(9,0), z-10, x-=tileXScale/2
+        Vector3 southBase = TilePos(GridRows - 1, 0);
+        southBase.z -= SpawnOffset;
+        southBase.x -= tileXSize * 0.5f;
+        for (int i = 0; i < GridCols; i++)
+            SpawnCube(new Vector3(southBase.x + tileXSize * i, 0.25f, southBase.z), cardinalMat);
+
+        // East: GetTile(9)=tile(0,9), x+10, z+=tileZScale/2
+        Vector3 eastBase = TilePos(0, GridCols - 1);
+        eastBase.x += SpawnOffset;
+        eastBase.z += tileZSize * 0.5f;
+        for (int i = 0; i < GridRows; i++)
+            SpawnCube(new Vector3(eastBase.x, 0.25f, eastBase.z - tileZSize * i), cardinalMat);
+
+        // West: GetTile(0), x-10, z+=tileZScale/2
+        Vector3 westBase = TilePos(0, 0);
+        westBase.x -= SpawnOffset;
+        westBase.z += tileZSize * 0.5f;
+        for (int i = 0; i < GridRows; i++)
+            SpawnCube(new Vector3(westBase.x, 0.25f, westBase.z - tileZSize * i), cardinalMat);
+
+        // ── Diagonal ─────────────────────────────────────────────────────────
+        // 각 모서리 타일 중심에서 (x-=tileX/2, z+=tileZ/2) 로 코너 보정 후 ±SpawnOffset
+
+        // NE: GetTile(9)=tile(0,9)
+        Vector3 ne = TilePos(0, GridCols - 1);
+        ne.x = ne.x - tileXSize * 0.5f + SpawnOffset;
+        ne.z = ne.z + tileZSize * 0.5f + SpawnOffset;
+        SpawnCube(new Vector3(ne.x, 0.25f, ne.z), diagonalMat);
+
+        // NW: GetTile(0)=tile(0,0)
+        Vector3 nw = TilePos(0, 0);
+        nw.x = nw.x - tileXSize * 0.5f - SpawnOffset;
+        nw.z = nw.z + tileZSize * 0.5f + SpawnOffset;
+        SpawnCube(new Vector3(nw.x, 0.25f, nw.z), diagonalMat);
+
+        // SE: GetTile(99)=tile(9,9)
+        Vector3 se = TilePos(GridRows - 1, GridCols - 1);
+        se.x = se.x - tileXSize * 0.5f + SpawnOffset;
+        se.z = se.z + tileZSize * 0.5f - SpawnOffset;
+        SpawnCube(new Vector3(se.x, 0.25f, se.z), diagonalMat);
+
+        // SW: GetTile(90)=tile(9,0)
+        Vector3 sw = TilePos(GridRows - 1, 0);
+        sw.x = sw.x - tileXSize * 0.5f - SpawnOffset;
+        sw.z = sw.z + tileZSize * 0.5f - SpawnOffset;
+        SpawnCube(new Vector3(sw.x, 0.25f, sw.z), diagonalMat);
+    }
+
+    private void SpawnCube(Vector3 pos, Material mat)
+    {
+        var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        go.transform.position   = pos;
+        go.transform.localScale = Vector3.one * 0.5f;
+        go.GetComponent<Renderer>().sharedMaterial = mat;
+        DestroyImmediate(go.GetComponent<Collider>());  // 에디터 프리뷰 전용 — 물리 불필요
+        SceneManager.MoveGameObjectToScene(go, editorScene);
+    }
+
+    // URP / 빌트인 렌더 파이프라인 양쪽에서 동작하는 Unlit 컬러 머티리얼 생성
+    private Material CreateSpawnMaterial(Color color)
+    {
+        var shader = Shader.Find("Universal Render Pipeline/Unlit");
+        if (shader == null) shader = Shader.Find("Unlit/Color");
+        var mat    = new Material(shader);
+        if (mat.HasProperty("_BaseColor"))
+            mat.SetColor("_BaseColor", color);
+        else
+            mat.color = color;
+        spawnMaterials.Add(mat);
+        return mat;
     }
 
     // 씬뷰 우측 하단 — XYZ 방향 기즈모 (→ ADR-003)
@@ -459,20 +594,36 @@ public class MissilePatternEditor : EditorWindow
         light.intensity = 1f;
         lightGO.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
 
-        // 플랫폼 타일 배치 (10×10 GrassTile)
+        // 플랫폼 타일 배치 — Platform.cs와 동일하게 실제 메시 bounds로 간격 결정
         var tilePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PlatformTilePath);
         if (tilePrefab != null)
         {
+            var meshFilter = tilePrefab.GetComponent<MeshFilter>();
+            if (meshFilter != null && meshFilter.sharedMesh != null)
+            {
+                tileXSize = meshFilter.sharedMesh.bounds.size.x;
+                tileZSize = meshFilter.sharedMesh.bounds.size.z;
+            }
+
+            // 플랫폼 중앙을 (0,0,0)에 맞추기 위한 tile(row=0,col=0) 기준 좌표
+            // MissileSpawner의 GetTile(0).position 에 해당
+            platformOrigin = new Vector3(
+                -(GridCols - 1) * 0.5f * tileXSize,
+                0f,
+                 (GridRows - 1) * 0.5f * tileZSize);
+
             for (int row = 0; row < GridRows; row++)
             for (int col = 0; col < GridCols; col++)
             {
-                float x    = -GridCols * 0.5f + col + 0.5f;
-                float z    =  GridRows * 0.5f - row - 0.5f;  // row=0 → +4.5(north), row=9 → -4.5(south)
-                var   tile = (GameObject)PrefabUtility.InstantiatePrefab(tilePrefab, editorScene);
-                tile.transform.position = new Vector3(x, 0f, z);
+                var tile = (GameObject)PrefabUtility.InstantiatePrefab(tilePrefab, editorScene);
+                tile.transform.position = new Vector3(
+                    platformOrigin.x + col * tileXSize,
+                    0f,
+                    platformOrigin.z - row * tileZSize);
             }
         }
 
+        CreateSpawnPointObjects();
         UpdateSceneCameraTransform();
         sceneInitialized = true;
     }
@@ -492,6 +643,13 @@ public class MissilePatternEditor : EditorWindow
         if (editorScene.IsValid())
             EditorSceneManager.CloseScene(editorScene, true);
 
+        foreach (Material mat in spawnMaterials)
+            if (mat != null) DestroyImmediate(mat);
+        spawnMaterials.Clear();
+
+        tileXSize      = 1f;
+        tileZSize      = 1f;
+        platformOrigin = Vector3.zero;
         sceneCamera      = null;
         sceneInitialized = false;
     }
