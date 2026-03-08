@@ -7,9 +7,10 @@ using UnityEngine.SceneManagement;
 public class MissilePatternEditor : EditorWindow
 {
     #region Enums
-    private enum ViewMode        { TopDown, SceneView }
-    private enum InteractionMode { Select, Erase }               // ADR-005: 플로팅 오버레이 툴바 + 단축키 S/E/Esc
-    private enum SelectionLayer  { Tile, Missile }               // ADR-006: Phase 1 = Tile 전용
+    private enum ViewMode            { TopDown, SceneView }
+    private enum InteractionMode     { Select, Erase }               // ADR-005: 플로팅 오버레이 툴바 + 단축키 S/E/Esc
+    private enum SelectionLayer      { Tile, Missile }               // ADR-006: Phase 1 = Tile 전용
+    private enum EndOfPatternPolicy  { Destroy, KeepLast }           // Phase 2: 재생 종료 시 스폰 오브젝트 처리 방식
     #endregion
 
     #region Layout Constants
@@ -24,6 +25,16 @@ public class MissilePatternEditor : EditorWindow
     private const string PlatformTilePath   = "Assets/Prefabs/Platform/GrassTile.prefab";
     // 게임 MissileSpawner.CreateSpawnPoint() 와 동일한 오프셋 (플랫폼 가장자리 타일 중심에서 +10)
     private const float  SpawnOffset        = 10f;
+    #endregion
+
+    #region Simulation Constants
+    // 배속 프리셋 — CycleSpeed()로 순환
+    private static readonly float[]  SpeedPresets = { 0.25f, 0.5f, 1f, 2f };
+    private static readonly string[] SpeedLabels  = { "0.25x", "0.5x", "1x", "2x" };
+    // speedIndex == SpeedPresets.Length → 커스텀 모드 (float 직접 입력)
+    private const int CustomSpeedIndex = 4;
+    private const float DefaultTotalDuration   = 10f;
+    private const float DefaultSegmentDuration = 2f;
     #endregion
 
     #region Colors
@@ -110,6 +121,48 @@ public class MissilePatternEditor : EditorWindow
     private Vector3 platformOrigin = Vector3.zero;
     #endregion
 
+    #region Simulation State
+    // Phase 2: dt 기반 재생 루프 — EditorApplication.update에서 타임 진행 (60fps 독립)
+    // isPlaying = true일 때 currentTime이 SpeedPresets[speedIndex] 배속으로 증가.
+    // 재생 종료 시 endPolicy 적용 (Phase 3에서 실제 미사일과 연결).
+    private float              currentTime   = 0f;
+    private float              totalDuration = DefaultTotalDuration;
+    private bool               isPlaying     = false;
+    private bool               loopPlayback  = false;  // true → 끝 도달 시 처음부터 재개
+    private int                speedIndex    = 2;   // SpeedPresets[2] = 1x
+    private float              playSpeed     = 1f;  // 실제 재생 배속 — OnEditorUpdate에서 dt에 직접 곱함
+    // savedCustomSpeed: Custom 슬롯 입력값을 별도 보존.
+    // playSpeed는 프리셋 순환 시 덮어쓰이지만, savedCustomSpeed는 Custom 재진입 때까지 유지된다.
+    // Custom 진입 시 playSpeed = savedCustomSpeed로 복원 → 프리셋과 구별되는 배속 즉시 적용.
+    private float              savedCustomSpeed             = 3f;
+    // customSpeedFieldFocused: HandleKeyboardShortcuts에서 영문자 차단 시 사용.
+    // GUI.GetNameOfFocusedControl()은 GUI.SetNextControlName 이후(DrawToolbar 내부)에만 유효하므로
+    // DrawToolbar 렌더 직후 bool로 저장 → 다음 프레임 HandleKeyboardShortcuts에서 1프레임 지연으로 참조.
+    private bool               customSpeedFieldFocused      = false;
+    // pendingCustomFieldFocus: CycleSpeed()에서 Custom 진입 시 true로 설정.
+    // DrawToolbar에서 감지 후 EditorGUI.FocusTextInControl 1회 호출 → 클릭 없이 바로 타이핑 가능.
+    private bool               pendingCustomFieldFocus      = false;
+    private double             lastEditorTime = 0;
+    private EndOfPatternPolicy endPolicy     = EndOfPatternPolicy.Destroy;
+    #endregion
+
+    #region Timeline Data
+    // GlobalSegment: 미사일 미선택 상태에서 추가 — 전체 미사일에 일괄 적용.
+    // Phase 2: 자료구조 설계 + 타임라인 렌더링. 실제 미사일 이벤트 연결은 Phase 3.
+    // TODO (Phase 3): Dictionary<int, List<MissileSegment>> missileSegments; (ADR-006 선택 레이어 연동)
+    private struct GlobalSegment { public float Start; public float End; }
+    private readonly List<GlobalSegment> globalSegments      = new List<GlobalSegment>();
+    private          int                 selectedSegmentIndex = -1;   // -1 = 미선택
+    #endregion
+
+    #region Timeline Zoom State
+    // ADR-012: 타임라인 휠 줌 — timelineZoom 배율로 가시 범위 제어
+    // timelineZoom=1 → totalDuration 전체 표시 / >1 → 확대 (더 짧은 범위 표시)
+    // 최대 줌 = totalDuration / 0.1 (최소 가시 0.1초 보장)
+    private float timelineZoom      = 1f;   // 배율. min=1 (fit-all)
+    private float timelineViewStart = 0f;   // 현재 뷰 좌측 끝 시간(초)
+    #endregion
+
     [MenuItem("Window/Missile Pattern")]
     private static void ShowWindow() =>
         GetWindow<MissilePatternEditor>("Missile Pattern Editor");
@@ -117,12 +170,14 @@ public class MissilePatternEditor : EditorWindow
     private void OnEnable()
     {
         wantsMouseMove = true;   // MouseMove 이벤트 수신 (탑뷰 호버 하이라이트)
+        EditorApplication.update += OnEditorUpdate;   // Phase 2: dt 재생 루프
         if (currentMode == ViewMode.SceneView)
             InitSceneView();
     }
 
     private void OnDisable()
     {
+        EditorApplication.update -= OnEditorUpdate;
         CleanupSceneView();
     }
 
@@ -134,10 +189,37 @@ public class MissilePatternEditor : EditorWindow
             viewInitialized = true;
         }
 
+        // 키보드 단축키를 컨트롤 렌더링보다 먼저 처리 — FloatField 등이 이벤트를 소비하기 전에 가로챔
+        HandleKeyboardShortcuts();
+
         DrawViewport();
         DrawToolbar();
         DrawPlaybar();
         HandleInput();
+    }
+
+    // Phase 2: dt 기반 재생 루프 — EditorApplication.update에서 60fps 독립적으로 호출
+    // isPlaying일 때만 currentTime 증가. lastEditorTime은 매 프레임 갱신해 스파이크 방지.
+    private void OnEditorUpdate()
+    {
+        double now = EditorApplication.timeSinceStartup;
+        if (isPlaying)
+        {
+            float dt = (float)(now - lastEditorTime) * playSpeed;
+            currentTime = Mathf.Clamp(currentTime + dt, 0f, totalDuration);
+            if (currentTime >= totalDuration)
+            {
+                if (loopPlayback)
+                    currentTime = 0f;   // 루프: 처음으로 되감아 재생 유지
+                else
+                {
+                    isPlaying = false;
+                    // TODO (Phase 3): endPolicy에 따라 스폰된 미사일 처리 (Destroy / KeepLast)
+                }
+            }
+            Repaint();
+        }
+        lastEditorTime = now;
     }
 
     #region Toolbar
@@ -183,12 +265,44 @@ public class MissilePatternEditor : EditorWindow
         GUILayout.FlexibleSpace();
         GUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();
-        GUI.enabled = false;
-        GUILayout.Button("|<", GUILayout.Height(22), GUILayout.Width(28));
-        GUILayout.Button("▶",  GUILayout.Height(22), GUILayout.Width(28));
-        GUILayout.Button("||", GUILayout.Height(22), GUILayout.Width(28));
-        GUILayout.Button(">|", GUILayout.Height(22), GUILayout.Width(28));
-        GUI.enabled = true;
+        // |< : 이전 구간 시작점으로 점프 (구간 없으면 t=0)
+        if (GUILayout.Button("|<", GUILayout.Height(22), GUILayout.Width(28)))
+            JumpToPrevSegmentOrStart();
+        // ▶ / || : 재생 토글
+        if (GUILayout.Button(isPlaying ? "||" : "▶", GUILayout.Height(22), GUILayout.Width(28)))
+            TogglePlay();
+        // >| : 다음 구간 시작점으로 점프 (구간 없으면 totalDuration)
+        if (GUILayout.Button(">|", GUILayout.Height(22), GUILayout.Width(28)))
+            JumpToNextSegmentOrEnd();
+        // 배속 — 클릭으로 SpeedPresets 순환 → Custom 모드
+        bool customSpeed = speedIndex == CustomSpeedIndex;
+        string speedBtnLabel = customSpeed ? "Custom" : SpeedLabels[speedIndex];
+        if (GUILayout.Button(speedBtnLabel, GUILayout.Height(22), GUILayout.Width(customSpeed ? 50 : 38)))
+            CycleSpeed();
+        // Custom 모드일 때만 float 입력 필드 표시.
+        // 0·음수 방지: Mathf.Max(float.Epsilon, ...) — 0 입력 시 시뮬 완전 정지, 음수 시 역재생 방지
+        if (customSpeed)
+        {
+            // SetNextControlName → FloatField 순서 필수.
+            // 이름은 렌더 이후에만 GetNameOfFocusedControl로 조회 가능하므로
+            // customSpeedFieldFocused는 FloatField 렌더 직후에 갱신한다 (HandleKeyboardShortcuts에서 1프레임 지연 참조).
+            GUI.SetNextControlName("CustomSpeedField");
+            float newSpeed = EditorGUILayout.FloatField(playSpeed, GUILayout.Height(20), GUILayout.Width(40));
+            customSpeedFieldFocused = GUI.GetNameOfFocusedControl() == "CustomSpeedField";
+            if (pendingCustomFieldFocus)
+            {
+                // GUI.FocusControl은 포커스만 이동하지만 FocusTextInControl은 텍스트 편집 모드까지 활성화한다.
+                // Custom 진입 직후 클릭 없이 바로 타이핑 가능하게 하기 위해 사용.
+                EditorGUI.FocusTextInControl("CustomSpeedField");
+                pendingCustomFieldFocus = false;
+            }
+            if (newSpeed != playSpeed)
+            {
+                playSpeed        = Mathf.Max(float.Epsilon, newSpeed);
+                savedCustomSpeed = playSpeed;  // savedCustomSpeed 동기화 — Custom 재진입 시 이 값을 복원
+            }
+            GUILayout.Label("x", GUILayout.Width(10));
+        }
         GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();
         GUILayout.FlexibleSpace();
@@ -774,47 +888,273 @@ public class MissilePatternEditor : EditorWindow
     #endregion
 
     #region Playbar
+    // Phase 2: 재생 바 — 상단 컨트롤 행 + 하단 타임라인 트랙
+    //   컨트롤 행: 시간 표시 | 총 길이 편집 | +구간 버튼 | 종료 정책 토글
+    //   타임라인 트랙: 클릭/드래그 → 시간 스크러빙, 구간 표시, 재생헤드
     private void DrawPlaybar()
     {
-        Rect r = new Rect(0, position.height - PlaybarHeight, position.width, PlaybarHeight);
-        EditorGUI.DrawRect(r, PlaybarBackground);
+        float w  = position.width;
+        float py = position.height - PlaybarHeight;
+        EditorGUI.DrawRect(new Rect(0, py, w, PlaybarHeight), PlaybarBackground);
 
-        GUILayout.BeginArea(r);
-        GUILayout.Label("── Timeline (미구현) ──",
-                         EditorStyles.centeredGreyMiniLabel, GUILayout.ExpandHeight(true));
+        // ── 컨트롤 행 (상단 26px) ────────────────────────────────────────────
+        GUILayout.BeginArea(new Rect(4, py + 4, w - 8, 22));
+        GUILayout.BeginHorizontal();
+
+        // 현재 시간 표시
+        GUILayout.Label($"{currentTime:F2} / {totalDuration:F2} s", EditorStyles.boldLabel,
+                        GUILayout.Width(116));
+        GUILayout.Space(6);
+
+        // 총 재생 길이 편집 (0.1초 ~ 600초)
+        GUILayout.Label("길이:", GUILayout.Width(24));
+        float newDur = EditorGUILayout.DelayedFloatField(totalDuration, GUILayout.Width(42));
+        if (newDur != totalDuration)
+        {
+            totalDuration = Mathf.Clamp(newDur, 0.1f, 600f);
+            currentTime   = Mathf.Clamp(currentTime, 0f, totalDuration);
+            // 구간 끝점도 클램프
+            for (int i = 0; i < globalSegments.Count; i++)
+            {
+                var s = globalSegments[i];
+                s.End = Mathf.Clamp(s.End, s.Start, totalDuration);
+                globalSegments[i] = s;
+            }
+            ClampTimelineView();
+        }
+        GUILayout.Label("s", GUILayout.Width(10));
+        GUILayout.Space(10);
+
+        // 구간 추가 버튼
+        if (GUILayout.Button("+ 구간", GUILayout.Height(20), GUILayout.Width(50)))
+            AddGlobalSegment();
+
+        GUILayout.FlexibleSpace();
+
+        // 루프 토글 — 끝 도달 시 처음부터 재개
+        GUI.backgroundColor = loopPlayback ? new Color(0.4f, 0.8f, 0.4f) : Color.white;
+        if (GUILayout.Button("루프", GUILayout.Height(20), GUILayout.Width(34)))
+            loopPlayback = !loopPlayback;
+        GUI.backgroundColor = Color.white;
+        GUILayout.Space(4);
+
+        // 종료 정책 토글 — 재생 바 종료 시 스폰 오브젝트 처리 방식 (Phase 3에서 실제 동작)
+        string policyLabel = endPolicy == EndOfPatternPolicy.Destroy ? "파괴" : "유지";
+        if (GUILayout.Button(policyLabel, GUILayout.Height(20), GUILayout.Width(34)))
+            endPolicy = endPolicy == EndOfPatternPolicy.Destroy
+                ? EndOfPatternPolicy.KeepLast : EndOfPatternPolicy.Destroy;
+
+        GUILayout.EndHorizontal();
         GUILayout.EndArea();
+
+        // ── 타임라인 트랙 (하단 28px) ──────────────────────────────────────────
+        Rect trackRect = new Rect(4, py + 30, w - 8, 26);
+        if (Event.current.type == EventType.Repaint)
+            DrawTimelineTrack(trackRect);
+        HandleTimelineInput(trackRect);
+    }
+
+    // 시간 → 트랙 x좌표 변환 (줌 적용)
+    private float TimeToTrackX(Rect track, float t)
+    {
+        float visibleDuration = totalDuration / timelineZoom;
+        return track.x + (t - timelineViewStart) / visibleDuration * track.width;
+    }
+
+    // 트랙 x좌표 → 시간 변환 (줌 적용)
+    private float TrackXToTime(Rect track, float x)
+    {
+        float visibleDuration = totalDuration / timelineZoom;
+        return timelineViewStart + (x - track.x) / track.width * visibleDuration;
+    }
+
+    // timelineViewStart를 유효 범위로 클램프
+    private void ClampTimelineView()
+    {
+        float visibleDuration = totalDuration / timelineZoom;
+        timelineViewStart = Mathf.Clamp(timelineViewStart, 0f, Mathf.Max(0f, totalDuration - visibleDuration));
+    }
+
+    // 타임라인 트랙 렌더링 — 구간 사각형 + 재생헤드 + 시간 눈금
+    private void DrawTimelineTrack(Rect track)
+    {
+        // 배경
+        EditorGUI.DrawRect(track, new Color(0.06f, 0.06f, 0.06f));
+
+        if (totalDuration <= 0f) return;
+
+        float visibleDuration = totalDuration / timelineZoom;
+        float viewEnd         = timelineViewStart + visibleDuration;
+
+        // 전체 구간들 — 선택 구간은 밝게 표시
+        for (int i = 0; i < globalSegments.Count; i++)
+        {
+            var   seg = globalSegments[i];
+            float x1  = TimeToTrackX(track, seg.Start);
+            float x2  = TimeToTrackX(track, seg.End);
+            if (x2 < track.x || x1 > track.xMax) continue;
+            Color col = (i == selectedSegmentIndex)
+                ? new Color(0.35f, 0.85f, 0.35f, 0.85f)
+                : new Color(0.20f, 0.60f, 0.20f, 0.60f);
+            float rx = Mathf.Max(x1, track.x);
+            float rw = Mathf.Max(2f, Mathf.Min(x2, track.xMax) - rx);
+            EditorGUI.DrawRect(new Rect(rx, track.y + 3, rw, track.height - 6), col);
+        }
+
+        // 시간 눈금 레이블 — visibleDuration 기준 간격 선택, interval < 1s 이면 소수점 표시
+        float interval  = GetTimeMarkInterval(visibleDuration, track.width);
+        float tickStart = Mathf.Ceil(timelineViewStart / interval) * interval;
+        for (float t = tickStart; t <= viewEnd + 0.001f; t += interval)
+        {
+            float x = TimeToTrackX(track, t);
+            if (x < track.x || x > track.xMax) continue;
+            EditorGUI.DrawRect(new Rect(x, track.y, 1f, 4f), new Color(0.45f, 0.45f, 0.45f));
+            string label = interval < 1f ? $"{t:F1}s" : $"{t:F0}s";
+            GUI.Label(new Rect(x - 14f, track.y + 4f, 30f, 12f),
+                      label, EditorStyles.centeredGreyMiniLabel);
+        }
+
+        // 재생헤드 — 흰색 세로선
+        float px = TimeToTrackX(track, currentTime);
+        if (px >= track.x && px <= track.xMax)
+            EditorGUI.DrawRect(new Rect(px - 1f, track.y, 2f, track.height), Color.white);
+    }
+
+    // 눈금 간격 자동 계산 — 가시 범위 기준, 트랙 너비당 최소 40px 간격 유지 (최소 0.1s)
+    private static float GetTimeMarkInterval(float visibleDuration, float trackWidth)
+    {
+        float[] options = { 0.1f, 0.2f, 0.5f, 1f, 2f, 5f, 10f, 30f, 60f };
+        foreach (float iv in options)
+        {
+            if (visibleDuration / iv <= 0f) continue;
+            if (trackWidth / (visibleDuration / iv) >= 40f) return iv;
+        }
+        return 60f;
+    }
+
+    // 타임라인 트랙 입력 — 좌클릭/드래그 스크러빙, 휠 줌, 미들 마우스 팬
+    private void HandleTimelineInput(Rect trackRect)
+    {
+        Event e = Event.current;
+
+        // 휠 줌 — 커서 아래 시간 고정
+        if (e.type == EventType.ScrollWheel && trackRect.Contains(e.mousePosition))
+        {
+            float cursorTime      = TrackXToTime(trackRect, e.mousePosition.x);
+            float zoomFactor      = e.delta.y > 0 ? 0.85f : 1f / 0.85f;
+            float maxZoom         = Mathf.Max(1f, totalDuration / 0.1f);
+            timelineZoom          = Mathf.Clamp(timelineZoom * zoomFactor, 1f, maxZoom);
+            float visibleDuration = totalDuration / timelineZoom;
+            float cursorRatio     = (e.mousePosition.x - trackRect.x) / trackRect.width;
+            timelineViewStart     = cursorTime - cursorRatio * visibleDuration;
+            ClampTimelineView();
+            e.Use();
+            Repaint();
+        }
+
+        // 미들 마우스 드래그 — 횡 팬
+        if ((e.type == EventType.MouseDown || e.type == EventType.MouseDrag) &&
+            e.button == 2 && trackRect.Contains(e.mousePosition))
+        {
+            float visibleDuration  = totalDuration / timelineZoom;
+            float secondsPerPixel  = visibleDuration / trackRect.width;
+            timelineViewStart     -= e.delta.x * secondsPerPixel;
+            ClampTimelineView();
+            e.Use();
+            Repaint();
+        }
+
+        // 좌클릭/드래그 — 스크러빙 + 구간 선택
+        if ((e.type == EventType.MouseDown || e.type == EventType.MouseDrag) &&
+            e.button == 0 && trackRect.Contains(e.mousePosition))
+        {
+            float t = TrackXToTime(trackRect, e.mousePosition.x);
+            currentTime = Mathf.Clamp(t, 0f, totalDuration);
+            isPlaying   = false;
+
+            // 클릭 시 구간 선택 — 가장 짧은 구간 우선
+            if (e.type == EventType.MouseDown)
+            {
+                int   best     = -1;
+                float bestSpan = float.MaxValue;
+                for (int i = 0; i < globalSegments.Count; i++)
+                {
+                    var seg = globalSegments[i];
+                    if (t >= seg.Start && t <= seg.End)
+                    {
+                        float span = seg.End - seg.Start;
+                        if (span < bestSpan) { best = i; bestSpan = span; }
+                    }
+                }
+                selectedSegmentIndex = best;
+            }
+
+            e.Use();
+            Repaint();
+        }
+
+        // Delete → 선택 구간 삭제
+        if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Delete &&
+            selectedSegmentIndex >= 0 && selectedSegmentIndex < globalSegments.Count)
+        {
+            globalSegments.RemoveAt(selectedSegmentIndex);
+            selectedSegmentIndex = -1;
+            e.Use();
+            Repaint();
+        }
     }
     #endregion
 
     #region Input
+    // 키보드 단축키 — OnGUI 최상단에서 호출해 컨트롤(FloatField 등)보다 먼저 이벤트를 가로챔
+    private void HandleKeyboardShortcuts()
+    {
+        Event e = Event.current;
+        if (e.type != EventType.KeyDown) return;
+
+        // CustomSpeedField에 포커스가 있을 때 숫자·'.'·제어키 이외의 문자를 차단한다.
+        // customSpeedFieldFocused는 DrawToolbar 렌더 이후 기록된 값(1프레임 지연)을 사용.
+        if (customSpeedFieldFocused)
+        {
+            char c = e.character;
+            // [주의] 초기 구현에서 c == 0 조건을 사용했으나 Backspace가 차단되는 버그가 있었다.
+            // 원인: Unity에서 Backspace 키의 e.character는 null('\0', code=0)이 아닌
+            //       Backspace 문자('\b', code=8)로 들어온다. 따라서 c == 0은 false가 된다.
+            // 수정: c < 32 (ASCII 제어문자 0~31 전체)로 변경.
+            //       Backspace=8, Enter=13, 방향키=0 등 비인쇄 제어문자를 모두 허용한다.
+            //       Delete(code=127)는 제어문자 범위를 벗어나므로 별도로 c == 127 추가.
+            bool allowed = c < 32 || c == 127 || char.IsDigit(c) || c == '.';
+            if (!allowed) { e.Use(); return; }
+        }
+
+        switch (e.keyCode)
+        {
+            case KeyCode.S:
+                currentInteractionMode = InteractionMode.Select;
+                e.Use(); Repaint(); return;
+            case KeyCode.E:
+                currentInteractionMode = InteractionMode.Erase;
+                e.Use(); Repaint(); return;
+            case KeyCode.Escape:
+                if (selectedTiles.Count > 0 || selectedSpawnPoints.Count > 0) PushUndo();
+                selectedTiles.Clear();
+                selectedSpawnPoints.Clear();
+                CancelDrag();
+                e.Use(); Repaint(); return;
+            case KeyCode.Z when e.control:
+                UndoSelection(); e.Use(); return;
+            case KeyCode.Y when e.control:
+                RedoSelection(); e.Use(); return;
+            case KeyCode.Space:
+                GUIUtility.keyboardControl = 0;   // 텍스트 필드 포커스 해제 후 토글
+                TogglePlay(); e.Use(); return;
+        }
+    }
+
     private void HandleInput()
     {
         Event e  = Event.current;
         Rect  vp = ViewportRect;
-
-        // 상호작용 모드 단축키 — 창 전체에서 처리 (뷰포트 밖이어도 동작) (ADR-005)
-        if (e.type == EventType.KeyDown)
-        {
-            switch (e.keyCode)
-            {
-                case KeyCode.S:
-                    currentInteractionMode = InteractionMode.Select;
-                    e.Use(); Repaint(); return;
-                case KeyCode.E:
-                    currentInteractionMode = InteractionMode.Erase;
-                    e.Use(); Repaint(); return;
-                case KeyCode.Escape:
-                    if (selectedTiles.Count > 0 || selectedSpawnPoints.Count > 0) PushUndo();
-                    selectedTiles.Clear();
-                    selectedSpawnPoints.Clear();
-                    CancelDrag();
-                    e.Use(); Repaint(); return;
-                case KeyCode.Z when e.control:
-                    UndoSelection(); e.Use(); return;
-                case KeyCode.Y when e.control:
-                    RedoSelection(); e.Use(); return;
-            }
-        }
 
         // 드래그 박스: 진행 중이면 뷰포트 밖에서도 추적·완료 — 드래그 중 마우스가 창 밖으로 나가도 묶이지 않음
         if (dragStartPos != null)
@@ -1186,6 +1526,62 @@ public class MissilePatternEditor : EditorWindow
         foreach (var t in state.tiles)  selectedTiles.Add(t);
         selectedSpawnPoints.Clear();
         foreach (var s in state.spawns) selectedSpawnPoints.Add(s);
+        Repaint();
+    }
+    #endregion
+
+    #region Simulation Controls
+    // TogglePlay: 끝에서 재생 시작하면 처음부터. isPlaying 전환.
+    private void TogglePlay()
+    {
+        if (!isPlaying && currentTime >= totalDuration) currentTime = 0f;
+        isPlaying = !isPlaying;
+        Repaint();
+    }
+
+    // SpeedPresets 순환 — 0.25x → 0.5x → 1x → 2x → Custom → 0.25x
+    private void CycleSpeed()
+    {
+        speedIndex = (speedIndex + 1) % (SpeedPresets.Length + 1);
+        if (speedIndex < SpeedPresets.Length)
+            playSpeed = SpeedPresets[speedIndex];
+        else
+        {
+            playSpeed = savedCustomSpeed;     // 마지막으로 입력한 커스텀 값 복원 (프리셋 순환 후 재진입해도 유지)
+            pendingCustomFieldFocus = true;   // FloatField 자동 포커스 예약
+        }
+        Repaint();
+    }
+
+    // 이전 구간 시작점으로 점프 (구간 없으면 t=0)
+    private void JumpToPrevSegmentOrStart()
+    {
+        float prevTime = 0f;
+        foreach (var seg in globalSegments)
+            if (seg.Start < currentTime - 0.01f)
+                prevTime = Mathf.Max(prevTime, seg.Start);
+        currentTime = prevTime;
+        Repaint();
+    }
+
+    // 다음 구간 시작점으로 점프 (구간 없으면 totalDuration)
+    private void JumpToNextSegmentOrEnd()
+    {
+        float nextTime = totalDuration;
+        foreach (var seg in globalSegments)
+            if (seg.Start > currentTime + 0.01f)
+                nextTime = Mathf.Min(nextTime, seg.Start);
+        currentTime = nextTime;
+        Repaint();
+    }
+
+    // 현재 시간 위치에 전체 구간 추가 (기본 길이 DefaultSegmentDuration)
+    private void AddGlobalSegment()
+    {
+        float start = currentTime;
+        float end   = Mathf.Min(currentTime + DefaultSegmentDuration, totalDuration);
+        globalSegments.Add(new GlobalSegment { Start = start, End = end });
+        selectedSegmentIndex = globalSegments.Count - 1;
         Repaint();
     }
     #endregion
