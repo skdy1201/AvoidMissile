@@ -6,9 +6,33 @@ using UnityEngine.SceneManagement;
 /// <summary>
 /// 미사일 패턴 에디터 컨트롤러 — PlayScene을 Edit 모드로 열고 에디터 전용 Canvas를 생성합니다.
 /// 씬 진입/종료, 게임 UI 비활성화, 에디터 Canvas 생명주기를 관리합니다.
+/// 도메인 리로드 시 SessionState로 활성 상태를 복원하고 씬뷰 인터랙션을 재등록합니다.
 /// </summary>
+[InitializeOnLoad]
 public static class PatternEditorController
 {
+    #region Domain Reload Recovery
+
+    static PatternEditorController()
+    {
+        if (Active)
+            EditorApplication.delayCall += OnDomainReload;
+    }
+
+    private static void OnDomainReload()
+    {
+        if (!Active) return;
+
+        // 도메인 리로드 후 이벤트 재등록 + 씬뷰 인터랙션 복원
+        EditorSceneManager.sceneClosing += OnSceneClosing;
+        DeactivateGameUI();
+        PatternEditorSceneInteraction.Initialize();
+
+        Debug.Log("[PatternEditorController] 도메인 리로드 후 복원 완료.");
+    }
+
+    #endregion
+
     #region Constants
 
     private const string PlayScenePath = "Assets/Scene/Main/PlayScene.unity";
@@ -83,6 +107,9 @@ public static class PatternEditorController
 
         // 에디터 전용 Canvas 생성
         CreateEditorCanvas();
+
+        // 씬뷰 인터랙션 초기화 (타일/스폰포인트 생성 + SceneView 콜백 등록)
+        PatternEditorSceneInteraction.Initialize();
 
         Active = true;
         EditorSceneManager.sceneClosing += OnSceneClosing;
@@ -205,6 +232,9 @@ public static class PatternEditorController
     private static void Cleanup()
     {
         EditorSceneManager.sceneClosing -= OnSceneClosing;
+
+        // 씬뷰 인터랙션 정리 (SceneView 콜백 해제 + 생성된 오브젝트 파괴)
+        PatternEditorSceneInteraction.Cleanup();
 
         if (editorCanvas != null)
             Object.DestroyImmediate(editorCanvas);
