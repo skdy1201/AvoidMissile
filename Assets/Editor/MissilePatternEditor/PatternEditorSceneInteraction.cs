@@ -75,6 +75,7 @@ public static class PatternEditorSceneInteraction
     #region State
 
     private static bool initialized;
+    private static bool interactionEnabled = true;
 
     // 루트 오브젝트 — 생성된 타일/스폰포인트의 부모. 도메인 리로드 시 이름으로 찾아 정리
     private static GameObject rootObject;
@@ -131,6 +132,16 @@ public static class PatternEditorSceneInteraction
     #region Public API
 
     public static bool Initialized => initialized;
+    public static bool InteractionEnabled => interactionEnabled;
+
+    /// <summary>
+    /// 에디터 모드 토글 — false 시 입력 처리를 건너뛰고 시각화만 유지.
+    /// </summary>
+    public static void SetInteractionEnabled(bool enabled)
+    {
+        interactionEnabled = enabled;
+        SceneView.RepaintAll();
+    }
 
     public static void Initialize()
     {
@@ -380,13 +391,18 @@ public static class PatternEditorSceneInteraction
     {
         if (!initialized) return;
 
+        // 시각화는 항상 렌더링 (기본 도구 모드에서도 배치된 미사일·선택 마커 보임)
+        DrawSelectionMarkers();
+        DrawSpawnSelectionMarkers();
+        DrawMissileSelectionMarkers();
+
+        // 에디터 모드 비활성 시 입력·호버·팔레트 건너뜀
+        if (!interactionEnabled) return;
+
         Event e = Event.current;
 
         HandleInput(e);
         DrawHoverHighlight();
-        DrawSelectionMarkers();
-        DrawSpawnSelectionMarkers();
-        DrawMissileSelectionMarkers();
         UpdateHoverGhost();
         DrawPalette(sceneView);
 

@@ -28,6 +28,10 @@ public static class PatternEditorController
         DeactivateGameUI();
         PatternEditorSceneInteraction.Initialize();
 
+        // 툴바 + 에디터 모드 복원
+        PatternEditorToolbar.Show();
+        PatternEditorModeToggle.ActivateEditorMode();
+
         Debug.Log("[PatternEditorController] 도메인 리로드 후 복원 완료.");
     }
 
@@ -110,6 +114,10 @@ public static class PatternEditorController
 
         // 씬뷰 인터랙션 초기화 (타일/스폰포인트 생성 + SceneView 콜백 등록)
         PatternEditorSceneInteraction.Initialize();
+
+        // 툴바 표시 + 에디터 모드 활성화
+        PatternEditorToolbar.Show();
+        PatternEditorModeToggle.ActivateEditorMode();
 
         Active = true;
         EditorSceneManager.sceneClosing += OnSceneClosing;
@@ -232,6 +240,10 @@ public static class PatternEditorController
     private static void Cleanup()
     {
         EditorSceneManager.sceneClosing -= OnSceneClosing;
+
+        // 툴바 숨김 + 에디터 모드 해제
+        PatternEditorModeToggle.Reset();
+        PatternEditorToolbar.Hide();
 
         // 씬뷰 인터랙션 정리 (SceneView 콜백 해제 + 생성된 오브젝트 파괴)
         PatternEditorSceneInteraction.Cleanup();
