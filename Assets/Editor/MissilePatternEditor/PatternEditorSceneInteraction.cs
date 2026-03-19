@@ -1075,11 +1075,9 @@ public static class PatternEditorSceneInteraction
         // GrandMissile.Start() 게임 코드 재현 — 방향별 회전, 피벗, 크기 설정
         int dir = GetGrandDirection(spawnId);
 
-        // 데칼을 플랫폼 표면 약간 위에 배치 (미사일은 스폰포인트 높이에 있지만, 데칼은 바닥)
-        decalTransform.position = new Vector3(
-            missilePos.x,
-            platformOrigin.y + FallingDecalYOffset,
-            missilePos.z);
+        // 게임 코드 GrandMissile.Start() 재현
+        // 데칼은 미사일 자식(localPosition 0,0,0)에 두고 pivot/rotation으로 프로젝션 제어
+        // 미사일 부모가 이미 방향별 회전이 적용되어 있으므로 localRotation 사용
 
         Vector3 pivot = new Vector3(15f, 0f, 1f);
 
@@ -1105,7 +1103,7 @@ public static class PatternEditorSceneInteraction
 
         // diameter 3 기준: fixPivot.z *= 4.5, decalSize.y = 6
         // 프리팹 초기 size = (30, 10, 0.5), 게임 코드에서 y만 diameter 기준으로 변경
-        pivot.z *= 4.5f;
+        pivot.z *= 4.51f;
 
         SetDecalProjector(decalTransform.gameObject,
             new Vector3(30f, 6f, 0.5f),
