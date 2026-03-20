@@ -69,6 +69,14 @@ public static class PatternEditorSceneInteraction
     private static readonly Color SpawnSelectColor    = new Color(1.00f, 1.00f, 1.00f, 1.00f);
     private static readonly Color DragBoxFillColor    = new Color(0.25f, 0.55f, 1.00f, 0.15f);
     private static readonly Color DragBoxOutlineColor = new Color(0.25f, 0.55f, 1.00f, 0.60f);
+    private static readonly Color GrandHStripFill     = new Color(1.00f, 0.65f, 0.10f, 0.18f);
+    private static readonly Color GrandHStripOutline  = new Color(1.00f, 0.65f, 0.10f, 0.70f);
+
+    // 미사일 타입별 색상 (겹침 리스트 스와치용)
+    private static readonly Color MissileFallingColor = new Color(0.30f, 0.75f, 1.00f);
+    private static readonly Color MissileGrandColor   = new Color(1.00f, 0.35f, 0.25f);
+    private static readonly Color MissileGrandHColor  = new Color(1.00f, 0.75f, 0.20f);
+    private static readonly Color MissileHoverColor   = new Color(0.50f, 1.00f, 0.50f);
 
     #endregion
 
@@ -124,8 +132,19 @@ public static class PatternEditorSceneInteraction
     // 배치 미리보기 (호버 고스트)
     private static GameObject hoverGhost;
     private static string     hoverGhostLocation;
+    private static int        hoverGhostPaletteIndex = -1;
+    private static string     hoverGhostRotationKey;  // 회전 컨텍스트 — 변경 시 재생성 필요
 
     private static readonly Color MissileSelectColor = new Color(1f, 1f, 0f, 0.90f);
+
+    // Undo/Redo 선택 스택
+    private static readonly Stack<(HashSet<Vector2Int> tiles, HashSet<string> spawns)> undoStack
+        = new Stack<(HashSet<Vector2Int>, HashSet<string>)>();
+    private static readonly Stack<(HashSet<Vector2Int> tiles, HashSet<string> spawns)> redoStack
+        = new Stack<(HashSet<Vector2Int>, HashSet<string>)>();
+
+    // 겹침 순환 선택
+    private static readonly List<PlacedMissile> overlapList = new List<PlacedMissile>();
 
     #endregion
 
@@ -202,6 +221,10 @@ public static class PatternEditorSceneInteraction
 
         ClearAllPlacedMissiles();
         DestroyHoverGhost();
+
+        undoStack.Clear();
+        redoStack.Clear();
+        overlapList.Clear();
 
         initialized    = false;
     }
@@ -395,6 +418,7 @@ public static class PatternEditorSceneInteraction
         DrawSelectionMarkers();
         DrawSpawnSelectionMarkers();
         DrawMissileSelectionMarkers();
+        DrawGrandHorizontalStrips();
 
         // 에디터 모드 비활성 시 입력·호버·팔레트 건너뜀
         if (!interactionEnabled) return;
@@ -405,6 +429,7 @@ public static class PatternEditorSceneInteraction
         DrawHoverHighlight();
         UpdateHoverGhost();
         DrawPalette(sceneView);
+        DrawOverlapPanel(sceneView);
 
         if (isDragging)
             DrawDragBox();
@@ -421,6 +446,22 @@ public static class PatternEditorSceneInteraction
         return panelRect.Contains(mousePos);
     }
 
+    private static bool IsMouseOverOverlapPanel(Vector2 mousePos)
+    {
+        if (overlapList.Count <= 1) return false;
+        const float ItemH   = 20f;
+        const float ListW   = 140f;
+        const float Margin  = 8f;
+        const float HeaderH = 18f;
+        float paletteH = PaletteHeaderH + PalettePad + palettePrefabs.Count * (PaletteItemH + PalettePad);
+        float listX = PaletteX;
+        float listY = PaletteY + paletteH + Margin;
+        float contentH = overlapList.Count * ItemH + 4f + HeaderH;
+        // 실제 표시 높이는 뷰포트에 맞춰 제한됨
+        float panelW = ListW + 14f; // 스크롤바 최대 폭 포함
+        return new Rect(listX, listY, panelW, contentH).Contains(mousePos);
+    }
+
     private static void HandleInput(Event e)
     {
         // 호버 — 마우스 이동 시 레이캐스트
@@ -431,8 +472,8 @@ public static class PatternEditorSceneInteraction
             return;
         }
 
-        // 팔레트 영역 내 클릭은 월드 인터랙션 무시 (팔레트 UI가 처리)
-        if (e.isMouse && IsMouseOverPalette(e.mousePosition))
+        // 팔레트·겹침패널 영역 내 클릭은 월드 인터랙션 무시 (GUI가 처리)
+        if (e.isMouse && (IsMouseOverPalette(e.mousePosition) || IsMouseOverOverlapPanel(e.mousePosition)))
             return;
 
         // 좌클릭 다운 — 드래그 시작 (Alt 제외: Alt+좌드래그는 Scene View 오빗)
@@ -478,19 +519,16 @@ public static class PatternEditorSceneInteraction
             return;
         }
 
-        // Delete 키 — 선택된 미사일 삭제
+        // Delete 키 — 선택된 미사일 삭제, 없으면 선택된 타일/스폰 위의 미사일 삭제
         if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Delete)
         {
-            if (selectedMissiles.Count > 0)
-            {
-                RemoveSelectedMissiles();
-                SceneView.RepaintAll();
-                e.Use();
-                return;
-            }
+            DeleteSelectedObjects();
+            SceneView.RepaintAll();
+            e.Use();
+            return;
         }
 
-        // Escape 키 — 선택 해제 / Place 모드 종료
+        // Escape 키 — 캐스케이드 해제: Brush → 미사일 선택 → 타일/스폰 선택
         if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Escape)
         {
             if (inPlaceMode)
@@ -498,12 +536,40 @@ public static class PatternEditorSceneInteraction
                 selectedPaletteIndex = -1;
                 inPlaceMode          = false;
             }
-            ClearAllSelections();
+            else if (selectedMissiles.Count > 0)
+            {
+                selectedMissiles.Clear();
+                overlapList.Clear();
+            }
+            else if (SelectedTiles.Count > 0 || SelectedSpawnPoints.Count > 0)
+            {
+                PushUndo();
+                SelectedTiles.Clear();
+                SelectedSpawnPoints.Clear();
+            }
             SceneView.RepaintAll();
             e.Use();
+            return;
         }
 
-        // 우클릭 — Place 모드 중이면 모드 해제, 아니면 선택된 미사일 삭제
+        // Ctrl+Z / Ctrl+Y — Undo / Redo 선택 상태
+        if (e.type == EventType.KeyDown && e.control)
+        {
+            if (e.keyCode == KeyCode.Z)
+            {
+                UndoSelection();
+                e.Use();
+                return;
+            }
+            if (e.keyCode == KeyCode.Y)
+            {
+                RedoSelection();
+                e.Use();
+                return;
+            }
+        }
+
+        // 우클릭 — Place 모드 해제, 아니면 커서 아래 객체 즉시 삭제
         if (e.type == EventType.MouseDown && e.button == 1 && !e.alt)
         {
             if (inPlaceMode)
@@ -513,9 +579,8 @@ public static class PatternEditorSceneInteraction
                 SceneView.RepaintAll();
                 e.Use();
             }
-            else if (selectedMissiles.Count > 0)
+            else if (ApplyRightClickDelete())
             {
-                RemoveSelectedMissiles();
                 SceneView.RepaintAll();
                 e.Use();
             }
@@ -568,23 +633,11 @@ public static class PatternEditorSceneInteraction
         }
 
         int id = hit.collider.gameObject.GetInstanceID();
-
-        // 1) 배치된 미사일 고스트 클릭 → 미사일 선택
+        // 1) 배치된 미사일 고스트 클릭 → 미사일 선택 (겹침 순환)
         if (ghostByInstanceId.TryGetValue(id, out PlacedMissile clickedMissile))
         {
-            if (ctrl)
-            {
-                if (!selectedMissiles.Remove(clickedMissile))
-                    selectedMissiles.Add(clickedMissile);
-            }
-            else
-            {
-                bool wasSelected = selectedMissiles.Contains(clickedMissile);
-                ClearAllSelections();
-                if (!wasSelected)
-                    selectedMissiles.Add(clickedMissile);
-            }
-            SceneView.RepaintAll();
+            var hits = GetAllMissilesAtLocation(clickedMissile.locationKey);
+            HandleMissileSelectionCycle(hits, ctrl);
             return;
         }
 
@@ -593,24 +646,40 @@ public static class PatternEditorSceneInteraction
         {
             if (tileByInstanceId.TryGetValue(id, out Vector2Int coord))
             {
-                PlaceMissile(paletteTypes[selectedPaletteIndex], $"T:{coord.x},{coord.y}",
+                string locKey = $"T:{coord.x},{coord.y}";
+                PlaceMissile(paletteTypes[selectedPaletteIndex], locKey,
                     tileWorldPositions[coord]);
+                // 배치 후 겹침 리스트 갱신
+                overlapList.Clear();
+                overlapList.AddRange(GetAllMissilesAtLocation(locKey));
                 SceneView.RepaintAll();
                 return;
             }
             if (spawnByInstanceId.TryGetValue(id, out string spId))
             {
-                PlaceMissile(paletteTypes[selectedPaletteIndex], $"S:{spId}",
+                string locKey = $"S:{spId}";
+                PlaceMissile(paletteTypes[selectedPaletteIndex], locKey,
                     spawnWorldPositions[spId]);
+                // 배치 후 겹침 리스트 갱신
+                overlapList.Clear();
+                overlapList.AddRange(GetAllMissilesAtLocation(locKey));
                 SceneView.RepaintAll();
                 return;
             }
         }
 
-        // 3) 통합 선택: Tile / SpawnPoint
+        // 3) 통합 선택: Tile / SpawnPoint (미사일이 배치된 위치면 미사일 선택 우선)
         if (tileByInstanceId.TryGetValue(id, out Vector2Int tileCoord))
         {
-            if (ctrl)
+            string locKey = $"T:{tileCoord.x},{tileCoord.y}";
+            var missilesHere = GetAllMissilesAtLocation(locKey);
+
+            if (missilesHere.Count > 0 && !inPlaceMode)
+            {
+                // 미사일이 있는 타일 클릭 → 미사일 선택/순환
+                HandleMissileSelectionCycle(missilesHere, ctrl);
+            }
+            else if (ctrl)
             {
                 if (!SelectedTiles.Remove(tileCoord)) SelectedTiles.Add(tileCoord);
             }
@@ -624,7 +693,15 @@ public static class PatternEditorSceneInteraction
         }
         else if (spawnByInstanceId.TryGetValue(id, out string spawnId))
         {
-            if (ctrl)
+            string locKey = $"S:{spawnId}";
+            var missilesHere = GetAllMissilesAtLocation(locKey);
+
+            if (missilesHere.Count > 0 && !inPlaceMode)
+            {
+                // 미사일이 있는 스폰 클릭 → 미사일 선택/순환
+                HandleMissileSelectionCycle(missilesHere, ctrl);
+            }
+            else if (ctrl)
             {
                 if (!SelectedSpawnPoints.Remove(spawnId)) SelectedSpawnPoints.Add(spawnId);
             }
@@ -642,6 +719,8 @@ public static class PatternEditorSceneInteraction
 
     private static void ApplyBoxSelection(bool additive)
     {
+        PushUndo();
+
         Rect screenBox = new Rect(
             Mathf.Min(dragStart.x, dragEnd.x),
             Mathf.Min(dragStart.y, dragEnd.y),
@@ -652,6 +731,7 @@ public static class PatternEditorSceneInteraction
         {
             SelectedTiles.Clear();
             SelectedSpawnPoints.Clear();
+            selectedMissiles.Clear();
         }
 
         // 타일 — 시각적 중심이 드래그 박스 안에 있으면 선택
@@ -668,6 +748,17 @@ public static class PatternEditorSceneInteraction
             Vector2 screenPoint = HandleUtility.WorldToGUIPoint(kvp.Value);
             if (screenBox.Contains(screenPoint))
                 SelectedSpawnPoints.Add(kvp.Key);
+        }
+
+        // 미사일 — 고스트 중심이 드래그 박스 안에 있으면 선택
+        foreach (var m in placedMissiles)
+        {
+            if (m.ghost == null) continue;
+            var renderer = m.ghost.GetComponentInChildren<Renderer>();
+            if (renderer == null) continue;
+            Vector2 screenPoint = HandleUtility.WorldToGUIPoint(renderer.bounds.center);
+            if (screenBox.Contains(screenPoint))
+                selectedMissiles.Add(m);
         }
 
         SceneView.RepaintAll();
@@ -747,6 +838,67 @@ public static class PatternEditorSceneInteraction
         };
 
         Handles.DrawSolidRectangleWithOutline(corners, fill, outline);
+    }
+
+    /// <summary>
+    /// 배치된 Grand Horizontal 미사일의 경로 스트립을 Handles로 시각화.
+    /// DecalProjector ShaderGraph가 Edit 모드에서 무거우므로 경량 대체 시각화.
+    /// </summary>
+    private static void DrawGrandHorizontalStrips()
+    {
+        float y         = platformOrigin.y + 0.03f;
+        float halfWidth = tileXSize * DefaultGrandDiameter * 0.5f;
+
+        // tileWorldPositions에서 정확한 플랫폼 경계 계산
+        var topLeft     = new Vector2Int(0, 0);
+        var topRight    = new Vector2Int(GridCols - 1, 0);
+        var bottomLeft  = new Vector2Int(0, GridRows - 1);
+        if (!tileWorldPositions.ContainsKey(topLeft) || !tileWorldPositions.ContainsKey(bottomLeft)) return;
+
+        float platMinX = tileWorldPositions[topLeft].x    - tileXSize * 0.5f;
+        float platMaxX = tileWorldPositions[topRight].x   + tileXSize * 0.5f;
+        float platMaxZ = tileWorldPositions[topLeft].z     + tileZSize * 0.5f;
+        float platMinZ = tileWorldPositions[bottomLeft].z  - tileZSize * 0.5f;
+
+        foreach (var m in placedMissiles)
+        {
+            if (m.type != PlacedMissileType.Grand || m.ghost == null) continue;
+            if (!m.locationKey.StartsWith("S:")) continue;
+
+            string spawnId = m.locationKey.Substring(2);
+            int dir = GetGrandDirection(spawnId);
+            if (dir == 0) continue;
+
+            Vector3 pos = m.ghost.transform.position;
+            Vector3[] corners;
+
+            if (dir <= 2) // N→S / S→N: Z축 방향 스트립
+            {
+                float left  = Mathf.Max(pos.x - halfWidth, platMinX);
+                float right = Mathf.Min(pos.x + halfWidth, platMaxX);
+                corners = new Vector3[]
+                {
+                    new Vector3(left,  y, platMaxZ),
+                    new Vector3(right, y, platMaxZ),
+                    new Vector3(right, y, platMinZ),
+                    new Vector3(left,  y, platMinZ),
+                };
+            }
+            else // E→W / W→E: X축 방향 스트립
+            {
+                float top    = Mathf.Min(pos.z + halfWidth, platMaxZ);
+                float bottom = Mathf.Max(pos.z - halfWidth, platMinZ);
+                corners = new Vector3[]
+                {
+                    new Vector3(platMinX, y, top),
+                    new Vector3(platMaxX, y, top),
+                    new Vector3(platMaxX, y, bottom),
+                    new Vector3(platMinX, y, bottom),
+                };
+            }
+
+            Handles.DrawSolidRectangleWithOutline(corners, GrandHStripFill, GrandHStripOutline);
+        }
     }
 
     private static void DrawDragBox()
@@ -829,7 +981,43 @@ public static class PatternEditorSceneInteraction
                 else
                 {
                     selectedPaletteIndex = i;
-                    inPlaceMode          = true;
+                    var type = paletteTypes[i];
+                    bool isHover = type == PlacedMissileType.Hover;
+                    bool isGrand = type == PlacedMissileType.Grand;
+                    bool hasValidSelection = isHover
+                        ? SelectedSpawnPoints.Count > 0
+                        : isGrand
+                            ? SelectedTiles.Count > 0 || SelectedSpawnPoints.Count > 0
+                            : SelectedTiles.Count > 0;
+
+                    if (hasValidSelection)
+                    {
+                        // Select→Action: 선택된 위치에 즉시 다중 배치
+                        if (isHover)
+                        {
+                            foreach (string spId in SelectedSpawnPoints)
+                                PlaceMissile(type, $"S:{spId}", spawnWorldPositions[spId]);
+                        }
+                        else if (isGrand)
+                        {
+                            foreach (var tile in SelectedTiles)
+                                PlaceMissile(type, $"T:{tile.x},{tile.y}", tileWorldPositions[tile]);
+                            foreach (string spId in SelectedSpawnPoints)
+                                PlaceMissile(type, $"S:{spId}", spawnWorldPositions[spId]);
+                        }
+                        else
+                        {
+                            foreach (var tile in SelectedTiles)
+                                PlaceMissile(type, $"T:{tile.x},{tile.y}", tileWorldPositions[tile]);
+                        }
+                        // 배치 후 Place 모드 진입하지 않음
+                        selectedPaletteIndex = -1;
+                        inPlaceMode          = false;
+                    }
+                    else
+                    {
+                        inPlaceMode = true;
+                    }
                 }
                 sceneView.Repaint();
             }
@@ -837,6 +1025,91 @@ public static class PatternEditorSceneInteraction
             y += PaletteItemH + PalettePad;
         }
 
+        Handles.EndGUI();
+    }
+
+    private static Vector2 overlapScrollPos;
+
+    private static void DrawOverlapPanel(SceneView sceneView)
+    {
+        // 유효하지 않은 항목 제거
+        overlapList.RemoveAll(m => m.ghost == null);
+        if (overlapList.Count <= 1) return;
+
+        Handles.BeginGUI();
+
+        const float ItemH   = 20f;
+        const float ListW   = 140f;
+        const float SwatchW =  8f;
+        const float Margin  =  8f;
+        const float HeaderH = 18f;
+
+        // 팔레트 패널 아래에 배치
+        float paletteH = PaletteHeaderH + PalettePad + palettePrefabs.Count * (PaletteItemH + PalettePad);
+        float listX = PaletteX;
+        float listY = PaletteY + paletteH + Margin;
+
+        float contentH = overlapList.Count * ItemH + 4f;
+        float availableH = sceneView.position.height - listY - Margin;
+        float maxPanelH = availableH > 0 ? availableH : 200f;
+        float panelH = Mathf.Min(contentH + HeaderH, maxPanelH);
+        bool needsScroll = contentH + HeaderH > panelH;
+        // 스크롤바 폭 보정
+        float scrollBarW = needsScroll ? 14f : 0f;
+
+        Rect panelRect = new Rect(listX, listY, ListW + scrollBarW, panelH);
+
+        // 배경
+        EditorGUI.DrawRect(panelRect, new Color(0f, 0f, 0f, 0.72f));
+
+        // 헤더
+        GUI.Label(new Rect(listX + 4f, listY + 1f, ListW - 8f, HeaderH),
+            $"Overlap ({overlapList.Count})", EditorStyles.miniBoldLabel);
+
+        // 스크롤 영역
+        Rect viewRect    = new Rect(listX, listY + HeaderH, ListW + scrollBarW, panelH - HeaderH);
+        Rect contentRect = new Rect(0f, 0f, ListW, contentH);
+
+        overlapScrollPos = GUI.BeginScrollView(viewRect, overlapScrollPos, contentRect);
+
+        Event e = Event.current;
+        for (int i = 0; i < overlapList.Count; i++)
+        {
+            var m = overlapList[i];
+            if (m.ghost == null) continue;
+
+            var rowRect = new Rect(0f, 2f + i * ItemH, ListW, ItemH);
+
+            // 선택된 항목 배경 하이라이트
+            if (selectedMissiles.Contains(m))
+                EditorGUI.DrawRect(rowRect, new Color(1f, 1f, 1f, 0.15f));
+
+            // 클릭 → 해당 미사일 선택
+            if (e.type == EventType.MouseDown && e.button == 0 && rowRect.Contains(e.mousePosition))
+            {
+                selectedMissiles.Clear();
+                selectedMissiles.Add(m);
+                e.Use();
+                sceneView.Repaint();
+            }
+
+            // 타입별 색상 스와치
+            bool isGrandH = m.type == PlacedMissileType.Grand && m.locationKey.StartsWith("S:");
+            Color typeColor = m.type switch
+            {
+                PlacedMissileType.Falling => MissileFallingColor,
+                PlacedMissileType.Grand   => isGrandH ? MissileGrandHColor : MissileGrandColor,
+                PlacedMissileType.Hover   => MissileHoverColor,
+                _                         => Color.white
+            };
+            EditorGUI.DrawRect(new Rect(4f, rowRect.y + 6f, SwatchW, 8f), typeColor);
+
+            // 이름 레이블
+            GUI.Label(new Rect(4f + SwatchW + 4f, rowRect.y, ListW - SwatchW - 12f, ItemH),
+                $"{m.type} {i + 1}", EditorStyles.miniLabel);
+        }
+
+        GUI.EndScrollView();
         Handles.EndGUI();
     }
 
@@ -1124,6 +1397,11 @@ public static class PatternEditorSceneInteraction
         SetDecalProjector(decalTransform.gameObject,
             new Vector3(30f, 6f, 0.5f),
             pivot);
+
+        // Edit 모드에서 ShaderGraph 애니메이션 데칼 비활성 — Handles 시각화로 대체
+        var projector = decalTransform.GetComponent<UnityEngine.Rendering.Universal.DecalProjector>();
+        if (projector != null)
+            projector.enabled = false;
     }
 
     private static void SetDecalProjector(GameObject decalGO, Vector3 size, Vector3 pivot)
@@ -1140,16 +1418,114 @@ public static class PatternEditorSceneInteraction
     private static void RemoveSelectedMissiles()
     {
         foreach (var m in selectedMissiles)
-        {
-            if (m.ghost != null)
-            {
-                foreach (var col in m.ghost.GetComponentsInChildren<Collider>())
-                    ghostByInstanceId.Remove(col.gameObject.GetInstanceID());
-                Object.DestroyImmediate(m.ghost);
-            }
-            placedMissiles.Remove(m);
-        }
+            RemoveSingleMissile(m);
         selectedMissiles.Clear();
+        overlapList.RemoveAll(m => m.ghost == null);
+    }
+
+    private static void RemoveSingleMissile(PlacedMissile m)
+    {
+        if (m.ghost != null)
+        {
+            foreach (var col in m.ghost.GetComponentsInChildren<Collider>())
+                ghostByInstanceId.Remove(col.gameObject.GetInstanceID());
+            Object.DestroyImmediate(m.ghost);
+        }
+        placedMissiles.Remove(m);
+    }
+
+    /// <summary>
+    /// Delete 키: 선택된 미사일 삭제. 미사일 없으면 선택된 타일/스폰 위의 미사일 삭제.
+    /// </summary>
+    private static void DeleteSelectedObjects()
+    {
+        if (selectedMissiles.Count > 0)
+        {
+            RemoveSelectedMissiles();
+            return;
+        }
+
+        bool changed = false;
+        foreach (var tile in SelectedTiles)
+        {
+            for (int i = placedMissiles.Count - 1; i >= 0; i--)
+            {
+                var m = placedMissiles[i];
+                if (m.locationKey == $"T:{tile.x},{tile.y}")
+                {
+                    RemoveSingleMissile(m);
+                    changed = true;
+                }
+            }
+        }
+        foreach (string spawnId in SelectedSpawnPoints)
+        {
+            for (int i = placedMissiles.Count - 1; i >= 0; i--)
+            {
+                var m = placedMissiles[i];
+                if (m.locationKey == $"S:{spawnId}")
+                {
+                    RemoveSingleMissile(m);
+                    changed = true;
+                }
+            }
+        }
+        if (changed)
+            overlapList.RemoveAll(m => m.ghost == null);
+    }
+
+    /// <summary>
+    /// 우클릭: 커서 아래 객체 즉시 삭제. 우선순위 Missile > SpawnPoint 위 미사일 > Tile 위 미사일.
+    /// </summary>
+    private static bool ApplyRightClickDelete()
+    {
+        Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
+        if (!Physics.Raycast(ray, out RaycastHit hit, 1000f)) return false;
+
+        int id = hit.collider.gameObject.GetInstanceID();
+
+        // 미사일 고스트 직접 클릭
+        if (ghostByInstanceId.TryGetValue(id, out PlacedMissile clickedMissile))
+        {
+            selectedMissiles.Remove(clickedMissile);
+            RemoveSingleMissile(clickedMissile);
+            overlapList.RemoveAll(m => m.ghost == null);
+            return true;
+        }
+
+        // 타일 위의 미사일 삭제
+        if (tileByInstanceId.TryGetValue(id, out Vector2Int coord))
+        {
+            string locKey = $"T:{coord.x},{coord.y}";
+            for (int i = placedMissiles.Count - 1; i >= 0; i--)
+            {
+                if (placedMissiles[i].locationKey == locKey)
+                {
+                    selectedMissiles.Remove(placedMissiles[i]);
+                    RemoveSingleMissile(placedMissiles[i]);
+                }
+            }
+            overlapList.RemoveAll(m => m.ghost == null);
+            return true;
+        }
+
+        // 스폰포인트 위의 미사일 삭제
+        if (spawnByInstanceId.TryGetValue(id, out string spawnId))
+        {
+            string locKey = $"S:{spawnId}";
+            for (int i = placedMissiles.Count - 1; i >= 0; i--)
+            {
+                if (placedMissiles[i].locationKey == locKey)
+                {
+                    selectedMissiles.Remove(placedMissiles[i]);
+                    RemoveSingleMissile(placedMissiles[i]);
+                }
+            }
+            overlapList.RemoveAll(m => m.ghost == null);
+            return true;
+        }
+
+        return false;
     }
 
     private static void ClearAllPlacedMissiles()
@@ -1171,6 +1547,84 @@ public static class PatternEditorSceneInteraction
         selectedMissiles.Clear();
     }
 
+    private static void HandleMissileSelectionCycle(List<PlacedMissile> hits, bool ctrl)
+    {
+        if (ctrl)
+        {
+            // Ctrl+클릭: 첫 번째 미사일 토글
+            if (!selectedMissiles.Remove(hits[0]))
+                selectedMissiles.Add(hits[0]);
+        }
+        else if (hits.Count == 1)
+        {
+            bool wasSelected = selectedMissiles.Contains(hits[0]);
+            ClearAllSelections();
+            if (!wasSelected) selectedMissiles.Add(hits[0]);
+        }
+        else
+        {
+            // 겹침 순환
+            int currentIndex = -1;
+            if (selectedMissiles.Count == 1)
+            {
+                PlacedMissile sel = null;
+                foreach (var m in selectedMissiles) sel = m;
+                currentIndex = hits.IndexOf(sel);
+            }
+            int nextIndex = (currentIndex + 1) % hits.Count;
+            ClearAllSelections();
+            selectedMissiles.Add(hits[nextIndex]);
+        }
+        overlapList.Clear();
+        overlapList.AddRange(hits);
+        SceneView.RepaintAll();
+    }
+
+    /// <summary>
+    /// 같은 locationKey를 가진 모든 배치된 미사일을 반환 (겹침 순환 선택용).
+    /// </summary>
+    private static List<PlacedMissile> GetAllMissilesAtLocation(string locationKey)
+    {
+        var result = new List<PlacedMissile>();
+        foreach (var m in placedMissiles)
+            if (m.locationKey == locationKey)
+                result.Add(m);
+        return result;
+    }
+
+    #endregion
+
+    #region Undo / Redo
+
+    private static void PushUndo()
+    {
+        undoStack.Push((new HashSet<Vector2Int>(SelectedTiles), new HashSet<string>(SelectedSpawnPoints)));
+        redoStack.Clear();
+    }
+
+    private static void UndoSelection()
+    {
+        if (undoStack.Count == 0) return;
+        redoStack.Push((new HashSet<Vector2Int>(SelectedTiles), new HashSet<string>(SelectedSpawnPoints)));
+        RestoreSelection(undoStack.Pop());
+    }
+
+    private static void RedoSelection()
+    {
+        if (redoStack.Count == 0) return;
+        undoStack.Push((new HashSet<Vector2Int>(SelectedTiles), new HashSet<string>(SelectedSpawnPoints)));
+        RestoreSelection(redoStack.Pop());
+    }
+
+    private static void RestoreSelection((HashSet<Vector2Int> tiles, HashSet<string> spawns) state)
+    {
+        SelectedTiles.Clear();
+        foreach (var t in state.tiles) SelectedTiles.Add(t);
+        SelectedSpawnPoints.Clear();
+        foreach (var s in state.spawns) SelectedSpawnPoints.Add(s);
+        SceneView.RepaintAll();
+    }
+
     #endregion
 
     #region Missile Drawing
@@ -1185,7 +1639,9 @@ public static class PatternEditorSceneInteraction
         foreach (var m in selectedMissiles)
         {
             if (m.ghost == null) continue;
-            var bounds = m.ghost.GetComponent<Renderer>().bounds;
+            var renderer = m.ghost.GetComponentInChildren<Renderer>();
+            if (renderer == null) continue;
+            var bounds = renderer.bounds;
             Handles.DrawWireCube(bounds.center, bounds.size * 1.2f);
         }
 
@@ -1203,6 +1659,7 @@ public static class PatternEditorSceneInteraction
         // 현재 호버 위치 결정
         string newLocation = null;
         Vector3 ghostPos = Vector3.zero;
+        bool onSpawn = false;
 
         if (hoveredTile.HasValue && tileWorldPositions.TryGetValue(hoveredTile.Value, out Vector3 tPos))
         {
@@ -1213,6 +1670,7 @@ public static class PatternEditorSceneInteraction
         {
             newLocation = $"S:{hoveredSpawnId}";
             ghostPos = sPos;
+            onSpawn = true;
         }
 
         if (newLocation == null)
@@ -1221,33 +1679,72 @@ public static class PatternEditorSceneInteraction
             return;
         }
 
-        // 위치가 바뀌었으면 고스트 재생성
-        if (hoverGhostLocation != newLocation)
+        if (hoverGhostLocation == newLocation) return;
+
+        var type = paletteTypes[selectedPaletteIndex];
+
+        // 회전 컨텍스트: 팔레트 + 위치 종류(타일/스폰방향)에 따라 결정
+        // 같으면 위치만 이동, 다르면 재생성
+        string rotationKey = BuildRotationKey(selectedPaletteIndex, onSpawn, hoveredSpawnId);
+        bool canReuse = hoverGhost != null
+                     && hoverGhostPaletteIndex == selectedPaletteIndex
+                     && hoverGhostRotationKey == rotationKey;
+
+        if (canReuse)
         {
+            // 위치만 이동 — 자식(데칼 등)은 로컬 오프셋 유지되므로 자동으로 따라감
+            Vector3 spawnPos = CalculateSpawnPosition(type, ghostPos, onSpawn, hoveredSpawnId);
+            hoverGhost.transform.position = spawnPos;
+            hoverGhostLocation = newLocation;
+        }
+        else
+        {
+            // 팔레트 변경 또는 회전 컨텍스트 변경 → 재생성
             DestroyHoverGhost();
 
-            var type = paletteTypes[selectedPaletteIndex];
-            bool onSpawn = hoveredSpawnId != null;
             Vector3 spawnPos = CalculateSpawnPosition(type, ghostPos, onSpawn, hoveredSpawnId);
             hoverGhost = InstantiateMissilePrefab(palettePrefabs[selectedPaletteIndex], spawnPos,
                 type, onSpawn, hoveredSpawnId);
-            hoverGhostLocation = newLocation;
+            hoverGhostLocation     = newLocation;
+            hoverGhostPaletteIndex = selectedPaletteIndex;
+            hoverGhostRotationKey  = rotationKey;
 
             if (hoverGhost != null)
             {
-                // 레이캐스트에 걸리지 않도록 Collider 전부 비활성화
                 foreach (var col in hoverGhost.GetComponentsInChildren<Collider>(true))
                     col.enabled = false;
             }
         }
     }
 
+    /// <summary>
+    /// 회전/데칼 설정이 동일한지 판별하기 위한 키.
+    /// 팔레트 인덱스 + 타일/스폰 여부 + 스폰 방향 접두사로 구성.
+    /// </summary>
+    private static string BuildRotationKey(int paletteIdx, bool onSpawn, string spawnId)
+    {
+        if (!onSpawn) return $"{paletteIdx}:tile";
+        // 스폰: 방향 접두사(N:/S:/E:/W:/NE/NW/SE/SW)가 같으면 회전이 동일
+        string dirPrefix = GetSpawnDirectionPrefix(spawnId);
+        return $"{paletteIdx}:spawn:{dirPrefix}";
+    }
+
+    private static string GetSpawnDirectionPrefix(string spawnId)
+    {
+        if (spawnId == null) return "";
+        // "N:3" → "N", "NE" → "NE"
+        int colonIdx = spawnId.IndexOf(':');
+        return colonIdx >= 0 ? spawnId.Substring(0, colonIdx) : spawnId;
+    }
+
     private static void DestroyHoverGhost()
     {
         if (hoverGhost != null)
             Object.DestroyImmediate(hoverGhost);
-        hoverGhost         = null;
-        hoverGhostLocation = null;
+        hoverGhost             = null;
+        hoverGhostLocation     = null;
+        hoverGhostPaletteIndex = -1;
+        hoverGhostRotationKey  = null;
     }
 
     #endregion
