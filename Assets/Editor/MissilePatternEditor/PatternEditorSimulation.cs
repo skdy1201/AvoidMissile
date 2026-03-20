@@ -143,8 +143,15 @@ public static class PatternEditorSimulation
     public static void TogglePlay()
     {
         if (!isPlaying && currentTime >= totalDuration)
+        {
             currentTime = 0f;
+            ResetMissilePositions();
+        }
+
         isPlaying = !isPlaying;
+
+        // 일시정지: 현재 위치 유지 (복원하지 않음)
+
         NotifyStateChanged();
         SceneView.RepaintAll();
     }
@@ -194,6 +201,7 @@ public static class PatternEditorSimulation
             if (ev.Time < currentTime - 0.01f)
                 prevTime = Mathf.Max(prevTime, ev.Time);
         currentTime = prevTime;
+        ResetMissilePositions();
         NotifyStateChanged();
         SceneView.RepaintAll();
     }
@@ -205,6 +213,7 @@ public static class PatternEditorSimulation
             if (ev.Time > currentTime + 0.01f)
                 nextTime = Mathf.Min(nextTime, ev.Time);
         currentTime = nextTime;
+        ResetMissilePositions();
         NotifyStateChanged();
         SceneView.RepaintAll();
     }
@@ -260,10 +269,17 @@ public static class PatternEditorSimulation
         {
             float dt = (float)(now - lastEditorTime) * playSpeed;
             currentTime = Mathf.Clamp(currentTime + dt, 0f, totalDuration);
+
+            // ghost 이동
+            MoveMissiles(dt);
+
             if (currentTime >= totalDuration)
             {
                 if (loopPlayback)
+                {
                     currentTime = 0f;
+                    ResetMissilePositions();
+                }
                 else
                 {
                     isPlaying = false;
@@ -273,6 +289,115 @@ public static class PatternEditorSimulation
             SceneView.RepaintAll();
         }
         lastEditorTime = now;
+    }
+
+    /// <summary>배치된 미사일 ghost를 방향×속도로 이동 + 데칼 스케일 + 충돌 감지.</summary>
+    private static void MoveMissiles(float dt)
+    {
+        var missiles = PatternEditorSceneInteraction.PlacedMissiles;
+        for (int i = 0; i < missiles.Count; i++)
+        {
+            var m = missiles[i];
+            if (m.ghost == null || m.hidden) continue;
+
+            m.ghost.transform.position += m.direction * m.speed * dt;
+
+            // 데칼: 플랫폼 표면에 고정 + 높이 비율 스케일
+            UpdateDecal(m);
+
+            // 충돌 감지: 플랫폼 Y 도달 시 숨김
+            if (HasReachedPlatform(m))
+            {
+                m.ghost.SetActive(false);
+                m.hidden = true;
+            }
+        }
+    }
+
+    /// <summary>데칼을 플랫폼 표면에 고정 + 높이 비율로 크기 조절.</summary>
+    private static void UpdateDecal(PlacedMissile m)
+    {
+        if (m.decalTransform == null) return;
+
+        // 데칼 위치를 플랫폼 표면 XZ에 고정 (ghost 자식이라 같이 움직이므로 매 프레임 보정)
+        var missilePos = m.ghost.transform.position;
+        float decalYOffset = m.type == PlacedMissileType.Grand ? -0.5f : 1.1f;
+        float decalY = m.platformY + decalYOffset;
+        m.decalTransform.position = new Vector3(missilePos.x, decalY, missilePos.z);
+
+        var projector = m.decalTransform.GetComponent<UnityEngine.Rendering.Universal.DecalProjector>();
+        if (projector == null) return;
+
+        float totalDrop = m.spawnHeight - m.platformY;
+        if (totalDrop <= 0f) return;
+
+        float currentHeight = missilePos.y - m.platformY;
+        float ratio = 1f - Mathf.Clamp01(currentHeight / totalDrop);
+
+        projector.size = new Vector3(
+            m.decalMaxSize.x * ratio,
+            m.decalMaxSize.y * ratio,
+            m.decalMaxSize.z);
+    }
+
+    /// <summary>미사일 선두가 플랫폼/바운더리에 도달했는지 확인.</summary>
+    private static bool HasReachedPlatform(PlacedMissile m)
+    {
+        Vector3 pos = m.ghost.transform.position;
+
+        // Renderer bounds로 선두 오프셋 계산
+        float frontOffset = 0f;
+        var renderer = m.ghost.GetComponentInChildren<Renderer>();
+        if (renderer != null)
+        {
+            var bounds = renderer.bounds;
+            // 이동 방향 축의 extent (중심에서 가장자리까지 거리)
+            frontOffset = Mathf.Abs(Vector3.Dot(bounds.extents, m.direction));
+        }
+
+        // Falling / Grand Vertical: 선두(아랫면)가 플랫폼 이하
+        if (m.direction.y < 0f)
+            return (pos.y - frontOffset) <= m.platformY;
+
+        // Hover / Grand Horizontal: 선두가 게임 바운더리(±50) 밖
+        Vector3 frontPos = pos + m.direction * frontOffset;
+        const float boundaryLimit = 50f;
+        return frontPos.x < -boundaryLimit || frontPos.x > boundaryLimit
+            || frontPos.z < -boundaryLimit || frontPos.z > boundaryLimit;
+    }
+
+    /// <summary>모든 미사일 ghost를 원래 배치 위치로 복원.</summary>
+    private static void ResetMissilePositions()
+    {
+        var missiles = PatternEditorSceneInteraction.PlacedMissiles;
+        for (int i = 0; i < missiles.Count; i++)
+        {
+            var m = missiles[i];
+            if (m.ghost == null) continue;
+
+            m.ghost.transform.position = m.originalPosition;
+
+            // 숨김 복원
+            if (m.hidden)
+            {
+                m.ghost.SetActive(true);
+                m.hidden = false;
+            }
+
+            // 데칼 크기 원래대로 복원
+            ResetDecalScale(m);
+        }
+    }
+
+    /// <summary>데칼을 배치 시 최대 크기로 복원.</summary>
+    private static void ResetDecalScale(PlacedMissile m)
+    {
+        if (m.decalTransform == null) return;
+
+        var projector = m.decalTransform.GetComponent<UnityEngine.Rendering.Universal.DecalProjector>();
+        if (projector == null) return;
+
+        projector.size = m.decalMaxSize;
     }
 
     #endregion
