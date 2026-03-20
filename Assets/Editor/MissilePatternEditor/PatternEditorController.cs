@@ -27,6 +27,7 @@ public static class PatternEditorController
         EditorSceneManager.sceneClosing += OnSceneClosing;
         DeactivateGameUI();
         PatternEditorSceneInteraction.Initialize();
+        PatternEditorSimulation.Initialize();
 
         // 툴바 + 에디터 모드 복원
         PatternEditorToolbar.Show();
@@ -114,6 +115,9 @@ public static class PatternEditorController
 
         // 씬뷰 인터랙션 초기화 (타일/스폰포인트 생성 + SceneView 콜백 등록)
         PatternEditorSceneInteraction.Initialize();
+
+        // 시뮬레이션 초기화 (dt 루프 등록)
+        PatternEditorSimulation.Initialize();
 
         // 툴바 표시 + 에디터 모드 활성화
         PatternEditorToolbar.Show();
@@ -244,6 +248,9 @@ public static class PatternEditorController
         // 툴바 숨김 + 에디터 모드 해제
         PatternEditorModeToggle.Reset();
         PatternEditorToolbar.Hide();
+
+        // 시뮬레이션 정리 (dt 루프 해제 + 상태 초기화)
+        PatternEditorSimulation.Cleanup();
 
         // 씬뷰 인터랙션 정리 (SceneView 콜백 해제 + 생성된 오브젝트 파괴)
         PatternEditorSceneInteraction.Cleanup();

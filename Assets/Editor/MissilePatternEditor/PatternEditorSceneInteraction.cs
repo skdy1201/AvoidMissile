@@ -420,6 +420,9 @@ public static class PatternEditorSceneInteraction
         DrawMissileSelectionMarkers();
         DrawGrandHorizontalStrips();
 
+        // 타임라인은 항상 표시 (에디터 모드 무관)
+        PatternEditorSimulation.DrawTimeline(sceneView);
+
         // 에디터 모드 비활성 시 입력·호버·팔레트 건너뜀
         if (!interactionEnabled) return;
 
@@ -472,8 +475,11 @@ public static class PatternEditorSceneInteraction
             return;
         }
 
-        // 팔레트·겹침패널 영역 내 클릭은 월드 인터랙션 무시 (GUI가 처리)
-        if (e.isMouse && (IsMouseOverPalette(e.mousePosition) || IsMouseOverOverlapPanel(e.mousePosition)))
+        // 팔레트·겹침패널·타임라인 영역 내 클릭은 월드 인터랙션 무시 (GUI가 처리)
+        if (e.isMouse && (IsMouseOverPalette(e.mousePosition)
+            || IsMouseOverOverlapPanel(e.mousePosition)
+            || PatternEditorSimulation.IsMouseOverTimeline(
+                SceneView.lastActiveSceneView, e.mousePosition)))
             return;
 
         // 좌클릭 다운 — 드래그 시작 (Alt 제외: Alt+좌드래그는 Scene View 오빗)
@@ -567,6 +573,15 @@ public static class PatternEditorSceneInteraction
                 e.Use();
                 return;
             }
+        }
+
+        // Space — 재생/일시정지 토글
+        if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Space)
+        {
+            GUIUtility.keyboardControl = 0;
+            PatternEditorSimulation.TogglePlay();
+            e.Use();
+            return;
         }
 
         // 우클릭 — Place 모드 해제, 아니면 커서 아래 객체 즉시 삭제
