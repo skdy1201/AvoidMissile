@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// 미사일 패턴 에디터 시뮬레이션 — 재생 루프, 타임라인, 배속 컨트롤, 구간 시스템.
+/// 미사일 패턴 에디터 시뮬레이션 — 재생 루프, 타임라인, 배속 컨트롤, 이벤트 마커 시스템.
 /// static class. PatternEditorToolbar(UIElements)와 SceneInteraction(IMGUI)에서 참조.
 /// </summary>
 public static class PatternEditorSimulation
@@ -12,7 +12,14 @@ public static class PatternEditorSimulation
     #region Types
 
     public enum EndOfPatternPolicy { Destroy, KeepLast }
-    public struct GlobalSegment { public float Start; public float End; }
+    public enum PatternEventType { Spawn, StatChange, Destroy }
+
+    public class PatternEvent
+    {
+        public float Time;
+        public PatternEventType EventType;
+        public List<int> LinkedMissileIds = new List<int>();
+    }
 
     #endregion
 
@@ -22,7 +29,6 @@ public static class PatternEditorSimulation
     private static readonly string[] SpeedLabels  = { "0.25x", "0.5x", "1x", "2x" };
     private const int   CustomSpeedIndex       = 4;
     private const float DefaultTotalDuration   = 10f;
-    private const float DefaultSegmentDuration = 2f;
 
     // 타임라인 레이아웃
     private const float TimelineHeight  = 60f;
@@ -33,8 +39,11 @@ public static class PatternEditorSimulation
     // 타임라인 색상
     private static readonly Color PlaybarBackground   = new Color(0.12f, 0.12f, 0.12f, 0.92f);
     private static readonly Color TrackBackground     = new Color(0.06f, 0.06f, 0.06f);
-    private static readonly Color SegmentSelected     = new Color(0.35f, 0.85f, 0.35f, 0.85f);
-    private static readonly Color SegmentUnselected   = new Color(0.20f, 0.60f, 0.20f, 0.60f);
+    private static readonly Color MarkerSpawn          = new Color(0.30f, 0.55f, 0.90f, 0.90f);
+    private static readonly Color MarkerStatChange     = new Color(0.90f, 0.80f, 0.20f, 0.90f);
+    private static readonly Color MarkerDestroy        = new Color(0.90f, 0.30f, 0.30f, 0.90f);
+    private static readonly Color MarkerSelected       = new Color(1f, 1f, 1f, 0.95f);
+    private const float MarkerRadius = 5f;
     private static readonly Color TickColor           = new Color(0.45f, 0.45f, 0.45f);
 
     #endregion
@@ -57,9 +66,10 @@ public static class PatternEditorSimulation
     private static float timelineZoom      = 1f;
     private static float timelineViewStart;
 
-    // 구간
-    private static readonly List<GlobalSegment> globalSegments = new List<GlobalSegment>();
-    private static int selectedSegmentIndex = -1;
+    // 이벤트 마커
+    private static readonly List<PatternEvent> patternEvents = new List<PatternEvent>();
+    private static int selectedEventIndex = -1;
+
 
     private static bool initialized;
 
@@ -79,8 +89,8 @@ public static class PatternEditorSimulation
         get => endPolicy;
         set { endPolicy = value; NotifyStateChanged(); }
     }
-    public static IReadOnlyList<GlobalSegment> Segments => globalSegments;
-    public static int SelectedSegmentIndex { get => selectedSegmentIndex; set => selectedSegmentIndex = value; }
+    public static IReadOnlyList<PatternEvent> Events => patternEvents;
+    public static int SelectedEventIndex { get => selectedEventIndex; set => selectedEventIndex = value; }
 
     /// <summary>현재 배속 라벨 (툴바 표시용).</summary>
     public static string CurrentSpeedLabel =>
@@ -125,8 +135,8 @@ public static class PatternEditorSimulation
         endPolicy           = EndOfPatternPolicy.Destroy;
         timelineZoom        = 1f;
         timelineViewStart   = 0f;
-        globalSegments.Clear();
-        selectedSegmentIndex = -1;
+        patternEvents.Clear();
+        selectedEventIndex = -1;
         initialized = false;
     }
 
@@ -170,12 +180,9 @@ public static class PatternEditorSimulation
     {
         totalDuration = Mathf.Clamp(d, 0.1f, 600f);
         currentTime   = Mathf.Clamp(currentTime, 0f, totalDuration);
-        for (int i = 0; i < globalSegments.Count; i++)
-        {
-            var s = globalSegments[i];
-            s.End = Mathf.Clamp(s.End, s.Start, totalDuration);
-            globalSegments[i] = s;
-        }
+        // 범위 밖 이벤트 클램프
+        foreach (var ev in patternEvents)
+            ev.Time = Mathf.Clamp(ev.Time, 0f, totalDuration);
         ClampTimelineView();
         SceneView.RepaintAll();
     }
@@ -183,9 +190,9 @@ public static class PatternEditorSimulation
     public static void JumpToPrevSegmentOrStart()
     {
         float prevTime = 0f;
-        foreach (var seg in globalSegments)
-            if (seg.Start < currentTime - 0.01f)
-                prevTime = Mathf.Max(prevTime, seg.Start);
+        foreach (var ev in patternEvents)
+            if (ev.Time < currentTime - 0.01f)
+                prevTime = Mathf.Max(prevTime, ev.Time);
         currentTime = prevTime;
         NotifyStateChanged();
         SceneView.RepaintAll();
@@ -194,28 +201,51 @@ public static class PatternEditorSimulation
     public static void JumpToNextSegmentOrEnd()
     {
         float nextTime = totalDuration;
-        foreach (var seg in globalSegments)
-            if (seg.Start > currentTime + 0.01f)
-                nextTime = Mathf.Min(nextTime, seg.Start);
+        foreach (var ev in patternEvents)
+            if (ev.Time > currentTime + 0.01f)
+                nextTime = Mathf.Min(nextTime, ev.Time);
         currentTime = nextTime;
         NotifyStateChanged();
         SceneView.RepaintAll();
     }
 
-    public static void AddGlobalSegment()
+    /// <summary>이벤트 마커 추가 (미사일 배치 등에서 호출).</summary>
+    public static void AddEvent(PatternEventType type, float time, List<int> missileIds = null)
     {
-        float start = currentTime;
-        float end   = Mathf.Min(currentTime + DefaultSegmentDuration, totalDuration);
-        globalSegments.Add(new GlobalSegment { Start = start, End = end });
-        selectedSegmentIndex = globalSegments.Count - 1;
+        var ev = new PatternEvent
+        {
+            Time = Mathf.Clamp(time, 0f, totalDuration),
+            EventType = type,
+            LinkedMissileIds = missileIds ?? new List<int>()
+        };
+        patternEvents.Add(ev);
+        patternEvents.Sort((a, b) => a.Time.CompareTo(b.Time));
+        selectedEventIndex = patternEvents.IndexOf(ev);
         SceneView.RepaintAll();
     }
 
-    public static void DeleteSelectedSegment()
+    /// <summary>선택된 이벤트 마커 삭제.</summary>
+    public static void DeleteSelectedEvent()
     {
-        if (selectedSegmentIndex < 0 || selectedSegmentIndex >= globalSegments.Count) return;
-        globalSegments.RemoveAt(selectedSegmentIndex);
-        selectedSegmentIndex = -1;
+        if (selectedEventIndex < 0 || selectedEventIndex >= patternEvents.Count) return;
+        patternEvents.RemoveAt(selectedEventIndex);
+        selectedEventIndex = -1;
+        SceneView.RepaintAll();
+    }
+
+    /// <summary>미사일 ID가 연결된 이벤트에서 제거. 빈 이벤트는 자동 삭제.</summary>
+    public static void RemoveMissileFromEvents(int missileId)
+    {
+        for (int i = patternEvents.Count - 1; i >= 0; i--)
+        {
+            patternEvents[i].LinkedMissileIds.Remove(missileId);
+            if (patternEvents[i].LinkedMissileIds.Count == 0)
+            {
+                patternEvents.RemoveAt(i);
+                if (selectedEventIndex == i) selectedEventIndex = -1;
+                else if (selectedEventIndex > i) selectedEventIndex--;
+            }
+        }
         SceneView.RepaintAll();
     }
 
@@ -302,9 +332,12 @@ public static class PatternEditorSimulation
         GUILayout.Label("s", GUILayout.Width(10));
         GUILayout.Space(10);
 
-        // 구간 추가
-        if (GUILayout.Button("+ 구간", GUILayout.Height(20), GUILayout.Width(50)))
-            AddGlobalSegment();
+        // 시간 직접 이동
+        GUILayout.Label("이동:", GUILayout.Width(28));
+        float jumpInput = EditorGUILayout.DelayedFloatField(currentTime, GUILayout.Width(42));
+        if (Mathf.Abs(jumpInput - currentTime) > 0.001f)
+            SetCurrentTime(jumpInput);
+        GUILayout.Label("s", GUILayout.Width(10));
 
         GUILayout.FlexibleSpace();
 
@@ -373,17 +406,24 @@ public static class PatternEditorSimulation
         float visibleDuration = totalDuration / timelineZoom;
         float viewEnd         = timelineViewStart + visibleDuration;
 
-        // 구간
-        for (int i = 0; i < globalSegments.Count; i++)
+        // 이벤트 마커
+        for (int i = 0; i < patternEvents.Count; i++)
         {
-            var   seg = globalSegments[i];
-            float x1  = TimeToTrackX(track, seg.Start);
-            float x2  = TimeToTrackX(track, seg.End);
-            if (x2 < track.x || x1 > track.xMax) continue;
-            Color col = (i == selectedSegmentIndex) ? SegmentSelected : SegmentUnselected;
-            float rx  = Mathf.Max(x1, track.x);
-            float rw  = Mathf.Max(2f, Mathf.Min(x2, track.xMax) - rx);
-            EditorGUI.DrawRect(new Rect(rx, track.y + 3, rw, track.height - 6), col);
+            var   ev = patternEvents[i];
+            float x  = TimeToTrackX(track, ev.Time);
+            if (x < track.x - MarkerRadius || x > track.xMax + MarkerRadius) continue;
+
+            Color col = GetEventColor(ev.EventType);
+            if (i == selectedEventIndex)
+                col = MarkerSelected;
+
+            // 마커: 다이아몬드 형태 (rect로 근사)
+            float cy = track.y + track.height * 0.5f;
+            EditorGUI.DrawRect(new Rect(x - MarkerRadius, cy - MarkerRadius,
+                MarkerRadius * 2f, MarkerRadius * 2f), col);
+
+            // 하단 스템 라인
+            EditorGUI.DrawRect(new Rect(x - 0.5f, track.y, 1f, track.height), col * 0.6f);
         }
 
         // 시간 눈금
@@ -403,6 +443,17 @@ public static class PatternEditorSimulation
         float px = TimeToTrackX(track, currentTime);
         if (px >= track.x && px <= track.xMax)
             EditorGUI.DrawRect(new Rect(px - 1f, track.y, 2f, track.height), Color.white);
+    }
+
+    private static Color GetEventColor(PatternEventType type)
+    {
+        switch (type)
+        {
+            case PatternEventType.Spawn:      return MarkerSpawn;
+            case PatternEventType.StatChange:  return MarkerStatChange;
+            case PatternEventType.Destroy:     return MarkerDestroy;
+            default:                           return Color.gray;
+        }
     }
 
     private static float GetTimeMarkInterval(float visibleDuration, float trackWidth)
@@ -453,7 +504,7 @@ public static class PatternEditorSimulation
             e.Use();
         }
 
-        // 좌클릭/드래그 — 스크러빙 + 구간 선택
+        // 좌클릭/드래그 — 스크러빙 + 이벤트 마커 선택
         if ((e.type == EventType.MouseDown || e.type == EventType.MouseDrag) &&
             e.button == 0 && trackRect.Contains(e.mousePosition))
         {
@@ -461,32 +512,29 @@ public static class PatternEditorSimulation
             currentTime = Mathf.Clamp(t, 0f, totalDuration);
             isPlaying   = false;
 
-            // 클릭 시 구간 선택 — 가장 짧은 구간 우선
+            // 클릭 시 이벤트 마커 선택 — 가장 가까운 마커 우선 (10px 이내)
             if (e.type == EventType.MouseDown)
             {
                 int   best     = -1;
-                float bestSpan = float.MaxValue;
-                for (int i = 0; i < globalSegments.Count; i++)
+                float bestDist = 10f;
+                for (int i = 0; i < patternEvents.Count; i++)
                 {
-                    var seg = globalSegments[i];
-                    if (t >= seg.Start && t <= seg.End)
-                    {
-                        float span = seg.End - seg.Start;
-                        if (span < bestSpan) { best = i; bestSpan = span; }
-                    }
+                    float mx = TimeToTrackX(trackRect, patternEvents[i].Time);
+                    float dist = Mathf.Abs(e.mousePosition.x - mx);
+                    if (dist < bestDist) { best = i; bestDist = dist; }
                 }
-                selectedSegmentIndex = best;
+                selectedEventIndex = best;
             }
 
             NotifyStateChanged();
             e.Use();
         }
 
-        // Delete → 선택 구간 삭제
+        // Delete → 선택 이벤트 마커 삭제
         if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Delete &&
-            selectedSegmentIndex >= 0 && selectedSegmentIndex < globalSegments.Count)
+            selectedEventIndex >= 0 && selectedEventIndex < patternEvents.Count)
         {
-            DeleteSelectedSegment();
+            DeleteSelectedEvent();
             e.Use();
         }
     }
