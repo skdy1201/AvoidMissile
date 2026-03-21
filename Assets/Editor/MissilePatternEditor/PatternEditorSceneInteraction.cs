@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-public enum PlacedMissileType { Falling, Grand, Hover }
+// PlacedMissileType enum → Assets/Code/Missile/PlacedMissileType.cs (런타임 어셈블리)
 
 public class PlacedMissile
 {
@@ -21,6 +21,10 @@ public class PlacedMissile
     public float     spawnHeight;          // 스폰 시작 높이 (originalPosition.y)
     public float     platformY;            // 플랫폼 Y 좌표
     public bool      hidden;               // 충돌로 숨김 처리됨
+
+    // Grand 캐시 (인스펙터 변경 감지용)
+    public int cachedDiameter;
+    public int cachedDirection;
 }
 
 /// <summary>
@@ -123,6 +127,8 @@ public static class PatternEditorSceneInteraction
     private static Vector2 dragStart;
     private static Vector2 dragEnd;
     private static bool    dragWasCtrl;
+    private static Rect    lastDragBox;                // Esc → 타일 폴백용
+    private static bool    lastDragHadMissiles;        // 직전 드래그가 미사일을 잡았는지
 
     // 팔레트
     private static readonly List<GameObject>        palettePrefabs = new List<GameObject>();
@@ -135,6 +141,7 @@ public static class PatternEditorSceneInteraction
     public  static IReadOnlyList<PlacedMissile>            PlacedMissiles    => placedMissiles;
     private static readonly Dictionary<int, PlacedMissile> ghostByInstanceId = new Dictionary<int, PlacedMissile>();
     private static readonly HashSet<PlacedMissile>         selectedMissiles  = new HashSet<PlacedMissile>();
+    private static PlacedMissileType lastSelectedType;   // 혼합 선택 시 인스펙터 필터 기준
 
     // 배치 미리보기 (호버 고스트)
     private static GameObject hoverGhost;
@@ -423,6 +430,9 @@ public static class PatternEditorSceneInteraction
     {
         if (!initialized) return;
 
+        // 인스펙터에서 변경된 스탯 → 시각 동기화
+        SyncAllMissileVisuals();
+
         // 시각화는 항상 렌더링 (기본 도구 모드에서도 배치된 미사일·선택 마커 보임)
         DrawSelectionMarkers();
         DrawSpawnSelectionMarkers();
@@ -438,7 +448,13 @@ public static class PatternEditorSceneInteraction
 
         Event e = Event.current;
 
+        int prevSelCount = selectedMissiles.Count;
         HandleInput(e);
+
+        // 선택 변경 시 인스펙터 동기화
+        if (selectedMissiles.Count != prevSelCount)
+            SyncInspectorSelection();
+
         DrawHoverHighlight();
         UpdateHoverGhost();
         DrawPalette(sceneView);
@@ -556,6 +572,14 @@ public static class PatternEditorSceneInteraction
             {
                 selectedMissiles.Clear();
                 overlapList.Clear();
+                SyncInspectorSelection();
+
+                // 직전 드래그가 미사일을 잡은 경우 → 같은 영역의 타일/스폰 선택으로 폴백
+                if (lastDragHadMissiles && lastDragBox.width > 0f)
+                {
+                    SelectTilesAndSpawnsInBox(lastDragBox);
+                    lastDragHadMissiles = false;
+                }
             }
             else if (SelectedTiles.Count > 0 || SelectedSpawnPoints.Count > 0)
             {
@@ -759,7 +783,168 @@ public static class PatternEditorSceneInteraction
             selectedMissiles.Clear();
         }
 
-        // 타일 — 시각적 중심이 드래그 박스 안에 있으면 선택
+        // 미사일 우선 판정 — 배치 지면 위치(locationKey) 기준으로 스크린 좌표 비교
+        var boxMissiles = new List<PlacedMissile>();
+        foreach (var m in placedMissiles)
+        {
+            if (m.ghost == null || m.hidden) continue;
+            Vector3 groundPos = GetMissileGroundPosition(m);
+            if (groundPos == Vector3.zero) continue;
+            Vector2 screenPoint = HandleUtility.WorldToGUIPoint(groundPos);
+            if (screenBox.Contains(screenPoint))
+                boxMissiles.Add(m);
+        }
+
+        lastDragBox = screenBox;
+
+        if (boxMissiles.Count > 0)
+        {
+            lastDragHadMissiles = true;
+            foreach (var m in boxMissiles)
+                selectedMissiles.Add(m);
+            lastSelectedType = boxMissiles[boxMissiles.Count - 1].type;
+            SyncInspectorSelection();
+        }
+        else
+        {
+            lastDragHadMissiles = false;
+            SelectTilesAndSpawnsInBox(screenBox);
+        }
+
+        SceneView.RepaintAll();
+    }
+
+    /// <summary>인스펙터에서 변경된 MissileStatHolder 값을 ghost 비주얼에 동기화.</summary>
+    private static void SyncAllMissileVisuals()
+    {
+        for (int i = 0; i < placedMissiles.Count; i++)
+        {
+            var m = placedMissiles[i];
+            if (m.ghost == null) continue;
+
+            var holder = m.ghost.GetComponent<MissileStatHolder>();
+            if (holder == null) continue;
+
+            // speed 동기화
+            m.speed = holder.speed;
+
+            // Grand: diameter·direction 동기화
+            if (m.type == PlacedMissileType.Grand)
+                SyncGrandVisuals(m, holder);
+        }
+    }
+
+    private static void SyncGrandVisuals(PlacedMissile m, MissileStatHolder holder)
+    {
+        int newDiameter  = holder.grandDiameter;
+        int newDirection = holder.grandDirection;
+
+        // diameter 변경 감지
+        if (newDiameter != m.cachedDiameter)
+        {
+            m.cachedDiameter = newDiameter;
+            float desiredSize = tileXSize * newDiameter;
+
+            // ghost 모델 스케일 조정 (GrandMissile.Initialize 재현)
+            // sharedMesh.bounds.size = 원본 메시 크기 (스케일 무관)
+            var meshFilter = m.ghost.GetComponentInChildren<MeshFilter>();
+            if (meshFilter != null)
+            {
+                var modelTransform = meshFilter.transform;
+                float rawMeshWidth = meshFilter.sharedMesh.bounds.size.x;
+                float scaleFactor = desiredSize / rawMeshWidth;
+                modelTransform.localScale = new Vector3(
+                    scaleFactor,
+                    scaleFactor * (2f / 3f),
+                    scaleFactor);
+            }
+
+            // Grand Vertical 데칼 크기 갱신
+            if (m.decalTransform != null)
+            {
+                m.decalMaxSize = new Vector3(desiredSize, desiredSize, 0.5f);
+                var projector = m.decalTransform.GetComponent<
+                    UnityEngine.Rendering.Universal.DecalProjector>();
+                if (projector != null)
+                    projector.size = m.decalMaxSize;
+            }
+
+            // Grand Horizontal Y 오프셋 갱신 (diameter 비례)
+            if (m.direction.y == 0f)
+            {
+                float yOffset = newDiameter * (GrandHorizontalYOffset / DefaultGrandDiameter);
+                Vector3 groundPos = GetMissileGroundPosition(m);
+                if (groundPos != Vector3.zero)
+                {
+                    m.ghost.transform.position = new Vector3(
+                        m.ghost.transform.position.x, groundPos.y + yOffset, m.ghost.transform.position.z);
+                    m.originalPosition = m.ghost.transform.position;
+                }
+            }
+        }
+
+        // direction 변경 감지
+        if (newDirection != m.cachedDirection)
+        {
+            m.cachedDirection = newDirection;
+            m.direction = DirectionIntToVector(newDirection);
+
+            // 회전 직접 적용
+            m.ghost.transform.rotation = newDirection switch
+            {
+                0 => Quaternion.Euler(180f, 0f, 0f),   // Vertical (아래)
+                1 => Quaternion.Euler(-90f, 0f, 0f),    // N→S
+                2 => Quaternion.Euler(90f, 0f, 0f),     // S→N
+                3 => Quaternion.Euler(0f, 0f, 90f),     // E→W
+                4 => Quaternion.Euler(0f, 0f, -90f),    // W→E
+                _ => m.ghost.transform.rotation,
+            };
+
+            m.originalPosition = m.ghost.transform.position;
+        }
+    }
+
+    /// <summary>Grand direction int → Vector3 변환.</summary>
+    private static Vector3 DirectionIntToVector(int dir)
+    {
+        return dir switch
+        {
+            0 => Vector3.down,
+            1 => Vector3.back,      // N→S
+            2 => Vector3.forward,   // S→N
+            3 => Vector3.left,      // E→W
+            4 => Vector3.right,     // W→E
+            _ => Vector3.down,
+        };
+    }
+
+    /// <summary>미사일의 배치 지면 위치를 반환 (locationKey 기반).</summary>
+    private static Vector3 GetMissileGroundPosition(PlacedMissile m)
+    {
+        if (m.locationKey.StartsWith("T:"))
+        {
+            var parts = m.locationKey.Substring(2).Split(',');
+            if (parts.Length == 2 &&
+                int.TryParse(parts[0], out int col) &&
+                int.TryParse(parts[1], out int row))
+            {
+                var key = new Vector2Int(col, row);
+                if (tileWorldPositions.TryGetValue(key, out Vector3 pos))
+                    return pos;
+            }
+        }
+        else if (m.locationKey.StartsWith("S:"))
+        {
+            string spawnId = m.locationKey.Substring(2);
+            if (spawnWorldPositions.TryGetValue(spawnId, out Vector3 pos))
+                return pos;
+        }
+        return Vector3.zero;
+    }
+
+    /// <summary>박스 영역 내 타일·스폰포인트 선택.</summary>
+    private static void SelectTilesAndSpawnsInBox(Rect screenBox)
+    {
         foreach (var kvp in tileWorldPositions)
         {
             Vector2 screenPoint = HandleUtility.WorldToGUIPoint(kvp.Value);
@@ -767,26 +952,12 @@ public static class PatternEditorSceneInteraction
                 SelectedTiles.Add(kvp.Key);
         }
 
-        // 스폰포인트
         foreach (var kvp in spawnWorldPositions)
         {
             Vector2 screenPoint = HandleUtility.WorldToGUIPoint(kvp.Value);
             if (screenBox.Contains(screenPoint))
                 SelectedSpawnPoints.Add(kvp.Key);
         }
-
-        // 미사일 — 고스트 중심이 드래그 박스 안에 있으면 선택
-        foreach (var m in placedMissiles)
-        {
-            if (m.ghost == null) continue;
-            var renderer = m.ghost.GetComponentInChildren<Renderer>();
-            if (renderer == null) continue;
-            Vector2 screenPoint = HandleUtility.WorldToGUIPoint(renderer.bounds.center);
-            if (screenBox.Contains(screenPoint))
-                selectedMissiles.Add(m);
-        }
-
-        SceneView.RepaintAll();
     }
 
     #endregion
@@ -871,8 +1042,7 @@ public static class PatternEditorSceneInteraction
     /// </summary>
     private static void DrawGrandHorizontalStrips()
     {
-        float y         = platformOrigin.y + 0.03f;
-        float halfWidth = tileXSize * DefaultGrandDiameter * 0.5f;
+        float y = platformOrigin.y + 0.03f;
 
         // tileWorldPositions에서 정확한 플랫폼 경계 계산
         var topLeft     = new Vector2Int(0, 0);
@@ -890,9 +1060,13 @@ public static class PatternEditorSceneInteraction
             if (m.type != PlacedMissileType.Grand || m.ghost == null || m.hidden) continue;
             if (!m.locationKey.StartsWith("S:")) continue;
 
-            string spawnId = m.locationKey.Substring(2);
-            int dir = GetGrandDirection(spawnId);
+            // MissileStatHolder에서 diameter·direction 읽기
+            var holder = m.ghost.GetComponent<MissileStatHolder>();
+            int diameter = holder != null ? holder.grandDiameter : DefaultGrandDiameter;
+            int dir = holder != null ? holder.grandDirection : GetGrandDirection(m.locationKey.Substring(2));
             if (dir == 0) continue;
+
+            float halfWidth = tileXSize * diameter * 0.5f;
 
             Vector3 pos = m.ghost.transform.position;
             Vector3[] corners;
@@ -1144,6 +1318,7 @@ public static class PatternEditorSceneInteraction
             {
                 selectedMissiles.Clear();
                 selectedMissiles.Add(m);
+                SyncInspectorSelection();
                 e.Use();
                 sceneView.Repaint();
             }
@@ -1188,16 +1363,22 @@ public static class PatternEditorSceneInteraction
             onSpawnPoint, spawnId);
         if (ghost == null) return;
 
+        // MissileStatHolder 부착 + CSV 기본값 초기화
+        var statHolder = ghost.AddComponent<MissileStatHolder>();
+        InitStatHolder(statHolder, type, onSpawnPoint, spawnId);
+
         var placed = new PlacedMissile
         {
             type             = type,
             locationKey      = locationKey,
             ghost            = ghost,
-            speed            = MissileDefaultStats.GetDefaultSpeed(type),
+            speed            = statHolder.speed,
             direction        = GetMissileDirection(type, onSpawnPoint, spawnId),
             originalPosition = ghost.transform.position,
             spawnHeight      = ghost.transform.position.y,
             platformY        = platformOrigin.y,
+            cachedDiameter   = statHolder.grandDiameter,
+            cachedDirection  = statHolder.grandDirection,
         };
 
         // 데칼 참조 + 최대 크기 캐싱
@@ -1364,6 +1545,29 @@ public static class PatternEditorSceneInteraction
         return 0; // 대각선은 일단 Vertical 취급
     }
 
+    private static void InitStatHolder(MissileStatHolder holder, PlacedMissileType type,
+        bool onSpawnPoint, string spawnId)
+    {
+        holder.missileType = type;
+        holder.speed = MissileStats.GetDefaultSpeed(type);
+
+        switch (type)
+        {
+            case PlacedMissileType.Hover:
+                holder.hp         = MissileStats.GetDefaultHoverHp();
+                holder.hoverType  = HoverMissileType.HorizonLinear;
+                holder.flightTime = MissileStats.GetDefaultHoverFlightTime();
+                holder.turnTime   = MissileStats.GetDefaultHoverTurnTime();
+                holder.turnRate   = MissileStats.GetDefaultHoverTurnRate();
+                break;
+
+            case PlacedMissileType.Grand:
+                holder.grandDiameter  = DefaultGrandDiameter;
+                holder.grandDirection = onSpawnPoint ? GetGrandDirection(spawnId) : 0;
+                break;
+        }
+    }
+
     private static void DisableRuntimeComponents(GameObject go)
     {
         // Rigidbody 제거
@@ -1381,6 +1585,14 @@ public static class PatternEditorSceneInteraction
         // 파티클 시스템 중지
         foreach (var ps in go.GetComponentsInChildren<ParticleSystem>(true))
             ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+        // MissileStatHolder 외 모든 컴포넌트를 인스펙터에서 숨김
+        foreach (var comp in go.GetComponentsInChildren<Component>(true))
+        {
+            if (comp is Transform) continue;
+            if (comp is MissileStatHolder) continue;
+            comp.hideFlags |= HideFlags.HideInInspector;
+        }
     }
 
     private static void SetupDecals(GameObject go, PlacedMissileType type,
@@ -1675,10 +1887,39 @@ public static class PatternEditorSceneInteraction
         SelectedTiles.Clear();
         SelectedSpawnPoints.Clear();
         selectedMissiles.Clear();
+        SyncInspectorSelection();
+    }
+
+    /// <summary>selectedMissiles → Unity Selection 동기화. 혼합 선택 시 lastSelectedType만 인스펙터에 노출.</summary>
+    private static void SyncInspectorSelection()
+    {
+        if (selectedMissiles.Count == 0)
+        {
+            if (Selection.activeGameObject != null
+                && Selection.activeGameObject.GetComponent<MissileStatHolder>() != null)
+                Selection.activeGameObject = null;
+            return;
+        }
+
+        // lastSelectedType과 같은 타입만 인스펙터에 노출
+        var filtered = new List<UnityEngine.Object>();
+        foreach (var m in selectedMissiles)
+        {
+            if (m.ghost != null && m.type == lastSelectedType)
+                filtered.Add(m.ghost);
+        }
+
+        if (filtered.Count > 0)
+            Selection.objects = filtered.ToArray();
+        else
+            Selection.activeGameObject = null;
     }
 
     private static void HandleMissileSelectionCycle(List<PlacedMissile> hits, bool ctrl)
     {
+        // 마지막 선택한 타입 갱신 (혼합 선택 시 인스펙터 필터 기준)
+        lastSelectedType = hits[0].type;
+
         if (ctrl)
         {
             // Ctrl+클릭: 첫 번째 미사일 토글
@@ -1707,6 +1948,7 @@ public static class PatternEditorSceneInteraction
         }
         overlapList.Clear();
         overlapList.AddRange(hits);
+        SyncInspectorSelection();
         SceneView.RepaintAll();
     }
 
@@ -1759,23 +2001,23 @@ public static class PatternEditorSceneInteraction
 
     #region Missile Drawing
 
+    // 미사일 지면 마커 — 타일 선택과 동일 스타일, 색상만 다름
+    private static readonly Color MissileGroundFillColor    = new Color(1f, 0.85f, 0f, 0.20f);
+    private static readonly Color MissileGroundOutlineColor = new Color(1f, 0.85f, 0f, 0.90f);
+
     private static void DrawMissileSelectionMarkers()
     {
         if (selectedMissiles.Count == 0) return;
 
-        Color old = Handles.color;
-        Handles.color = MissileSelectColor;
-
         foreach (var m in selectedMissiles)
         {
             if (m.ghost == null || m.hidden) continue;
-            var renderer = m.ghost.GetComponentInChildren<Renderer>();
-            if (renderer == null) continue;
-            var bounds = renderer.bounds;
-            Handles.DrawWireCube(bounds.center, bounds.size * 1.2f);
-        }
 
-        Handles.color = old;
+            // 지면 마커 — 타일 선택과 동일한 DrawTileRect, 노란색
+            Vector3 groundPos = GetMissileGroundPosition(m);
+            if (groundPos != Vector3.zero)
+                DrawTileRect(groundPos, MissileGroundFillColor, MissileGroundOutlineColor);
+        }
     }
 
     private static void DrawMissileDirectionRays()
@@ -1785,6 +2027,7 @@ public static class PatternEditorSceneInteraction
         foreach (var m in selectedMissiles)
         {
             if (m.ghost == null || m.hidden) continue;
+            if (m.type != PlacedMissileType.Hover) continue;
             if (m.direction == Vector3.zero) continue;
 
             Vector3 origin = m.ghost.transform.position;

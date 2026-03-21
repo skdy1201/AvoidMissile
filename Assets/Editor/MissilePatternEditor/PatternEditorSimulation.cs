@@ -180,6 +180,7 @@ public static class PatternEditorSimulation
     public static void SetCurrentTime(float t)
     {
         currentTime = Mathf.Clamp(t, 0f, totalDuration);
+        SeekMissilesToTime(currentTime);
         SceneView.RepaintAll();
     }
 
@@ -201,7 +202,7 @@ public static class PatternEditorSimulation
             if (ev.Time < currentTime - 0.01f)
                 prevTime = Mathf.Max(prevTime, ev.Time);
         currentTime = prevTime;
-        ResetMissilePositions();
+        SeekMissilesToTime(currentTime);
         NotifyStateChanged();
         SceneView.RepaintAll();
     }
@@ -213,7 +214,7 @@ public static class PatternEditorSimulation
             if (ev.Time > currentTime + 0.01f)
                 nextTime = Mathf.Min(nextTime, ev.Time);
         currentTime = nextTime;
-        ResetMissilePositions();
+        SeekMissilesToTime(currentTime);
         NotifyStateChanged();
         SceneView.RepaintAll();
     }
@@ -300,6 +301,9 @@ public static class PatternEditorSimulation
             var m = missiles[i];
             if (m.ghost == null || m.hidden) continue;
 
+            // 인스펙터에서 변경된 스탯 실시간 반영
+            SyncStatsFromHolder(m);
+
             m.ghost.transform.position += m.direction * m.speed * dt;
 
             // 데칼: 플랫폼 표면에 고정 + 높이 비율 스케일
@@ -340,6 +344,15 @@ public static class PatternEditorSimulation
             m.decalMaxSize.z);
     }
 
+    /// <summary>MissileStatHolder에서 변경된 스탯을 PlacedMissile에 동기화.</summary>
+    private static void SyncStatsFromHolder(PlacedMissile m)
+    {
+        var holder = m.ghost.GetComponent<MissileStatHolder>();
+        if (holder == null) return;
+
+        m.speed = holder.speed;
+    }
+
     /// <summary>미사일 선두가 플랫폼/바운더리에 도달했는지 확인.</summary>
     private static bool HasReachedPlatform(PlacedMissile m)
     {
@@ -364,6 +377,38 @@ public static class PatternEditorSimulation
         const float boundaryLimit = 50f;
         return frontPos.x < -boundaryLimit || frontPos.x > boundaryLimit
             || frontPos.z < -boundaryLimit || frontPos.z > boundaryLimit;
+    }
+
+    /// <summary>모든 미사일을 특정 시점의 위치로 이동 (스크러빙/점프용).</summary>
+    private static void SeekMissilesToTime(float t)
+    {
+        var missiles = PatternEditorSceneInteraction.PlacedMissiles;
+        for (int i = 0; i < missiles.Count; i++)
+        {
+            var m = missiles[i];
+            if (m.ghost == null) continue;
+
+            SyncStatsFromHolder(m);
+
+            // 원점에서 t초 만큼 이동한 위치
+            Vector3 newPos = m.originalPosition + m.direction * m.speed * t;
+            m.ghost.transform.position = newPos;
+
+            // 숨김 상태 재평가
+            bool shouldHide = HasReachedPlatform(m);
+            if (shouldHide && !m.hidden)
+            {
+                m.ghost.SetActive(false);
+                m.hidden = true;
+            }
+            else if (!shouldHide && m.hidden)
+            {
+                m.ghost.SetActive(true);
+                m.hidden = false;
+            }
+
+            UpdateDecal(m);
+        }
     }
 
     /// <summary>모든 미사일 ghost를 원래 배치 위치로 복원.</summary>
@@ -636,6 +681,7 @@ public static class PatternEditorSimulation
             float t = TrackXToTime(trackRect, e.mousePosition.x);
             currentTime = Mathf.Clamp(t, 0f, totalDuration);
             isPlaying   = false;
+            SeekMissilesToTime(currentTime);
 
             // 클릭 시 이벤트 마커 선택 — 가장 가까운 마커 우선 (10px 이내)
             if (e.type == EventType.MouseDown)
