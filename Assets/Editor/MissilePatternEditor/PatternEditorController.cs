@@ -15,6 +15,8 @@ public static class PatternEditorController
 
     static PatternEditorController()
     {
+        EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+
         if (Active)
             EditorApplication.delayCall += OnDomainReload;
     }
@@ -269,6 +271,18 @@ public static class PatternEditorController
     #endregion
 
     #region Event Handlers
+
+    // 패턴 에디터 활성 상태에서 Play 모드 진입 차단
+    private static void OnPlayModeStateChanged(PlayModeStateChange state)
+    {
+        if (state != PlayModeStateChange.ExitingEditMode || !Active) return;
+
+        EditorApplication.isPlaying = false;
+        EditorUtility.DisplayDialog(
+            "미사일 패턴 에디터",
+            "패턴 에디터가 활성화된 상태에서는 Play 모드를 사용할 수 없습니다.\n먼저 Tools > Missile Pattern Editor로 에디터를 종료해주세요.",
+            "확인");
+    }
 
     // 사용자가 다른 씬을 열거나 에디터를 닫을 때 자동 정리
     private static void OnSceneClosing(Scene scene, bool removingScene)
