@@ -419,6 +419,8 @@ public static class PatternEditorSimulation
         SceneView.RepaintAll();
     }
 
+    public static void LoadEventsDirectly(List<PatternEvent> events, float duration, string name) { }
+
     #endregion
 
     #region dt Loop
@@ -814,6 +816,15 @@ public static class PatternEditorSimulation
             else
                 EditorUtility.DisplayDialog("파괴", "파괴할 미사일을 먼저 선택해주세요.", "확인");
         }
+
+        GUILayout.Space(4);
+
+        // 저장 / 불러오기
+        if (GUILayout.Button("저장", GUILayout.Height(20), GUILayout.Width(34)))
+            PatternSave.Save();
+
+        if (GUILayout.Button("불러오기", GUILayout.Height(20), GUILayout.Width(60)))
+            PatternSave.ShowLoadMenu();
 
         GUILayout.EndHorizontal();
         GUILayout.EndArea();

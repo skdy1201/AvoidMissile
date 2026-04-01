@@ -2128,6 +2128,12 @@ public static class PatternEditorSceneInteraction
         return false;
     }
 
+    public static void ClearMissilesForLoad() { }
+
+    public static int PlaceMissileForLoad(
+        PlacedMissileType type, string locationKey, Vector3 originalPosition,
+        PatternEditorSimulation.MissileStatsSnapshot snap, float spawnTime) => -1;
+
     private static void ClearAllPlacedMissiles()
     {
         foreach (var m in placedMissiles)
