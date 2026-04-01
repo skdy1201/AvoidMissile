@@ -2128,11 +2128,88 @@ public static class PatternEditorSceneInteraction
         return false;
     }
 
-    public static void ClearMissilesForLoad() { }
+    /// <summary>로드 전 기존 미사일 ghost 전체 파괴 + 리스트·ID 카운터 초기화.</summary>
+    public static void ClearMissilesForLoad()
+    {
+        ClearAllPlacedMissiles();
+        overlapList.Clear();
+        nextMissileId = 0;
+        SyncInspectorSelection();
+    }
 
+    /// <summary>로드 전용 미사일 배치. 이벤트 생성 없이 ghost를 재현한다.</summary>
+    /// <returns>새로 할당된 session 미사일 ID. 배치 실패 시 -1.</returns>
     public static int PlaceMissileForLoad(
         PlacedMissileType type, string locationKey, Vector3 originalPosition,
-        PatternEditorSimulation.MissileStatsSnapshot snap, float spawnTime) => -1;
+        PatternEditorSimulation.MissileStatsSnapshot snap, float spawnTime)
+    {
+        // locationKey → worldPos 해석 (T: 타일, S: 스폰포인트, 실패 시 저장된 XYZ 폴백)
+        Vector3 worldPos = Vector3.zero;
+        if (locationKey.StartsWith("T:"))
+        {
+            var parts = locationKey.Substring(2).Split(',');
+            if (parts.Length == 2 &&
+                int.TryParse(parts[0], out int col) && int.TryParse(parts[1], out int row))
+                tileWorldPositions.TryGetValue(new Vector2Int(col, row), out worldPos);
+        }
+        else if (locationKey.StartsWith("S:"))
+        {
+            spawnWorldPositions.TryGetValue(locationKey.Substring(2), out worldPos);
+        }
+        if (worldPos == Vector3.zero && originalPosition != Vector3.zero)
+            worldPos = originalPosition;
+        if (worldPos == Vector3.zero) return -1;
+
+        // 헬퍼 호출용 — 스폰포인트 여부·ID
+        bool   onSpawnPoint = locationKey.StartsWith("S:");
+        string spawnId      = onSpawnPoint ? locationKey.Substring(2) : null;
+
+        // 팔레트에서 타입에 맞는 프리팹 검색
+        var prefab = palettePrefabs.Find(p =>
+            p.name.Contains(type.ToString(), System.StringComparison.OrdinalIgnoreCase));
+        if (prefab == null) return -1;
+
+        Vector3 spawnPos = CalculateSpawnPosition(type, worldPos, onSpawnPoint, spawnId);
+        var ghost = InstantiateMissilePrefab(prefab, spawnPos, type, onSpawnPoint, spawnId);
+        if (ghost == null) return -1;
+
+        int missileId = nextMissileId++;
+
+        var statHolder = ghost.AddComponent<MissileStatHolder>();
+        statHolder.missileId   = missileId;
+        statHolder.missileType = type;
+        snap?.ApplyToHolder(statHolder);
+
+        var placed = new PlacedMissile
+        {
+            Id               = missileId,
+            Type             = type,
+            LocationKey      = locationKey,
+            Ghost            = ghost,
+            Speed            = statHolder.speed,
+            Direction        = GetMissileDirection(type, onSpawnPoint, spawnId),
+            OriginalPosition = ghost.transform.position,
+            SpawnHeight      = ghost.transform.position.y,
+            PlatformY        = platformOrigin.y,
+            SpawnTime        = spawnTime,
+            PrevDiameter     = statHolder.grandDiameter,
+            PrevDirection    = statHolder.grandDirection,
+        };
+
+        InitDecalInfo(placed, type, onSpawnPoint);
+
+        placedMissiles.Add(placed);
+        foreach (var col in ghost.GetComponentsInChildren<Collider>())
+            ghostByInstanceId[col.gameObject.GetInstanceID()] = placed;
+
+        if (PatternEditorSimulation.CurrentTime < spawnTime)
+        {
+            ghost.SetActive(false);
+            placed.Hidden = true;
+        }
+
+        return missileId;
+    }
 
     private static void ClearAllPlacedMissiles()
     {
