@@ -122,6 +122,8 @@ public static class PatternEditorSimulation
     private static readonly List<PatternEvent> patternEvents = new List<PatternEvent>();
     private static int selectedEventIndex = -1;
 
+    // 패턴 이름
+    private static string patternName = "NewPattern";
 
     private static bool initialized;
 
@@ -138,6 +140,7 @@ public static class PatternEditorSimulation
     public static float SavedCustomSpeed => savedCustomSpeed;
     public static IReadOnlyList<PatternEvent> Events => patternEvents;
     public static int SelectedEventIndex { get => selectedEventIndex; set => selectedEventIndex = value; }
+    public static string PatternName { get => patternName; set => patternName = value; }
 
     /// <summary>해당 미사일 ID가 현재 시간에 Spawn 이벤트를 가지고 있는지 확인.</summary>
     /// <remarks> 정확한 시간으로 비교를 하면 놓칠 가능성이 있어, Approximately로 비교 한다. </remarks>
@@ -750,6 +753,11 @@ public static class PatternEditorSimulation
     {
         GUILayout.BeginArea(rowRect);
         GUILayout.BeginHorizontal();
+
+        // 패턴 이름
+        string newName = EditorGUILayout.DelayedTextField(patternName, GUILayout.Width(120));
+        if (newName != patternName) patternName = newName;
+        GUILayout.Space(6);
 
         // 현재 시간 표시
         GUILayout.Label($"{currentTime:F2} / {totalDuration:F2} s", EditorStyles.boldLabel,
