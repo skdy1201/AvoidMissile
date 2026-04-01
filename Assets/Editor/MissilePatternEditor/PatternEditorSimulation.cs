@@ -11,14 +11,67 @@ public static class PatternEditorSimulation
 {
     #region Types
 
-    public enum EndOfPatternPolicy { Destroy, KeepLast }
     public enum PatternEventType { Spawn, StatChange, Destroy }
 
+    /// <summary>특정 시점의 미사일 스탯 스냅샷.</summary>
+    /// <remarks> 미사일 스탯이 좀 더 늘어나면 상속을 고려할 것 </remarks>
+    public class MissileStatsSnapshot
+    {
+        public float Speed;
+        public int Hp;
+        public int HoverType;   // HoverMissileType enum int
+        public float FlightTime;
+        public float TurnTime;
+        public float TurnRate;
+        public int GrandDiameter;
+        public int GrandDirection;
+
+        /// <summary>
+        /// 미사일 홀더의 값을 읽어온다.
+        /// </summary>
+        public static MissileStatsSnapshot FromHolder(MissileStatHolder h)
+        {
+            return new MissileStatsSnapshot
+            {
+                Speed          = h.speed,
+                Hp             = h.hp,
+                HoverType      = (int)h.hoverType,
+                FlightTime     = h.flightTime,
+                TurnTime       = h.turnTime,
+                TurnRate       = h.turnRate,
+                GrandDiameter  = h.grandDiameter,
+                GrandDirection = h.grandDirection,
+            };
+        }
+
+        /// <summary>
+        /// 미사일 홀더에 현재 설정 값을 적용한다.
+        /// </summary>
+        public void ApplyToHolder(MissileStatHolder h)
+        {
+            h.speed          = Speed;
+            h.hp             = Hp;
+            h.hoverType      = (HoverMissileType)HoverType;
+            h.flightTime     = FlightTime;
+            h.turnTime       = TurnTime;
+            h.turnRate       = TurnRate;
+            h.grandDiameter  = GrandDiameter;
+            h.grandDirection = GrandDirection;
+        }
+    }
+
+    /// <summary>
+    /// 패턴 이벤트는 생성, 스탯 변경, 파괴 3가지 타입이 존재
+    /// 이벤트가 적용될 시간, 종류, 연결된 미사일 id, 스냅샷 정보가 들어가 있다.
+    /// </summary>
     public class PatternEvent
     {
         public float Time;
         public PatternEventType EventType;
         public List<int> LinkedMissileIds = new List<int>();
+
+        /// <summary>Spawn/StatChange 이벤트에 저장된 미사일별 스탯 스냅샷.</summary>
+        public Dictionary<int, MissileStatsSnapshot> StatsSnapshots = new Dictionary<int, MissileStatsSnapshot>();
     }
 
     #endregion
@@ -31,9 +84,9 @@ public static class PatternEditorSimulation
     private const float DefaultTotalDuration   = 10f;
 
     // 타임라인 레이아웃
-    private const float TimelineHeight  = 60f;
+    private const float TimelineHeight  = 76f;
     private const float ControlRowH     = 22f;
-    private const float TrackH          = 26f;
+    private const float TrackH          = 42f;
     private const float TrackTopOffset  = 30f;
 
     // 타임라인 색상
@@ -43,7 +96,7 @@ public static class PatternEditorSimulation
     private static readonly Color MarkerStatChange     = new Color(0.90f, 0.80f, 0.20f, 0.90f);
     private static readonly Color MarkerDestroy        = new Color(0.90f, 0.30f, 0.30f, 0.90f);
     private static readonly Color MarkerSelected       = new Color(1f, 1f, 1f, 0.95f);
-    private const float MarkerRadius = 5f;
+    private const float MarkerRadius = 3f;
     private static readonly Color TickColor           = new Color(0.45f, 0.45f, 0.45f);
 
     #endregion
@@ -60,7 +113,6 @@ public static class PatternEditorSimulation
     private static bool   customSpeedFieldFocused;
     private static bool   pendingCustomFieldFocus;
     private static double lastEditorTime;
-    private static EndOfPatternPolicy endPolicy = EndOfPatternPolicy.Destroy;
 
     // 타임라인 줌/팬
     private static float timelineZoom      = 1f;
@@ -84,13 +136,38 @@ public static class PatternEditorSimulation
     public static float PlaySpeed        => playSpeed;
     public static int   SpeedIndex       => speedIndex;
     public static float SavedCustomSpeed => savedCustomSpeed;
-    public static EndOfPatternPolicy EndPolicy
-    {
-        get => endPolicy;
-        set { endPolicy = value; NotifyStateChanged(); }
-    }
     public static IReadOnlyList<PatternEvent> Events => patternEvents;
     public static int SelectedEventIndex { get => selectedEventIndex; set => selectedEventIndex = value; }
+
+    /// <summary>해당 미사일 ID가 현재 시간에 Spawn 이벤트를 가지고 있는지 확인.</summary>
+    /// <remarks> 정확한 시간으로 비교를 하면 놓칠 가능성이 있어, Approximately로 비교 한다. </remarks>
+    public static bool HasSpawnEventAt(float time, int missileId)
+    {
+        for (int i = 0; i < patternEvents.Count; i++)
+        {
+            var patternEvent = patternEvents[i];
+            if (patternEvent.EventType == PatternEventType.Spawn
+                && Mathf.Approximately(patternEvent.Time, time)
+                && patternEvent.LinkedMissileIds.Contains(missileId))
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>스폰 시점의 Spawn 이벤트 스냅샷 갱신 (인스펙터에서 스폰 시점 스탯 변경 시).</summary>
+    public static void UpdateSpawnSnapshots(float time, Dictionary<int, MissileStatsSnapshot> snapshots)
+    {
+        foreach (var patternEvent in patternEvents)
+        {
+            if (patternEvent.EventType != PatternEventType.Spawn) continue;
+            if (!Mathf.Approximately(patternEvent.Time, time)) continue;
+            foreach (var entry in snapshots)
+            {
+                if (patternEvent.LinkedMissileIds.Contains(entry.Key))
+                    patternEvent.StatsSnapshots[entry.Key] = entry.Value;
+            }
+        }
+    }
 
     /// <summary>현재 배속 라벨 (툴바 표시용).</summary>
     public static string CurrentSpeedLabel =>
@@ -103,12 +180,18 @@ public static class PatternEditorSimulation
     /// <summary>상태 변경 시 발생 — 툴바 UI 갱신 트리거.</summary>
     public static event Action OnStateChanged;
 
+    /// <summary>
+    /// 재생/정지, 배속, 루프 
+    /// </summary>
     private static void NotifyStateChanged() => OnStateChanged?.Invoke();
 
     #endregion
 
     #region Public API
 
+    /// <summary>
+    /// 직접 업데이트를 하기 위해서, lastEditorTime과 timesincestartup으로 dt를 구한다.
+    /// </summary>
     public static void Initialize()
     {
         if (initialized) return;
@@ -132,7 +215,6 @@ public static class PatternEditorSimulation
         savedCustomSpeed    = 3f;
         customSpeedFieldFocused  = false;
         pendingCustomFieldFocus  = false;
-        endPolicy           = EndOfPatternPolicy.Destroy;
         timelineZoom        = 1f;
         timelineViewStart   = 0f;
         patternEvents.Clear();
@@ -140,6 +222,12 @@ public static class PatternEditorSimulation
         initialized = false;
     }
 
+    /// <summary>
+    /// 재생/정지 토글
+    /// 정지 상태 && 시간이 끝 구간이라면, 리셋후 다시 재생
+    /// 아니라면 일시정지
+    /// 일시정지에서 다시 누르면 중간 부분부터 다시 재생
+    /// </summary>
     public static void TogglePlay()
     {
         if (!isPlaying && currentTime >= totalDuration)
@@ -156,6 +244,9 @@ public static class PatternEditorSimulation
         SceneView.RepaintAll();
     }
 
+    /// <summary>
+    /// 배속 설정 함수
+    /// </summary>
     public static void CycleSpeed()
     {
         speedIndex = (speedIndex + 1) % (SpeedPresets.Length + 1);
@@ -170,6 +261,9 @@ public static class PatternEditorSimulation
         SceneView.RepaintAll();
     }
 
+    /// <summary>
+    /// Epsilon을 쓰는 이유는 0이 되면 시뮬레이션이 멈추기 때문에, 가장 작은 양수로 보장하기 위함.
+    /// </summary>
     public static void SetCustomSpeed(float speed)
     {
         playSpeed = Mathf.Max(float.Epsilon, speed);
@@ -177,6 +271,10 @@ public static class PatternEditorSimulation
         NotifyStateChanged();
     }
 
+
+    /// <summary>
+    /// 시뮬레이션의 시간을 조정 
+    /// </summary>
     public static void SetCurrentTime(float t)
     {
         currentTime = Mathf.Clamp(t, 0f, totalDuration);
@@ -184,60 +282,118 @@ public static class PatternEditorSimulation
         SceneView.RepaintAll();
     }
 
+    /// <summary>
+    /// 전체 시뮬레이션 구간 설정 함수
+    /// </summary>
     public static void SetTotalDuration(float d)
     {
         totalDuration = Mathf.Clamp(d, 0.1f, 600f);
         currentTime   = Mathf.Clamp(currentTime, 0f, totalDuration);
         // 범위 밖 이벤트 클램프
-        foreach (var ev in patternEvents)
-            ev.Time = Mathf.Clamp(ev.Time, 0f, totalDuration);
+        foreach (var patternEvent in patternEvents)
+            patternEvent.Time = Mathf.Clamp(patternEvent.Time, 0f, totalDuration);
         ClampTimelineView();
         SceneView.RepaintAll();
     }
 
+    /// <summary>
+    /// 이전 이벤트 구간이 있으면 해당 구간으로 가고 아니라면, 처음으로 간다.
+    /// 이후, 미사일 위치, 스탯 업데이트
+    /// </summary>
     public static void JumpToPrevSegmentOrStart()
     {
         float prevTime = 0f;
-        foreach (var ev in patternEvents)
-            if (ev.Time < currentTime - 0.01f)
-                prevTime = Mathf.Max(prevTime, ev.Time);
+        foreach (var patternEvent in patternEvents)
+            if (patternEvent.Time < currentTime - 0.01f)
+                prevTime = Mathf.Max(prevTime, patternEvent.Time);
         currentTime = prevTime;
         SeekMissilesToTime(currentTime);
         NotifyStateChanged();
         SceneView.RepaintAll();
     }
 
+    /// <summary>
+    /// 다음 이벤트가 있으면 해당 구간으로 이동, 아니라면 맨 끝으로 간다.
+    /// </summary>
     public static void JumpToNextSegmentOrEnd()
     {
         float nextTime = totalDuration;
-        foreach (var ev in patternEvents)
-            if (ev.Time > currentTime + 0.01f)
-                nextTime = Mathf.Min(nextTime, ev.Time);
+        foreach (var patternEvent in patternEvents)
+            if (patternEvent.Time > currentTime + 0.01f)
+                nextTime = Mathf.Min(nextTime, patternEvent.Time);
         currentTime = nextTime;
         SeekMissilesToTime(currentTime);
         NotifyStateChanged();
         SceneView.RepaintAll();
     }
 
-    /// <summary>이벤트 마커 추가 (미사일 배치 등에서 호출).</summary>
-    public static void AddEvent(PatternEventType type, float time, List<int> missileIds = null)
+    /// <summary>
+    /// 이벤트 마커 추가. 같은 시간+같은 타입의 기존 이벤트가 있으면 ID를 병합.
+    /// </summary>
+    public static void AddEvent(PatternEventType type, float time, List<int> missileIds = null,
+        Dictionary<int, MissileStatsSnapshot> snapshots = null)
     {
-        var ev = new PatternEvent
+        float clampedTime = Mathf.Clamp(time, 0f, totalDuration);
+        var ids = missileIds ?? new List<int>();
+
+        // 같은 시간·같은 타입의 기존 이벤트에 병합
+        for (int i = 0; i < patternEvents.Count; i++)
         {
-            Time = Mathf.Clamp(time, 0f, totalDuration),
+            var existing = patternEvents[i];
+            if (existing.EventType == type && Mathf.Approximately(existing.Time, clampedTime))
+            {
+                foreach (int id in ids)
+                {
+                    if (!existing.LinkedMissileIds.Contains(id))
+                        existing.LinkedMissileIds.Add(id);
+                }
+                // 스냅샷 병합/갱신
+                if (snapshots != null)
+                    foreach (var entry in snapshots)
+                        existing.StatsSnapshots[entry.Key] = entry.Value;
+                selectedEventIndex = i;
+                SceneView.RepaintAll();
+                return;
+            }
+        }
+
+        // 기존 이벤트 없음 → 새로 생성
+        var newEvent = new PatternEvent
+        {
+            Time = clampedTime,
             EventType = type,
-            LinkedMissileIds = missileIds ?? new List<int>()
+            LinkedMissileIds = ids
         };
-        patternEvents.Add(ev);
-        patternEvents.Sort((a, b) => a.Time.CompareTo(b.Time));
-        selectedEventIndex = patternEvents.IndexOf(ev);
+        if (snapshots != null)
+            foreach (var entry in snapshots)
+                newEvent.StatsSnapshots[entry.Key] = entry.Value;
+        patternEvents.Add(newEvent);
+        // 정렬: 시간 → 타입 우선순위 (Spawn=0 → StatChange=1 → Destroy=2)
+        patternEvents.Sort((a, b) =>
+        {
+            int cmp = a.Time.CompareTo(b.Time);
+            return cmp != 0 ? cmp : a.EventType.CompareTo(b.EventType);
+        });
+        selectedEventIndex = patternEvents.IndexOf(newEvent);
         SceneView.RepaintAll();
     }
 
-    /// <summary>선택된 이벤트 마커 삭제.</summary>
+    /// <summary>선택된 이벤트 마커 삭제. Spawn 이벤트면 연결된 미사일도 제거.</summary>
+    /// <remarks> 스탯 변경은 이벤트만 지우면 없앨 수 있다. </remarks>
     public static void DeleteSelectedEvent()
     {
         if (selectedEventIndex < 0 || selectedEventIndex >= patternEvents.Count) return;
+
+        var patternEvent = patternEvents[selectedEventIndex];
+
+        // Spawn 이벤트 삭제 → 연결된 미사일을 완전 제거 (Ghost 파괴)
+        if (patternEvent.EventType == PatternEventType.Spawn && patternEvent.LinkedMissileIds.Count > 0)
+            PatternEditorSceneInteraction.RemoveMissilesByIds(patternEvent.LinkedMissileIds);
+
+        // Destroy 이벤트 삭제 → 연결된 미사일 복원 (DestroyTime 해제)
+        if (patternEvent.EventType == PatternEventType.Destroy && patternEvent.LinkedMissileIds.Count > 0)
+            PatternEditorSceneInteraction.RestoreMissilesByIds(patternEvent.LinkedMissileIds);
+
         patternEvents.RemoveAt(selectedEventIndex);
         selectedEventIndex = -1;
         SceneView.RepaintAll();
@@ -249,6 +405,7 @@ public static class PatternEditorSimulation
         for (int i = patternEvents.Count - 1; i >= 0; i--)
         {
             patternEvents[i].LinkedMissileIds.Remove(missileId);
+            patternEvents[i].StatsSnapshots.Remove(missileId);
             if (patternEvents[i].LinkedMissileIds.Count == 0)
             {
                 patternEvents.RemoveAt(i);
@@ -263,6 +420,9 @@ public static class PatternEditorSimulation
 
     #region dt Loop
 
+    /// <summary>
+    /// 시뮬레이션의 dt
+    /// </summary>
     private static void OnEditorUpdate()
     {
         double now = EditorApplication.timeSinceStartup;
@@ -299,12 +459,28 @@ public static class PatternEditorSimulation
         for (int i = 0; i < missiles.Count; i++)
         {
             var m = missiles[i];
-            if (m.ghost == null || m.hidden) continue;
+            if (m.Ghost == null) continue;
 
-            // 인스펙터에서 변경된 스탯 실시간 반영
-            SyncStatsFromHolder(m);
+            // 스폰 이전 또는 파괴 이후 → 비활성
+            if (currentTime < m.SpawnTime || currentTime >= m.DestroyTime)
+            {
+                if (!m.Hidden) { m.Ghost.SetActive(false); m.Hidden = true; }
+                continue;
+            }
 
-            m.ghost.transform.position += m.direction * m.speed * dt;
+            // 스폰~파괴 구간 → 활성화
+            if (m.Hidden && !HasReachedPlatform(m))
+            {
+                m.Ghost.SetActive(true);
+                m.Hidden = false;
+            }
+
+            if (m.Hidden) continue;
+
+            // 현재 시점의 스탯 적용
+            ApplyStatsAtTime(m, currentTime);
+
+            m.Ghost.transform.position += m.Direction * m.Speed * dt;
 
             // 데칼: 플랫폼 표면에 고정 + 높이 비율 스케일
             UpdateDecal(m);
@@ -312,8 +488,8 @@ public static class PatternEditorSimulation
             // 충돌 감지: 플랫폼 Y 도달 시 숨김
             if (HasReachedPlatform(m))
             {
-                m.ghost.SetActive(false);
-                m.hidden = true;
+                m.Ghost.SetActive(false);
+                m.Hidden = true;
             }
         }
     }
@@ -321,62 +497,128 @@ public static class PatternEditorSimulation
     /// <summary>데칼을 플랫폼 표면에 고정 + 높이 비율로 크기 조절.</summary>
     private static void UpdateDecal(PlacedMissile m)
     {
-        if (m.decalTransform == null) return;
+        if (m.DecalTransform == null) return;
 
-        // 데칼 위치를 플랫폼 표면 XZ에 고정 (ghost 자식이라 같이 움직이므로 매 프레임 보정)
-        var missilePos = m.ghost.transform.position;
-        float decalYOffset = m.type == PlacedMissileType.Grand ? -0.5f : 1.1f;
-        float decalY = m.platformY + decalYOffset;
-        m.decalTransform.position = new Vector3(missilePos.x, decalY, missilePos.z);
+        // 데칼 위치를 플랫폼 표면 XZ에 고정 (Ghost 자식이라 같이 움직이므로 매 프레임 보정)
+        var missilePos = m.Ghost.transform.position;
+        float decalYOffset = m.Type == PlacedMissileType.Grand ? -0.5f : 1.1f;
+        float decalY = m.PlatformY + decalYOffset;
+        m.DecalTransform.position = new Vector3(missilePos.x, decalY, missilePos.z);
 
-        var projector = m.decalTransform.GetComponent<UnityEngine.Rendering.Universal.DecalProjector>();
+        var projector = m.DecalTransform.GetComponent<UnityEngine.Rendering.Universal.DecalProjector>();
         if (projector == null) return;
 
-        float totalDrop = m.spawnHeight - m.platformY;
+        // grand horizen 미사일이 아닌 이상, platform y보다 낮을 일은 없다.
+        float totalDrop = m.SpawnHeight - m.PlatformY;
         if (totalDrop <= 0f) return;
 
-        float currentHeight = missilePos.y - m.platformY;
+        float currentHeight = missilePos.y - m.PlatformY;
         float ratio = 1f - Mathf.Clamp01(currentHeight / totalDrop);
 
         projector.size = new Vector3(
-            m.decalMaxSize.x * ratio,
-            m.decalMaxSize.y * ratio,
-            m.decalMaxSize.z);
+            m.DecalMaxSize.x * ratio,
+            m.DecalMaxSize.y * ratio,
+            m.DecalMaxSize.z);
     }
 
-    /// <summary>MissileStatHolder에서 변경된 스탯을 PlacedMissile에 동기화.</summary>
-    private static void SyncStatsFromHolder(PlacedMissile m)
+    /// <summary>
+    /// 이벤트 타임라인에서 특정 시점에 유효한 스탯을 조회.
+    /// Spawn/StatChange 이벤트 중 time 이하인 가장 마지막 스냅샷을 반환.
+    /// </summary>
+    /// <remarks> 지금은 계속 앞부터 스탯을 덮어씌운다. 이벤트가 많아지면, 최적화를 고민해볼 대상 </remarks>
+    private static MissileStatsSnapshot GetStatsAtTime(int missileId, float time)
     {
-        var holder = m.ghost.GetComponent<MissileStatHolder>();
-        if (holder == null) return;
+        MissileStatsSnapshot result = null;
+        foreach (var patternEvent in patternEvents)
+        {
+            if (patternEvent.Time > time + 0.001f) break;    // 정렬되어 있으므로 이후는 볼 필요 없음
+            if (patternEvent.EventType != PatternEventType.Spawn && patternEvent.EventType != PatternEventType.StatChange)
+                continue;
+            if (patternEvent.StatsSnapshots.TryGetValue(missileId, out var snap))
+                result = snap;
+        }
+        return result;
+    }
 
-        m.speed = holder.speed;
+    /// <summary>시간 기반 스탯을 PlacedMissile + MissileStatHolder에 적용.</summary>
+    private static void ApplyStatsAtTime(PlacedMissile m, float time)
+    {
+        var snap = GetStatsAtTime(m.Id, time);
+        if (snap == null) return;
+
+        m.Speed = snap.Speed;
+
+        var holder = m.Ghost.GetComponent<MissileStatHolder>();
+        if (holder != null)
+            snap.ApplyToHolder(holder);
     }
 
     /// <summary>미사일 선두가 플랫폼/바운더리에 도달했는지 확인.</summary>
     private static bool HasReachedPlatform(PlacedMissile m)
     {
-        Vector3 pos = m.ghost.transform.position;
+        Vector3 pos = m.Ghost.transform.position;
 
         // Renderer bounds로 선두 오프셋 계산
         float frontOffset = 0f;
-        var renderer = m.ghost.GetComponentInChildren<Renderer>();
+        var renderer = m.Ghost.GetComponentInChildren<Renderer>();
         if (renderer != null)
         {
+            // 실제 프리팹 메시의 바운딩 박스와, 프리팹의 방향을 구해서 얼만큼 떨어져 있는지 내적한다.
+            // 이를 통해 정면 방향에서 메시가 갖는 반지름을 구할 수 있다.
             var bounds = renderer.bounds;
             // 이동 방향 축의 extent (중심에서 가장자리까지 거리)
-            frontOffset = Mathf.Abs(Vector3.Dot(bounds.extents, m.direction));
+            frontOffset = Mathf.Abs(Vector3.Dot(bounds.extents, m.Direction));
         }
 
         // Falling / Grand Vertical: 선두(아랫면)가 플랫폼 이하
-        if (m.direction.y < 0f)
-            return (pos.y - frontOffset) <= m.platformY;
+        if (m.Direction.y < 0f)
+            return (pos.y - frontOffset) <= m.PlatformY;
 
         // Hover / Grand Horizontal: 선두가 게임 바운더리(±50) 밖
-        Vector3 frontPos = pos + m.direction * frontOffset;
+        Vector3 frontPos = pos + m.Direction * frontOffset;
         const float boundaryLimit = 50f;
         return frontPos.x < -boundaryLimit || frontPos.x > boundaryLimit
             || frontPos.z < -boundaryLimit || frontPos.z > boundaryLimit;
+    }
+
+    /// <summary>
+    /// spawnTime~targetTime 구간의 스탯 변경을 반영한 총 이동 거리 계산.
+    /// 구간별로 다른 속도를 적용하여 정확한 위치를 산출.
+    /// </summary>
+    /// <remarks> 방향 전환이 있는 이벤트가 생기면 이 이벤트를 고쳐야 한다. </remarks>
+    private static float CalculateDisplacement(int missileId, float spawnTime, float targetTime)
+    {
+        // spawnTime 이하 → 아직 이동 없음
+        if (targetTime <= spawnTime) return 0f;
+
+        // 이 미사일에 영향을 주는 Spawn/StatChange 이벤트를 시간순으로 수집
+        // (patternEvents는 이미 시간순 정렬됨)
+        float displacement = 0f;
+        float segStart = spawnTime;
+        float currentSpeed = 0f;
+
+        // 초기 속도: Spawn 이벤트에서 가져옴
+        var spawnSnap = GetStatsAtTime(missileId, spawnTime);
+        if (spawnSnap != null)
+            currentSpeed = spawnSnap.Speed;
+
+        foreach (var patternEvent in patternEvents)
+        {
+            if (patternEvent.Time <= spawnTime + 0.001f) continue;   // 스폰 이전/동시 이벤트 스킵
+            if (patternEvent.Time > targetTime + 0.001f) break;       // 목표 시간 이후
+            if (patternEvent.EventType != PatternEventType.StatChange) continue;
+            if (!patternEvent.StatsSnapshots.ContainsKey(missileId)) continue;
+
+            // segStart ~ patternEvent.Time 구간은 currentSpeed로 이동
+            float segDuration = patternEvent.Time - segStart;
+            displacement += currentSpeed * segDuration;
+            segStart = patternEvent.Time;
+            currentSpeed = patternEvent.StatsSnapshots[missileId].Speed;
+        }
+
+        // 마지막 구간: segStart ~ targetTime
+        displacement += currentSpeed * (targetTime - segStart);
+        return displacement;
     }
 
     /// <summary>모든 미사일을 특정 시점의 위치로 이동 (스크러빙/점프용).</summary>
@@ -386,47 +628,65 @@ public static class PatternEditorSimulation
         for (int i = 0; i < missiles.Count; i++)
         {
             var m = missiles[i];
-            if (m.ghost == null) continue;
+            if (m.Ghost == null) continue;
 
-            SyncStatsFromHolder(m);
-
-            // 원점에서 t초 만큼 이동한 위치
-            Vector3 newPos = m.originalPosition + m.direction * m.speed * t;
-            m.ghost.transform.position = newPos;
-
-            // 숨김 상태 재평가
-            bool shouldHide = HasReachedPlatform(m);
-            if (shouldHide && !m.hidden)
+            // 스폰 이전 또는 파괴 이후 → 비활성화
+            if (t < m.SpawnTime || t >= m.DestroyTime)
             {
-                m.ghost.SetActive(false);
-                m.hidden = true;
+                if (!m.Hidden)
+                {
+                    m.Ghost.SetActive(false);
+                    m.Hidden = true;
+                }
+                continue;
             }
-            else if (!shouldHide && m.hidden)
+
+            // 현재 시점의 스탯 적용 (인스펙터 + PlacedMissile 동기화)
+            ApplyStatsAtTime(m, t);
+
+            // 구간별 속도 변화를 반영한 위치 계산
+            float displacement = CalculateDisplacement(m.Id, m.SpawnTime, t);
+            Vector3 newPos = m.OriginalPosition + m.Direction * displacement;
+            m.Ghost.transform.position = newPos;
+
+            // 충돌 판정
+            bool shouldHide = HasReachedPlatform(m);
+            if (shouldHide && !m.Hidden)
             {
-                m.ghost.SetActive(true);
-                m.hidden = false;
+                m.Ghost.SetActive(false);
+                m.Hidden = true;
+            }
+            else if (!shouldHide && m.Hidden)
+            {
+                m.Ghost.SetActive(true);
+                m.Hidden = false;
             }
 
             UpdateDecal(m);
         }
     }
 
-    /// <summary>모든 미사일 ghost를 원래 배치 위치로 복원.</summary>
+    /// <summary>모든 미사일 ghost를 원래 배치 위치로 복원. 스폰 시간 이전이면 비활성화.</summary>
     private static void ResetMissilePositions()
     {
         var missiles = PatternEditorSceneInteraction.PlacedMissiles;
         for (int i = 0; i < missiles.Count; i++)
         {
             var m = missiles[i];
-            if (m.ghost == null) continue;
+            if (m.Ghost == null) continue;
 
-            m.ghost.transform.position = m.originalPosition;
+            m.Ghost.transform.position = m.OriginalPosition;
 
-            // 숨김 복원
-            if (m.hidden)
+            // 스폰 이전 또는 파괴 이후 → 비활성화
+            bool shouldHide = currentTime < m.SpawnTime || currentTime >= m.DestroyTime;
+            if (shouldHide)
             {
-                m.ghost.SetActive(true);
-                m.hidden = false;
+                if (!m.Hidden) { m.Ghost.SetActive(false); m.Hidden = true; }
+            }
+            else if (m.Hidden)
+            {
+                m.Ghost.SetActive(true);
+                m.Hidden = false;
             }
 
             // 데칼 크기 원래대로 복원
@@ -437,12 +697,12 @@ public static class PatternEditorSimulation
     /// <summary>데칼을 배치 시 최대 크기로 복원.</summary>
     private static void ResetDecalScale(PlacedMissile m)
     {
-        if (m.decalTransform == null) return;
+        if (m.DecalTransform == null) return;
 
-        var projector = m.decalTransform.GetComponent<UnityEngine.Rendering.Universal.DecalProjector>();
+        var projector = m.DecalTransform.GetComponent<UnityEngine.Rendering.Universal.DecalProjector>();
         if (projector == null) return;
 
-        projector.size = m.decalMaxSize;
+        projector.size = m.DecalMaxSize;
     }
 
     #endregion
@@ -476,7 +736,9 @@ public static class PatternEditorSimulation
         Handles.EndGUI();
     }
 
-    /// <summary>타임라인 영역 위에 마우스가 있는지 확인 (클릭 차단용).</summary>
+    /// <summary>
+    /// 타임라인 영역 위에 마우스가 있는지 확인 (클릭 차단용).
+    /// </summary>
     public static bool IsMouseOverTimeline(SceneView sceneView, Vector2 mousePos)
     {
         float svH = sceneView.position.height;
@@ -535,11 +797,15 @@ public static class PatternEditorSimulation
         GUI.backgroundColor = Color.white;
         GUILayout.Space(4);
 
-        // 종료 정책 토글
-        string policyLabel = endPolicy == EndOfPatternPolicy.Destroy ? "파괴" : "유지";
-        if (GUILayout.Button(policyLabel, GUILayout.Height(20), GUILayout.Width(34)))
-            EndPolicy = endPolicy == EndOfPatternPolicy.Destroy
-                ? EndOfPatternPolicy.KeepLast : EndOfPatternPolicy.Destroy;
+        // 파괴 이벤트 주입
+        if (GUILayout.Button("파괴", GUILayout.Height(20), GUILayout.Width(34)))
+        {
+            var selected = PatternEditorSceneInteraction.SelectedMissiles;
+            if (selected.Count > 0)
+                PatternEditorSceneInteraction.DestroySelectedMissiles();
+            else
+                EditorUtility.DisplayDialog("파괴", "파괴할 미사일을 먼저 선택해주세요.", "확인");
+        }
 
         GUILayout.EndHorizontal();
         GUILayout.EndArea();
@@ -549,6 +815,11 @@ public static class PatternEditorSimulation
 
     #region Timeline Track
 
+    /// <summary>
+    /// 타임라인 x 좌표 변환
+    /// rect의 시작점 + (이벤트의 시작 시간 - 타임라인 시작시간 / 확대 비율 * 트랙의 너비)
+    /// </summary>
+    /// <remarks> rect의 상대 좌표이기 때문에, 절대좌표로 변환하기 위해선 시작점을 더해줘야한다. </remarks>
     private static float TimeToTrackX(Rect track, float t)
     {
         float visibleDuration = totalDuration / timelineZoom;
@@ -561,6 +832,9 @@ public static class PatternEditorSimulation
         return timelineViewStart + (x - track.x) / track.width * visibleDuration;
     }
 
+    /// <summary>
+    /// 타임라인바가 바뀌면, 보이는 시뮬레이션 시간 범위가 달라져야 한다.
+    /// </summary>
     private static void ClampTimelineView()
     {
         float visibleDuration = totalDuration / timelineZoom;
@@ -568,6 +842,11 @@ public static class PatternEditorSimulation
             Mathf.Max(0f, totalDuration - visibleDuration));
     }
 
+    /// <summary>
+    /// 타임라인을 그리는 함수
+    /// 타입별 레인, 시간 간격 바, 이벤트 마커, 재생헤드를 그리고있다.
+    /// </summary>
+    /// <param name="track"></param>
     private static void DrawTimelineTrack(Rect track)
     {
         EditorGUI.DrawRect(track, TrackBackground);
@@ -576,29 +855,62 @@ public static class PatternEditorSimulation
         float visibleDuration = totalDuration / timelineZoom;
         float viewEnd         = timelineViewStart + visibleDuration;
 
+        // 타입별 레인 Y (Spawn=상단, StatChange=중간, Destroy=하단)
+        float laneH    = track.height / 3f;
+        float spawnY   = track.y + laneH * 0.5f;
+        float statY    = track.y + laneH * 1.5f;
+        float destroyY = track.y + laneH * 2.5f;
+
+        // 레인 구분선
+        EditorGUI.DrawRect(new Rect(track.x, track.y + laneH, track.width, 1f),
+            new Color(0.25f, 0.25f, 0.25f));
+        EditorGUI.DrawRect(new Rect(track.x, track.y + laneH * 2f, track.width, 1f),
+            new Color(0.25f, 0.25f, 0.25f));
+
         // 이벤트 마커
         for (int i = 0; i < patternEvents.Count; i++)
         {
-            var   ev = patternEvents[i];
-            float x  = TimeToTrackX(track, ev.Time);
+            var   patternEvent = patternEvents[i];
+            float x  = TimeToTrackX(track, patternEvent.Time);
             if (x < track.x - MarkerRadius || x > track.xMax + MarkerRadius) continue;
 
-            Color col = GetEventColor(ev.EventType);
-            if (i == selectedEventIndex)
-                col = MarkerSelected;
+            Color col = GetEventColor(patternEvent.EventType);
+            bool selected = i == selectedEventIndex;
+            if (selected) col = MarkerSelected;
 
-            // 마커: 다이아몬드 형태 (rect로 근사)
-            float cy = track.y + track.height * 0.5f;
+            // 타입별 Y 위치
+            float cy;
+            switch (patternEvent.EventType)
+            {
+                case PatternEventType.Spawn:      cy = spawnY;   break;
+                case PatternEventType.StatChange:  cy = statY;    break;
+                case PatternEventType.Destroy:     cy = destroyY; break;
+                default:                           cy = statY;    break;
+            }
+
+            // 마커: 작은 사각형
             EditorGUI.DrawRect(new Rect(x - MarkerRadius, cy - MarkerRadius,
                 MarkerRadius * 2f, MarkerRadius * 2f), col);
 
-            // 하단 스템 라인
-            EditorGUI.DrawRect(new Rect(x - 0.5f, track.y, 1f, track.height), col * 0.6f);
+            // 선택 시 외곽선 강조
+            if (selected)
+            {
+                float o = MarkerRadius + 1f;
+                Color outline = col * 0.7f;
+                EditorGUI.DrawRect(new Rect(x - o, cy - o, o * 2f, 1f), outline);
+                EditorGUI.DrawRect(new Rect(x - o, cy + o - 1f, o * 2f, 1f), outline);
+                EditorGUI.DrawRect(new Rect(x - o, cy - o, 1f, o * 2f), outline);
+                EditorGUI.DrawRect(new Rect(x + o - 1f, cy - o, 1f, o * 2f), outline);
+            }
         }
 
         // 시간 눈금
         float interval  = GetTimeMarkInterval(visibleDuration, track.width);
+        
+        // 뷰가 0초에서 시작하지 않을 수 있다. 그래서 눈금을 interval의 배수인 위치부터 시작하도록 맞춰준다.
+        // 확대 되었을때, 시작 구간을 애매하게 잡지 않기 위해서, interval의 몇 번째 구간인지 올림한 값과 곱하는 것.
         float tickStart = Mathf.Ceil(timelineViewStart / interval) * interval;
+
         for (float t = tickStart; t <= viewEnd + 0.001f; t += interval)
         {
             float x = TimeToTrackX(track, t);
@@ -626,6 +938,13 @@ public static class PatternEditorSimulation
         }
     }
 
+    /// <summary>
+    /// 시간 간격 눈금을 조절해주는 함수
+    /// </summary>
+    /// <remarks>
+    /// 너무 눈금이 빽빽하면 가독성이 떨어질 수 있어서, 표현할 시간과 간격을 통해 타임라인 바를 구한다.
+    /// 전체 width / (전체 시간 / 마커 구간) = 픽셀 사이 구간. 40px을 최저 기준으로 잡는다.
+    /// </remarks>
     private static float GetTimeMarkInterval(float visibleDuration, float trackWidth)
     {
         float[] options = { 0.1f, 0.2f, 0.5f, 1f, 2f, 5f, 10f, 30f, 60f };
@@ -637,6 +956,9 @@ public static class PatternEditorSimulation
         return 60f;
     }
 
+    /// <summary>
+    /// 타임라인 입력을 관리하는 함수
+    /// </summary>
     private static void HandleTimelineInput(Rect trackRect)
     {
         Event e = Event.current;
@@ -683,18 +1005,44 @@ public static class PatternEditorSimulation
             isPlaying   = false;
             SeekMissilesToTime(currentTime);
 
-            // 클릭 시 이벤트 마커 선택 — 가장 가까운 마커 우선 (10px 이내)
+            // 클릭 시 이벤트 마커 선택 — 마커 근처(X 10px, Y 레인 내) 겹침 순환
             if (e.type == EventType.MouseDown)
             {
-                int   best     = -1;
-                float bestDist = 10f;
+                float laneH    = trackRect.height / 3f;
+                float[] laneYs = {
+                    trackRect.y + laneH * 0.5f,   // Spawn
+                    trackRect.y + laneH * 1.5f,   // StatChange
+                    trackRect.y + laneH * 2.5f    // Destroy
+                };
+                var nearbyIndices = new List<int>();
                 for (int i = 0; i < patternEvents.Count; i++)
                 {
                     float mx = TimeToTrackX(trackRect, patternEvents[i].Time);
-                    float dist = Mathf.Abs(e.mousePosition.x - mx);
-                    if (dist < bestDist) { best = i; bestDist = dist; }
+                    float my = laneYs[(int)patternEvents[i].EventType];
+                    if (Mathf.Abs(e.mousePosition.x - mx) < 10f
+                        && Mathf.Abs(e.mousePosition.y - my) < laneH * 0.5f)
+                        nearbyIndices.Add(i);
                 }
-                selectedEventIndex = best;
+
+                if (nearbyIndices.Count == 0)
+                {
+                    selectedEventIndex = -1;
+                }
+                else if (nearbyIndices.Count == 1)
+                {
+                    selectedEventIndex = nearbyIndices[0];
+                }
+                else
+                {
+                    // 현재 선택이 근처 목록에 있으면 다음으로 순환
+                    int pos = nearbyIndices.IndexOf(selectedEventIndex);
+                    selectedEventIndex = nearbyIndices[(pos + 1) % nearbyIndices.Count];
+                }
+
+                // 선택된 이벤트의 연결 미사일 포커스
+                if (selectedEventIndex >= 0 && selectedEventIndex < patternEvents.Count)
+                    PatternEditorSceneInteraction.SelectMissilesByIds(
+                        patternEvents[selectedEventIndex].LinkedMissileIds);
             }
 
             NotifyStateChanged();

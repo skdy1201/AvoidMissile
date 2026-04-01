@@ -18,7 +18,10 @@ public static class PatternEditorController
         EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 
         if (Active)
-            EditorApplication.delayCall += OnDomainReload;
+        {
+            // 도메인 리로드 후, 초기화
+            EditorApplication.delayCall += OnDomainReload;                
+        }
     }
 
     private static void OnDomainReload()
@@ -56,7 +59,10 @@ public static class PatternEditorController
 
     #region Private Fields
 
-    // 도메인 리로드(스크립트 재컴파일) 시 static 필드가 초기화되므로 SessionState로 보존
+    /// <summary>
+    /// 에디터 세션 값을 저장
+    /// 도메인 리로드(스크립트 재컴파일) 시 static 필드가 초기화되므로 SessionState로 보존
+    /// </summary>
     private static bool Active
     {
         get => SessionState.GetBool(SessionKeyActive, false);
@@ -71,10 +77,10 @@ public static class PatternEditorController
     }
 
     // 에디터 진입 시 비활성화한 기존 게임 오브젝트
-    private static GameObject cachedCanvas;
-    private static GameObject cachedPlayerCanvas;
-    private static GameObject cachedEventSystem;
-    private static GameObject cachedGreyVolume;
+    private static GameObject savedCanvas;
+    private static GameObject savedPlayerCanvas;
+    private static GameObject savedEventSystem;
+    private static GameObject savedGreyVolume;
 
     // 에디터가 생성한 오브젝트
     private static GameObject editorCanvas;
@@ -92,6 +98,9 @@ public static class PatternEditorController
             Open();
     }
 
+    /// <summary>
+    /// PlayScene을 그대로 열고, 일부 비활성화 및 추가 UI 활성화로 Editor 환경 세팅
+    /// </summary>
     public static void Open()
     {
         if (Active) return;
@@ -147,6 +156,12 @@ public static class PatternEditorController
 
     #region Private Methods — Scene Setup
 
+    /// <summary>
+    /// 씬 설정 저장 함수
+    /// </summary>
+    /// <remarks>
+    /// SessionState는 문자열 하나만 저장 가능하니, 연결해야 한다.
+    /// </remarks>
     private static void SaveSceneSetup()
     {
         int sceneCount = SceneManager.sceneCount;
@@ -164,6 +179,9 @@ public static class PatternEditorController
         SceneSetup = string.Join(";", parts);
     }
 
+    /// <summary>
+    /// SessionState로 저장해놨던 기존 씬 정보를 복원
+    /// </summary>
     private static void RestoreSceneSetup()
     {
         string data = SceneSetup;
@@ -218,17 +236,20 @@ public static class PatternEditorController
 
     #region Private Methods
 
+    /// <summary>
+    /// 필요없는 UI들을 비활성화 시키기
+    /// </summary>
     private static void DeactivateGameUI()
     {
-        cachedCanvas       = GameObject.Find("Canvas");
-        cachedPlayerCanvas = GameObject.Find("PlayerCanvas");
-        cachedEventSystem  = GameObject.Find("EventSystem");
-        cachedGreyVolume   = GameObject.Find("GreyVolume");
+        savedCanvas       = GameObject.Find("Canvas");
+        savedPlayerCanvas = GameObject.Find("PlayerCanvas");
+        savedEventSystem  = GameObject.Find("EventSystem");
+        savedGreyVolume   = GameObject.Find("GreyVolume");
 
-        if (cachedCanvas != null)       cachedCanvas.SetActive(false);
-        if (cachedPlayerCanvas != null)  cachedPlayerCanvas.SetActive(false);
-        if (cachedEventSystem != null)   cachedEventSystem.SetActive(false);
-        if (cachedGreyVolume != null)    cachedGreyVolume.SetActive(false);
+        if (savedCanvas != null)       savedCanvas.SetActive(false);
+        if (savedPlayerCanvas != null)  savedPlayerCanvas.SetActive(false);
+        if (savedEventSystem != null)   savedEventSystem.SetActive(false);
+        if (savedGreyVolume != null)    savedGreyVolume.SetActive(false);
     }
 
     private static void CreateEditorCanvas()
@@ -261,10 +282,10 @@ public static class PatternEditorController
             Object.DestroyImmediate(editorCanvas);
 
         editorCanvas       = null;
-        cachedCanvas       = null;
-        cachedPlayerCanvas = null;
-        cachedEventSystem  = null;
-        cachedGreyVolume   = null;
+        savedCanvas        = null;
+        savedPlayerCanvas  = null;
+        savedEventSystem   = null;
+        savedGreyVolume    = null;
         Active             = false;
     }
 
@@ -272,11 +293,15 @@ public static class PatternEditorController
 
     #region Event Handlers
 
-    // 패턴 에디터 활성 상태에서 Play 모드 진입 차단
+    /// <summary>
+    /// 패턴 에디터 활성 상태에서 Play 모드 진입 차단
+    /// </summary>
+    /// <param name="state"> 에디터 상태 열거형 </param>
     private static void OnPlayModeStateChanged(PlayModeStateChange state)
     {
         if (state != PlayModeStateChange.ExitingEditMode || !Active) return;
 
+        // Play 모드 차단
         EditorApplication.isPlaying = false;
         EditorUtility.DisplayDialog(
             "미사일 패턴 에디터",
@@ -284,7 +309,15 @@ public static class PatternEditorController
             "확인");
     }
 
-    // 사용자가 다른 씬을 열거나 에디터를 닫을 때 자동 정리
+    /// <summary>
+    /// 임의로 사용자가 다른 씬을 열거나 에디터를 닫을 때 자동 정리
+    /// </summary>
+    /// <remarks>
+    /// 정상 종료(Close)를 거치지 않고 씬이 닫힐 때의 안전망.
+    /// Active 플래그·이벤트 핸들러 등 에디터 상태를 정리하여 꼬임을 방지한다.
+    /// </remarks>
+    /// <param name="scene"> 닫히려는 씬 </param>
+    /// <param name="removingScene"> 씬이 완전히 제거되는지 여부 </param>
     private static void OnSceneClosing(Scene scene, bool removingScene)
     {
         if (!Active) return;

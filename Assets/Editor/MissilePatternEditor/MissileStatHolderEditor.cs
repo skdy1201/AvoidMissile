@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
@@ -77,7 +78,42 @@ public class MissileStatHolderEditor : Editor
                 break;
         }
 
-        serializedObject.ApplyModifiedProperties();
+        if (serializedObject.ApplyModifiedProperties())
+        {
+            float now = PatternEditorSimulation.CurrentTime;
+            var statChangeIds = new List<int>();
+            var statChangeSnaps = new Dictionary<int, PatternEditorSimulation.MissileStatsSnapshot>();
+            var spawnUpdateSnaps = new Dictionary<int, PatternEditorSimulation.MissileStatsSnapshot>();
+
+            foreach (var t in targets)
+            {
+                var holder = t as MissileStatHolder;
+                if (holder == null) continue;
+
+                var snap = PatternEditorSimulation.MissileStatsSnapshot.FromHolder(holder);
+
+                if (PatternEditorSimulation.HasSpawnEventAt(now, holder.missileId))
+                {
+                    // 스폰 시점 변경 → Spawn 이벤트 스냅샷 갱신
+                    spawnUpdateSnaps[holder.missileId] = snap;
+                }
+                else
+                {
+                    // 별도 시점 → StatChange 이벤트 생성
+                    statChangeIds.Add(holder.missileId);
+                    statChangeSnaps[holder.missileId] = snap;
+                }
+            }
+
+            // Spawn 이벤트 스냅샷 갱신
+            if (spawnUpdateSnaps.Count > 0)
+                PatternEditorSimulation.UpdateSpawnSnapshots(now, spawnUpdateSnaps);
+
+            // StatChange 이벤트 생성
+            if (statChangeIds.Count > 0)
+                PatternEditorSimulation.AddEvent(PatternEditorSimulation.PatternEventType.StatChange,
+                    now, statChangeIds, statChangeSnaps);
+        }
     }
 
     private void DrawFallingStats()

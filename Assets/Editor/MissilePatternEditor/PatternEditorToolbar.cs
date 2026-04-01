@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 /// 에디터 모드 토글 + 시뮬레이션 재생 컨트롤을 제공한다.
 /// PatternEditorController.Open/Close에서 표시/숨김을 제어한다.
 /// </summary>
-[Overlay(typeof(SceneView), OverlayId, "Pattern Editor", defaultDisplay = false)]
+[Overlay(typeof(SceneView), OverlayId, "Pattern Editor", defaultDisplay = false)] // 어트리뷰트로 씬뷰의 오버레이에서 켯다껏다 할 수 있도록 하기
 [Icon("d_CustomTool")]
 public class PatternEditorToolbar : ToolbarOverlay
 {
@@ -29,6 +29,7 @@ public class PatternEditorToolbar : ToolbarOverlay
 
     public static void Show()
     {
+        //씬뷰가 여러개 있을 수 있어, 마지막으로 참조한 씬뷰
         var sceneView = SceneView.lastActiveSceneView;
         if (sceneView == null) return;
 
@@ -57,11 +58,12 @@ public class PatternEditorToolbar : ToolbarOverlay
 /// ON: Tools.current = Tool.None → 좌클릭이 에디터 인터랙션으로.
 /// OFF: 이전 Tool 복원 → 기본 씬뷰 도구 사용 가능.
 /// </summary>
-[EditorToolbarElement(Id, typeof(SceneView))]
+[EditorToolbarElement(Id, typeof(SceneView))]   
 public class PatternEditorModeToggle : EditorToolbarToggle
 {
     public const string Id = "pattern-editor-mode-toggle";
 
+    // 에디터 모드를 쓰기 전에 사용했던 도구들 저장.
     private static Tool savedTool = Tool.Move;
     private static bool editorModeActive;
 
@@ -74,10 +76,14 @@ public class PatternEditorModeToggle : EditorToolbarToggle
                   "ON: 좌클릭으로 타일/미사일 선택·배치\n" +
                   "OFF: 기본 Move/Rotate/Scale 도구 사용";
 
+        // 토글 버튼의 체크 상태를 변경하되, 이벤트를 발생시키지 않도록 하는 것.
         SetValueWithoutNotify(editorModeActive);
         this.RegisterValueChangedCallback(OnToggleChanged);
     }
 
+    /// <summary>
+    /// 에디터 활성화, 비활성화 
+    /// </summary>
     private void OnToggleChanged(ChangeEvent<bool> evt)
     {
         if (evt.newValue)
@@ -91,6 +97,8 @@ public class PatternEditorModeToggle : EditorToolbarToggle
         if (editorModeActive) return;
 
         savedTool = Tools.current;
+        
+        //move, rotate 등의 기본 에디터 툴에 대한 동작을 비활성화
         Tools.current = Tool.None;
         editorModeActive = true;
 

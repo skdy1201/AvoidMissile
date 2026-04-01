@@ -7,6 +7,7 @@ using UnityEngine;
 /// </summary>
 public class MissileStatHolder : MonoBehaviour
 {
+    [HideInInspector] public int missileId;
     [HideInInspector] public PlacedMissileType missileType;
 
     // 공통
