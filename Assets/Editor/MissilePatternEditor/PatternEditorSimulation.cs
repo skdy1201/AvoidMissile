@@ -419,7 +419,28 @@ public static class PatternEditorSimulation
         SceneView.RepaintAll();
     }
 
-    public static void LoadEventsDirectly(List<PatternEvent> events, float duration, string name) { }
+    /// <summary>로드 시 이벤트 목록 직접 세팅. 기존 이벤트 초기화 후 재설정.</summary>
+    public static void LoadEventsDirectly(List<PatternEvent> events, float duration, string name)
+    {
+        patternName        = name;
+        totalDuration      = Mathf.Clamp(duration, 0.1f, 600f);
+        currentTime        = 0f;
+        selectedEventIndex = -1;
+
+        patternEvents.Clear();
+        foreach (var ev in events)
+            patternEvents.Add(ev);
+
+        patternEvents.Sort((a, b) =>
+        {
+            int cmp = a.Time.CompareTo(b.Time);
+            return cmp != 0 ? cmp : a.EventType.CompareTo(b.EventType);
+        });
+
+        SeekMissilesToTime(0f);
+        ClampTimelineView();
+        SceneView.RepaintAll();
+    }
 
     #endregion
 
@@ -635,7 +656,7 @@ public static class PatternEditorSimulation
             var m = missiles[i];
             if (m.Ghost == null) continue;
 
-            // 스폰 이전 또는 파괴 이후 → 비활성화
+            // 스폰 이전 또는 파괴 이후 → 비활성화 + 위치 리셋
             if (t < m.SpawnTime || t >= m.DestroyTime)
             {
                 if (!m.Hidden)
@@ -643,6 +664,7 @@ public static class PatternEditorSimulation
                     m.Ghost.SetActive(false);
                     m.Hidden = true;
                 }
+                m.Ghost.transform.position = m.OriginalPosition;
                 continue;
             }
 

@@ -2145,6 +2145,7 @@ public static class PatternEditorSceneInteraction
     {
         // locationKey → worldPos 해석 (T: 타일, S: 스폰포인트, 실패 시 저장된 XYZ 폴백)
         Vector3 worldPos = Vector3.zero;
+
         if (locationKey.StartsWith("T:"))
         {
             var parts = locationKey.Substring(2).Split(',');
@@ -2156,6 +2157,7 @@ public static class PatternEditorSceneInteraction
         {
             spawnWorldPositions.TryGetValue(locationKey.Substring(2), out worldPos);
         }
+        
         if (worldPos == Vector3.zero && originalPosition != Vector3.zero)
             worldPos = originalPosition;
         if (worldPos == Vector3.zero) return -1;
