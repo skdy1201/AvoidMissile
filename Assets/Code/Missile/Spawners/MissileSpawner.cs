@@ -21,7 +21,7 @@ public enum MissileType
 /// 미사일 시스템에서 레벨 변경을 준비
 /// 추적 미사일은 현재 Spawner까지 사용할 필요가 없어 그냥 생성,제거
 ///</remarks>
-public class MissileSpawner : Spawner<MissileType>
+public partial class MissileSpawner : Spawner<MissileType>
 {
     #region Serialize Fields
 
