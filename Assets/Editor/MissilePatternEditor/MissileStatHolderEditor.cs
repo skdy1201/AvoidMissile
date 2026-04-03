@@ -82,15 +82,15 @@ public class MissileStatHolderEditor : Editor
         {
             float now = PatternEditorSimulation.CurrentTime;
             var statChangeIds = new List<int>();
-            var statChangeSnaps = new Dictionary<int, PatternEditorSimulation.MissileStatsSnapshot>();
-            var spawnUpdateSnaps = new Dictionary<int, PatternEditorSimulation.MissileStatsSnapshot>();
+            var statChangeSnaps = new Dictionary<int, MissileStatsSnapshot>();
+            var spawnUpdateSnaps = new Dictionary<int, MissileStatsSnapshot>();
 
             foreach (var t in targets)
             {
                 var holder = t as MissileStatHolder;
                 if (holder == null) continue;
 
-                var snap = PatternEditorSimulation.MissileStatsSnapshot.FromHolder(holder);
+                var snap = MissileStatsSnapshot.FromHolder(holder);
 
                 if (PatternEditorSimulation.HasSpawnEventAt(now, holder.missileId))
                 {
@@ -111,7 +111,7 @@ public class MissileStatHolderEditor : Editor
 
             // StatChange 이벤트 생성
             if (statChangeIds.Count > 0)
-                PatternEditorSimulation.AddEvent(PatternEditorSimulation.PatternEventType.StatChange,
+                PatternEditorSimulation.AddEvent(PatternEventType.StatChange,
                     now, statChangeIds, statChangeSnaps);
         }
     }

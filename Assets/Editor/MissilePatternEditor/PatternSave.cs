@@ -14,7 +14,7 @@ public static class PatternSave
     private const int    FormatVersion = 1;
     private const string SaveFolder    = "Assets/Resources/Patterns";
 
-    // ── 저장 ──────────────────────────────────────────────
+    #region Save
 
     public static void Save()
     {
@@ -35,7 +35,63 @@ public static class PatternSave
         Debug.Log($"[PatternSave] 저장 완료: {path}");
     }
 
-    // ── 불러오기 메뉴 ──────────────────────────────────────
+    private static void ConvertPattern(BinaryWriter writer)
+    {
+        var events   = PatternEditorSimulation.Events;
+        var missiles = PatternEditorSceneInteraction.PlacedMissiles;
+
+        writer.Write(FileType);
+        writer.Write(FormatVersion);
+        writer.Write(PatternEditorSimulation.PatternName);
+        writer.Write(PatternEditorSimulation.TotalDuration);
+        writer.Write(events.Count);
+
+        foreach (var ev in events)
+        {
+            writer.Write(ev.Time);
+            writer.Write((int)ev.EventType);
+            writer.Write(ev.LinkedMissileIds.Count);
+
+            foreach (int savedId in ev.LinkedMissileIds)
+            {
+                writer.Write(savedId);
+
+                if (ev.EventType == PatternEventType.Spawn)
+                {
+                    var m   = FindMissileById(missiles, savedId);
+                    var pos = m?.OriginalPosition ?? Vector3.zero;
+                    writer.Write((int)(m?.Type ?? 0));
+                    writer.Write(m?.LocationKey ?? "");
+                    writer.Write(pos.x);
+                    writer.Write(pos.y);
+                    writer.Write(pos.z);
+                }
+
+                if (ev.EventType != PatternEventType.Destroy)
+                {
+                    ev.StatsSnapshots.TryGetValue(savedId, out var snap);
+                    WriteSnapshot(writer, snap);
+                }
+            }
+        }
+    }
+
+    private static void WriteSnapshot(BinaryWriter writer, MissileStatsSnapshot snap)
+    {
+        if (snap == null) snap = new MissileStatsSnapshot();
+        writer.Write(snap.Speed);
+        writer.Write(snap.Hp);
+        writer.Write(snap.HoverType);
+        writer.Write(snap.FlightTime);
+        writer.Write(snap.TurnTime);
+        writer.Write(snap.TurnRate);
+        writer.Write(snap.GrandDiameter);
+        writer.Write(snap.GrandDirection);
+    }
+
+    #endregion
+
+    #region Load
 
     public static void ShowLoadMenu()
     {
@@ -62,64 +118,6 @@ public static class PatternSave
         }
         menu.ShowAsContext();
     }
-
-    // ── 직렬화 ────────────────────────────────────────────
-
-    private static void ConvertPattern(BinaryWriter writer)
-    {
-        var events   = PatternEditorSimulation.Events;
-        var missiles = PatternEditorSceneInteraction.PlacedMissiles;
-
-        writer.Write(FileType);
-        writer.Write(FormatVersion);
-        writer.Write(PatternEditorSimulation.PatternName);
-        writer.Write(PatternEditorSimulation.TotalDuration);
-        writer.Write(events.Count);
-
-        foreach (var ev in events)
-        {
-            writer.Write(ev.Time);
-            writer.Write((int)ev.EventType);
-            writer.Write(ev.LinkedMissileIds.Count);
-
-            foreach (int savedId in ev.LinkedMissileIds)
-            {
-                writer.Write(savedId);
-
-                if (ev.EventType == PatternEditorSimulation.PatternEventType.Spawn)
-                {
-                    var m   = FindMissileById(missiles, savedId);
-                    var pos = m?.OriginalPosition ?? Vector3.zero;
-                    writer.Write((int)(m?.Type ?? 0));
-                    writer.Write(m?.LocationKey ?? "");
-                    writer.Write(pos.x);
-                    writer.Write(pos.y);
-                    writer.Write(pos.z);
-                }
-
-                if (ev.EventType != PatternEditorSimulation.PatternEventType.Destroy)
-                {
-                    ev.StatsSnapshots.TryGetValue(savedId, out var snap);
-                    WriteSnapshot(writer, snap);
-                }
-            }
-        }
-    }
-
-    private static void WriteSnapshot(BinaryWriter writer, PatternEditorSimulation.MissileStatsSnapshot snap)
-    {
-        if (snap == null) snap = new PatternEditorSimulation.MissileStatsSnapshot();
-        writer.Write(snap.Speed);
-        writer.Write(snap.Hp);
-        writer.Write(snap.HoverType);
-        writer.Write(snap.FlightTime);
-        writer.Write(snap.TurnTime);
-        writer.Write(snap.TurnRate);
-        writer.Write(snap.GrandDiameter);
-        writer.Write(snap.GrandDirection);
-    }
-
-    // ── 역직렬화 ──────────────────────────────────────────
 
     private static void Load(string path)
     {
@@ -153,15 +151,15 @@ public static class PatternSave
             PatternEditorSceneInteraction.ClearMissilesForLoad();
 
             var idMapping    = new Dictionary<int, int>();
-            var loadedEvents = new List<PatternEditorSimulation.PatternEvent>();
+            var loadedEvents = new List<PatternEvent>();
 
             for (int i = 0; i < evCount; i++)
             {
                 float time      = reader.ReadSingle();
-                var   eventType = (PatternEditorSimulation.PatternEventType)reader.ReadInt32();
+                var   eventType = (PatternEventType)reader.ReadInt32();
                 int   mCount    = reader.ReadInt32();
 
-                var patternEvent = new PatternEditorSimulation.PatternEvent
+                var patternEvent = new PatternEvent
                 {
                     Time      = time,
                     EventType = eventType,
@@ -175,7 +173,7 @@ public static class PatternSave
                     string            locationKey  = "";
                     Vector3           savedPosition = Vector3.zero;
 
-                    if (eventType == PatternEditorSimulation.PatternEventType.Spawn)
+                    if (eventType == PatternEventType.Spawn)
                     {
                         type          = (PlacedMissileType)reader.ReadInt32();
                         locationKey   = reader.ReadString();
@@ -183,11 +181,11 @@ public static class PatternSave
                             reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
                     }
 
-                    PatternEditorSimulation.MissileStatsSnapshot snap = null;
-                    if (eventType != PatternEditorSimulation.PatternEventType.Destroy)
+                    MissileStatsSnapshot snap = null;
+                    if (eventType != PatternEventType.Destroy)
                         snap = ReadSnapshot(reader);
 
-                    if (eventType == PatternEditorSimulation.PatternEventType.Spawn)
+                    if (eventType == PatternEventType.Spawn)
                     {
                         int newId = PatternEditorSceneInteraction.PlaceMissileForLoad(
                             type, locationKey, savedPosition, snap, time);
@@ -212,9 +210,9 @@ public static class PatternSave
         Debug.Log($"[PatternSave] 불러오기 완료: {path}");
     }
 
-    private static PatternEditorSimulation.MissileStatsSnapshot ReadSnapshot(BinaryReader reader)
+    private static MissileStatsSnapshot ReadSnapshot(BinaryReader reader)
     {
-        return new PatternEditorSimulation.MissileStatsSnapshot
+        return new MissileStatsSnapshot
         {
             Speed          = reader.ReadSingle(),
             Hp             = reader.ReadInt32(),
@@ -227,6 +225,10 @@ public static class PatternSave
         };
     }
 
+    #endregion
+
+    #region Utility
+
     private static PlacedMissile FindMissileById(
         IReadOnlyList<PlacedMissile> missiles, int id)
     {
@@ -234,4 +236,6 @@ public static class PatternSave
             if (m.Id == id) return m;
         return null;
     }
+
+    #endregion
 }

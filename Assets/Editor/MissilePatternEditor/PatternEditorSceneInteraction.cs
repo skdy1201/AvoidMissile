@@ -1533,11 +1533,11 @@ public static class PatternEditorSceneInteraction
         }
 
         // Spawn 이벤트 자동 생성 (초기 스탯 스냅샷 포함)
-        var snapshots = new Dictionary<int, PatternEditorSimulation.MissileStatsSnapshot>
+        var snapshots = new Dictionary<int, MissileStatsSnapshot>
         {
-            { missileId, PatternEditorSimulation.MissileStatsSnapshot.FromHolder(statHolder) }
+            { missileId, MissileStatsSnapshot.FromHolder(statHolder) }
         };
-        PatternEditorSimulation.AddEvent(PatternEditorSimulation.PatternEventType.Spawn,
+        PatternEditorSimulation.AddEvent(PatternEventType.Spawn,
             spawnTime, new List<int> { missileId }, snapshots);
     }
 
@@ -1963,7 +1963,7 @@ public static class PatternEditorSceneInteraction
         float now = PatternEditorSimulation.CurrentTime;
 
         // Destroy 이벤트 생성 + DestroyTime 설정
-        PatternEditorSimulation.AddEvent(PatternEditorSimulation.PatternEventType.Destroy,
+        PatternEditorSimulation.AddEvent(PatternEventType.Destroy,
             now, new List<int> { m.Id });
         m.DestroyTime = now;
         m.Destroyed   = true;
@@ -2141,7 +2141,7 @@ public static class PatternEditorSceneInteraction
     /// <returns>새로 할당된 session 미사일 ID. 배치 실패 시 -1.</returns>
     public static int PlaceMissileForLoad(
         PlacedMissileType type, string locationKey, Vector3 originalPosition,
-        PatternEditorSimulation.MissileStatsSnapshot snap, float spawnTime)
+        MissileStatsSnapshot snap, float spawnTime)
     {
         // locationKey → worldPos 해석 (T: 타일, S: 스폰포인트, 실패 시 저장된 XYZ 폴백)
         Vector3 worldPos = Vector3.zero;
