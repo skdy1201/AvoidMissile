@@ -40,7 +40,6 @@ public static class PatternEditorSimulation
     #region State
 
     private static float  currentTime;
-    private static float  totalDuration      = DefaultTotalDuration;
     private static bool   isPlaying;
     private static bool   loopPlayback;
     private static int    speedIndex         = 2;   // SpeedPresets[2] = 1x
@@ -54,12 +53,14 @@ public static class PatternEditorSimulation
     private static float timelineZoom      = 1f;
     private static float timelineViewStart;
 
-    // 이벤트 마커
-    private static readonly List<PatternEvent> patternEvents = new List<PatternEvent>();
+    // 현재 편집 중인 패턴
+    private static PatternData currentPattern = new PatternData
+    {
+        PatternName   = "NewPattern",
+        TotalDuration = DefaultTotalDuration,
+        Events        = new List<PatternEvent>()
+    };
     private static int selectedEventIndex = -1;
-
-    // 패턴 이름
-    private static string patternName = "NewPattern";
 
     private static bool initialized;
 
@@ -68,23 +69,24 @@ public static class PatternEditorSimulation
     #region Public Properties
 
     public static float CurrentTime      => currentTime;
-    public static float TotalDuration    => totalDuration;
+    public static float TotalDuration    => currentPattern.TotalDuration;
     public static bool  IsPlaying        => isPlaying;
     public static bool  LoopPlayback     { get => loopPlayback; set { loopPlayback = value; NotifyStateChanged(); } }
     public static float PlaySpeed        => playSpeed;
     public static int   SpeedIndex       => speedIndex;
     public static float SavedCustomSpeed => savedCustomSpeed;
-    public static IReadOnlyList<PatternEvent> Events => patternEvents;
+    public static IReadOnlyList<PatternEvent> Events => currentPattern.Events;
     public static int SelectedEventIndex { get => selectedEventIndex; set => selectedEventIndex = value; }
-    public static string PatternName { get => patternName; set => patternName = value; }
+    public static string PatternName { get => currentPattern.PatternName; set => currentPattern.PatternName = value; }
+    public static PatternData CurrentPattern => currentPattern;
 
     /// <summary>해당 미사일 ID가 현재 시간에 Spawn 이벤트를 가지고 있는지 확인.</summary>
     /// <remarks> 정확한 시간으로 비교를 하면 놓칠 가능성이 있어, Approximately로 비교 한다. </remarks>
     public static bool HasSpawnEventAt(float time, int missileId)
     {
-        for (int i = 0; i < patternEvents.Count; i++)
+        for (int i = 0; i < currentPattern.Events.Count; i++)
         {
-            var patternEvent = patternEvents[i];
+            var patternEvent = currentPattern.Events[i];
             if (patternEvent.EventType == PatternEventType.Spawn
                 && Mathf.Approximately(patternEvent.Time, time)
                 && patternEvent.LinkedMissileIds.Contains(missileId))
@@ -96,7 +98,7 @@ public static class PatternEditorSimulation
     /// <summary>스폰 시점의 Spawn 이벤트 스냅샷 갱신 (인스펙터에서 스폰 시점 스탯 변경 시).</summary>
     public static void UpdateSpawnSnapshots(float time, Dictionary<int, MissileStatsSnapshot> snapshots)
     {
-        foreach (var patternEvent in patternEvents)
+        foreach (var patternEvent in currentPattern.Events)
         {
             if (patternEvent.EventType != PatternEventType.Spawn) continue;
             if (!Mathf.Approximately(patternEvent.Time, time)) continue;
@@ -145,18 +147,18 @@ public static class PatternEditorSimulation
         EditorApplication.update -= OnEditorUpdate;
 
         // 상태 초기화
-        currentTime         = 0f;
-        totalDuration       = DefaultTotalDuration;
-        isPlaying           = false;
-        loopPlayback        = false;
-        speedIndex          = 2;
-        playSpeed           = 1f;
-        savedCustomSpeed    = 3f;
-        customSpeedFieldFocused  = false;
-        pendingCustomFieldFocus  = false;
-        timelineZoom        = 1f;
-        timelineViewStart   = 0f;
-        patternEvents.Clear();
+        currentTime                  = 0f;
+        currentPattern.TotalDuration = DefaultTotalDuration;
+        isPlaying                    = false;
+        loopPlayback                 = false;
+        speedIndex                   = 2;
+        playSpeed                    = 1f;
+        savedCustomSpeed             = 3f;
+        customSpeedFieldFocused      = false;
+        pendingCustomFieldFocus      = false;
+        timelineZoom                 = 1f;
+        timelineViewStart            = 0f;
+        currentPattern.Events.Clear();
         selectedEventIndex = -1;
         initialized = false;
     }
@@ -169,7 +171,7 @@ public static class PatternEditorSimulation
     /// </summary>
     public static void TogglePlay()
     {
-        if (!isPlaying && currentTime >= totalDuration)
+        if (!isPlaying && currentTime >= currentPattern.TotalDuration)
         {
             currentTime = 0f;
             ResetMissilePositions();
@@ -216,7 +218,7 @@ public static class PatternEditorSimulation
     /// </summary>
     public static void SetCurrentTime(float t)
     {
-        currentTime = Mathf.Clamp(t, 0f, totalDuration);
+        currentTime = Mathf.Clamp(t, 0f, currentPattern.TotalDuration);
         SeekMissilesToTime(currentTime);
         SceneView.RepaintAll();
     }
@@ -226,11 +228,11 @@ public static class PatternEditorSimulation
     /// </summary>
     public static void SetTotalDuration(float d)
     {
-        totalDuration = Mathf.Clamp(d, 0.1f, 600f);
-        currentTime   = Mathf.Clamp(currentTime, 0f, totalDuration);
+        currentPattern.TotalDuration = Mathf.Clamp(d, 0.1f, 600f);
+        currentTime                  = Mathf.Clamp(currentTime, 0f, currentPattern.TotalDuration);
         // 범위 밖 이벤트 클램프
-        foreach (var patternEvent in patternEvents)
-            patternEvent.Time = Mathf.Clamp(patternEvent.Time, 0f, totalDuration);
+        foreach (var patternEvent in currentPattern.Events)
+            patternEvent.Time = Mathf.Clamp(patternEvent.Time, 0f, currentPattern.TotalDuration);
         ClampTimelineView();
         SceneView.RepaintAll();
     }
@@ -242,7 +244,7 @@ public static class PatternEditorSimulation
     public static void JumpToPrevSegmentOrStart()
     {
         float prevTime = 0f;
-        foreach (var patternEvent in patternEvents)
+        foreach (var patternEvent in currentPattern.Events)
             if (patternEvent.Time < currentTime - 0.01f)
                 prevTime = Mathf.Max(prevTime, patternEvent.Time);
         currentTime = prevTime;
@@ -256,8 +258,8 @@ public static class PatternEditorSimulation
     /// </summary>
     public static void JumpToNextSegmentOrEnd()
     {
-        float nextTime = totalDuration;
-        foreach (var patternEvent in patternEvents)
+        float nextTime = currentPattern.TotalDuration;
+        foreach (var patternEvent in currentPattern.Events)
             if (patternEvent.Time > currentTime + 0.01f)
                 nextTime = Mathf.Min(nextTime, patternEvent.Time);
         currentTime = nextTime;
@@ -272,13 +274,13 @@ public static class PatternEditorSimulation
     public static void AddEvent(PatternEventType type, float time, List<int> missileIds = null,
         Dictionary<int, MissileStatsSnapshot> snapshots = null)
     {
-        float clampedTime = Mathf.Clamp(time, 0f, totalDuration);
+        float clampedTime = Mathf.Clamp(time, 0f, currentPattern.TotalDuration);
         var ids = missileIds ?? new List<int>();
 
         // 같은 시간·같은 타입의 기존 이벤트에 병합
-        for (int i = 0; i < patternEvents.Count; i++)
+        for (int i = 0; i < currentPattern.Events.Count; i++)
         {
-            var existing = patternEvents[i];
+            var existing = currentPattern.Events[i];
             if (existing.EventType == type && Mathf.Approximately(existing.Time, clampedTime))
             {
                 foreach (int id in ids)
@@ -306,14 +308,14 @@ public static class PatternEditorSimulation
         if (snapshots != null)
             foreach (var entry in snapshots)
                 newEvent.StatsSnapshots[entry.Key] = entry.Value;
-        patternEvents.Add(newEvent);
+        currentPattern.Events.Add(newEvent);
         // 정렬: 시간 → 타입 우선순위 (Spawn=0 → StatChange=1 → Destroy=2)
-        patternEvents.Sort((a, b) =>
+        currentPattern.Events.Sort((a, b) =>
         {
             int cmp = a.Time.CompareTo(b.Time);
             return cmp != 0 ? cmp : a.EventType.CompareTo(b.EventType);
         });
-        selectedEventIndex = patternEvents.IndexOf(newEvent);
+        selectedEventIndex = currentPattern.Events.IndexOf(newEvent);
         SceneView.RepaintAll();
     }
 
@@ -321,9 +323,9 @@ public static class PatternEditorSimulation
     /// <remarks> 스탯 변경은 이벤트만 지우면 없앨 수 있다. </remarks>
     public static void DeleteSelectedEvent()
     {
-        if (selectedEventIndex < 0 || selectedEventIndex >= patternEvents.Count) return;
+        if (selectedEventIndex < 0 || selectedEventIndex >= currentPattern.Events.Count) return;
 
-        var patternEvent = patternEvents[selectedEventIndex];
+        var patternEvent = currentPattern.Events[selectedEventIndex];
 
         // Spawn 이벤트 삭제 → 연결된 미사일을 완전 제거 (Ghost 파괴)
         if (patternEvent.EventType == PatternEventType.Spawn && patternEvent.LinkedMissileIds.Count > 0)
@@ -333,7 +335,7 @@ public static class PatternEditorSimulation
         if (patternEvent.EventType == PatternEventType.Destroy && patternEvent.LinkedMissileIds.Count > 0)
             PatternEditorSceneInteraction.RestoreMissilesByIds(patternEvent.LinkedMissileIds);
 
-        patternEvents.RemoveAt(selectedEventIndex);
+        currentPattern.Events.RemoveAt(selectedEventIndex);
         selectedEventIndex = -1;
         SceneView.RepaintAll();
     }
@@ -341,13 +343,13 @@ public static class PatternEditorSimulation
     /// <summary>미사일 ID가 연결된 이벤트에서 제거. 빈 이벤트는 자동 삭제.</summary>
     public static void RemoveMissileFromEvents(int missileId)
     {
-        for (int i = patternEvents.Count - 1; i >= 0; i--)
+        for (int i = currentPattern.Events.Count - 1; i >= 0; i--)
         {
-            patternEvents[i].LinkedMissileIds.Remove(missileId);
-            patternEvents[i].StatsSnapshots.Remove(missileId);
-            if (patternEvents[i].LinkedMissileIds.Count == 0)
+            currentPattern.Events[i].LinkedMissileIds.Remove(missileId);
+            currentPattern.Events[i].StatsSnapshots.Remove(missileId);
+            if (currentPattern.Events[i].LinkedMissileIds.Count == 0)
             {
-                patternEvents.RemoveAt(i);
+                currentPattern.Events.RemoveAt(i);
                 if (selectedEventIndex == i) selectedEventIndex = -1;
                 else if (selectedEventIndex > i) selectedEventIndex--;
             }
@@ -358,16 +360,16 @@ public static class PatternEditorSimulation
     /// <summary>로드 시 이벤트 목록 직접 세팅. 기존 이벤트 초기화 후 재설정.</summary>
     public static void LoadEventsDirectly(List<PatternEvent> events, float duration, string name)
     {
-        patternName        = name;
-        totalDuration      = Mathf.Clamp(duration, 0.1f, 600f);
-        currentTime        = 0f;
-        selectedEventIndex = -1;
+        currentPattern.PatternName   = name;
+        currentPattern.TotalDuration = Mathf.Clamp(duration, 0.1f, 600f);
+        currentTime                  = 0f;
+        selectedEventIndex           = -1;
 
-        patternEvents.Clear();
+        currentPattern.Events.Clear();
         foreach (var ev in events)
-            patternEvents.Add(ev);
+            currentPattern.Events.Add(ev);
 
-        patternEvents.Sort((a, b) =>
+        currentPattern.Events.Sort((a, b) =>
         {
             int cmp = a.Time.CompareTo(b.Time);
             return cmp != 0 ? cmp : a.EventType.CompareTo(b.EventType);
@@ -391,12 +393,12 @@ public static class PatternEditorSimulation
         if (isPlaying)
         {
             float dt = (float)(now - lastEditorTime) * playSpeed;
-            currentTime = Mathf.Clamp(currentTime + dt, 0f, totalDuration);
+            currentTime = Mathf.Clamp(currentTime + dt, 0f, currentPattern.TotalDuration);
 
             // ghost 이동
             MoveMissiles(dt);
 
-            if (currentTime >= totalDuration)
+            if (currentTime >= currentPattern.TotalDuration)
             {
                 if (loopPlayback)
                 {
@@ -491,7 +493,7 @@ public static class PatternEditorSimulation
     private static MissileStatsSnapshot GetStatsAtTime(int missileId, float time)
     {
         MissileStatsSnapshot result = null;
-        foreach (var patternEvent in patternEvents)
+        foreach (var patternEvent in currentPattern.Events)
         {
             if (patternEvent.Time > time + 0.001f) break;    // 정렬되어 있으므로 이후는 볼 필요 없음
             if (patternEvent.EventType != PatternEventType.Spawn && patternEvent.EventType != PatternEventType.StatChange)
@@ -564,7 +566,7 @@ public static class PatternEditorSimulation
         if (spawnSnap != null)
             currentSpeed = spawnSnap.Speed;
 
-        foreach (var patternEvent in patternEvents)
+        foreach (var patternEvent in currentPattern.Events)
         {
             if (patternEvent.Time <= spawnTime + 0.001f) continue;   // 스폰 이전/동시 이벤트 스킵
             if (patternEvent.Time > targetTime + 0.001f) break;       // 목표 시간 이후
@@ -715,19 +717,19 @@ public static class PatternEditorSimulation
         GUILayout.BeginHorizontal();
 
         // 패턴 이름
-        string newName = EditorGUILayout.DelayedTextField(patternName, GUILayout.Width(120));
-        if (newName != patternName) patternName = newName;
+        string newName = EditorGUILayout.DelayedTextField(currentPattern.PatternName, GUILayout.Width(120));
+        if (newName != currentPattern.PatternName) currentPattern.PatternName = newName;
         GUILayout.Space(6);
 
         // 현재 시간 표시
-        GUILayout.Label($"{currentTime:F2} / {totalDuration:F2} s", EditorStyles.boldLabel,
+        GUILayout.Label($"{currentTime:F2} / {currentPattern.TotalDuration:F2} s", EditorStyles.boldLabel,
             GUILayout.Width(116));
         GUILayout.Space(6);
 
         // 총 재생 길이 편집
         GUILayout.Label("길이:", GUILayout.Width(24));
-        float newDur = EditorGUILayout.DelayedFloatField(totalDuration, GUILayout.Width(42));
-        if (newDur != totalDuration)
+        float newDur = EditorGUILayout.DelayedFloatField(currentPattern.TotalDuration, GUILayout.Width(42));
+        if (newDur != currentPattern.TotalDuration)
             SetTotalDuration(newDur);
         GUILayout.Label("s", GUILayout.Width(10));
         GUILayout.Space(10);
@@ -799,13 +801,13 @@ public static class PatternEditorSimulation
     /// <remarks> rect의 상대 좌표이기 때문에, 절대좌표로 변환하기 위해선 시작점을 더해줘야한다. </remarks>
     private static float TimeToTrackX(Rect track, float t)
     {
-        float visibleDuration = totalDuration / timelineZoom;
+        float visibleDuration = currentPattern.TotalDuration / timelineZoom;
         return track.x + (t - timelineViewStart) / visibleDuration * track.width;
     }
 
     private static float TrackXToTime(Rect track, float x)
     {
-        float visibleDuration = totalDuration / timelineZoom;
+        float visibleDuration = currentPattern.TotalDuration / timelineZoom;
         return timelineViewStart + (x - track.x) / track.width * visibleDuration;
     }
 
@@ -814,9 +816,9 @@ public static class PatternEditorSimulation
     /// </summary>
     private static void ClampTimelineView()
     {
-        float visibleDuration = totalDuration / timelineZoom;
+        float visibleDuration = currentPattern.TotalDuration / timelineZoom;
         timelineViewStart = Mathf.Clamp(timelineViewStart, 0f,
-            Mathf.Max(0f, totalDuration - visibleDuration));
+            Mathf.Max(0f, currentPattern.TotalDuration - visibleDuration));
     }
 
     /// <summary>
@@ -827,9 +829,9 @@ public static class PatternEditorSimulation
     private static void DrawTimelineTrack(Rect track)
     {
         EditorGUI.DrawRect(track, TrackBackground);
-        if (totalDuration <= 0f) return;
+        if (currentPattern.TotalDuration <= 0f) return;
 
-        float visibleDuration = totalDuration / timelineZoom;
+        float visibleDuration = currentPattern.TotalDuration / timelineZoom;
         float viewEnd         = timelineViewStart + visibleDuration;
 
         // 타입별 레인 Y (Spawn=상단, StatChange=중간, Destroy=하단)
@@ -845,9 +847,9 @@ public static class PatternEditorSimulation
             new Color(0.25f, 0.25f, 0.25f));
 
         // 이벤트 마커
-        for (int i = 0; i < patternEvents.Count; i++)
+        for (int i = 0; i < currentPattern.Events.Count; i++)
         {
-            var   patternEvent = patternEvents[i];
+            var   patternEvent = currentPattern.Events[i];
             float x  = TimeToTrackX(track, patternEvent.Time);
             if (x < track.x - MarkerRadius || x > track.xMax + MarkerRadius) continue;
 
@@ -953,9 +955,9 @@ public static class PatternEditorSimulation
         {
             float cursorTime      = TrackXToTime(trackRect, e.mousePosition.x);
             float zoomFactor      = e.delta.y > 0 ? 0.85f : 1f / 0.85f;
-            float maxZoom         = Mathf.Max(1f, totalDuration / 0.1f);
+            float maxZoom         = Mathf.Max(1f, currentPattern.TotalDuration / 0.1f);
             timelineZoom          = Mathf.Clamp(timelineZoom * zoomFactor, 1f, maxZoom);
-            float visibleDuration = totalDuration / timelineZoom;
+            float visibleDuration = currentPattern.TotalDuration / timelineZoom;
             float cursorRatio     = (e.mousePosition.x - trackRect.x) / trackRect.width;
             timelineViewStart     = cursorTime - cursorRatio * visibleDuration;
             ClampTimelineView();
@@ -966,7 +968,7 @@ public static class PatternEditorSimulation
         if ((e.type == EventType.MouseDown || e.type == EventType.MouseDrag) &&
             e.button == 2 && trackRect.Contains(e.mousePosition))
         {
-            float visibleDuration = totalDuration / timelineZoom;
+            float visibleDuration = currentPattern.TotalDuration / timelineZoom;
             float secondsPerPixel = visibleDuration / trackRect.width;
             timelineViewStart    -= e.delta.x * secondsPerPixel;
             ClampTimelineView();
@@ -978,7 +980,7 @@ public static class PatternEditorSimulation
             e.button == 0 && trackRect.Contains(e.mousePosition))
         {
             float t = TrackXToTime(trackRect, e.mousePosition.x);
-            currentTime = Mathf.Clamp(t, 0f, totalDuration);
+            currentTime = Mathf.Clamp(t, 0f, currentPattern.TotalDuration);
             isPlaying   = false;
             SeekMissilesToTime(currentTime);
 
@@ -992,10 +994,10 @@ public static class PatternEditorSimulation
                     trackRect.y + laneH * 2.5f    // Destroy
                 };
                 var nearbyIndices = new List<int>();
-                for (int i = 0; i < patternEvents.Count; i++)
+                for (int i = 0; i < currentPattern.Events.Count; i++)
                 {
-                    float mx = TimeToTrackX(trackRect, patternEvents[i].Time);
-                    float my = laneYs[(int)patternEvents[i].EventType];
+                    float mx = TimeToTrackX(trackRect, currentPattern.Events[i].Time);
+                    float my = laneYs[(int)currentPattern.Events[i].EventType];
                     if (Mathf.Abs(e.mousePosition.x - mx) < 10f
                         && Mathf.Abs(e.mousePosition.y - my) < laneH * 0.5f)
                         nearbyIndices.Add(i);
@@ -1017,9 +1019,9 @@ public static class PatternEditorSimulation
                 }
 
                 // 선택된 이벤트의 연결 미사일 포커스
-                if (selectedEventIndex >= 0 && selectedEventIndex < patternEvents.Count)
+                if (selectedEventIndex >= 0 && selectedEventIndex < currentPattern.Events.Count)
                     PatternEditorSceneInteraction.SelectMissilesByIds(
-                        patternEvents[selectedEventIndex].LinkedMissileIds);
+                        currentPattern.Events[selectedEventIndex].LinkedMissileIds);
             }
 
             NotifyStateChanged();
@@ -1028,7 +1030,7 @@ public static class PatternEditorSimulation
 
         // Delete → 선택 이벤트 마커 삭제
         if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Delete &&
-            selectedEventIndex >= 0 && selectedEventIndex < patternEvents.Count)
+            selectedEventIndex >= 0 && selectedEventIndex < currentPattern.Events.Count)
         {
             DeleteSelectedEvent();
             e.Use();
