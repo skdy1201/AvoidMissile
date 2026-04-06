@@ -9,7 +9,23 @@ using UnityEngine.SceneManagement;
 public enum MissileType
 {
     Falling,
-    Hover
+    Hover,
+    Grand
+}
+
+/// <summary>
+/// 스폰 스케줄 — 시간과 미사일 타입을 묶어 큐에 삽입
+/// </summary>
+public struct SpawnSchedule
+{
+    public float Time;
+    public MissileType Type;
+
+    public SpawnSchedule(float time, MissileType type)
+    {
+        Time = time;
+        Type = type;
+    }
 }
 
 /// <summary>
@@ -90,6 +106,15 @@ public partial class MissileSpawner : Spawner<MissileType>
     // 타일 하나의 크기
     private float tileX;
     private float tileZ;
+
+    /// <summary>
+    /// 스폰 스케줄 큐 — 시간순으로 (시간, 타입) 쌍을 관리
+    /// </summary>
+    private Queue<SpawnSchedule> spawnQueue = new Queue<SpawnSchedule>();
+
+    private float spawnTimer;
+    private bool spawning;
+    private const int MaxQueueSize = 20;
 
     /// <summary>
     /// 스포너에 반환 대기중인 미사일들
