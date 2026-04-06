@@ -166,6 +166,8 @@ public partial class MissileSpawner : Spawner<MissileType>
     {
         fallingQueueSize = spawners[(int)MissileType.Falling].Count;
 
+        if (inPattern) TickPattern();
+
         // 미사일 리스트가 25개 이상이면, 일괄 반환
         if (returnMissiles.Count >= 25)
         {
@@ -427,11 +429,12 @@ public partial class MissileSpawner : Spawner<MissileType>
         if (SceneManager.GetActiveScene().name == GlobalData.Instance.PlayScene)
         {
 
-            if (fallingLoop == false)
-            {
-                StartCoroutine(FallingMissileSpawnLoop());
-                fallingLoop = true;
-            }
+            // TODO: 테스트용 주석 처리 — 패턴 시스템 검증 후 복구
+            // if (fallingLoop == false)
+            // {
+            //     StartCoroutine(FallingMissileSpawnLoop());
+            //     fallingLoop = true;
+            // }
 
             // 낙하 미사일 풀 초기화
             if (spawners[(int)MissileType.Falling].Count <= 0)
@@ -455,6 +458,9 @@ public partial class MissileSpawner : Spawner<MissileType>
             tileZ = worldSize.z;
 
             CreateSpawnPoint();
+
+            // TODO: 테스트용 — 패턴 시스템 검증 후 제거
+            SpawnPattern();
         }
     }
 
@@ -834,9 +840,14 @@ public partial class MissileSpawner : Spawner<MissileType>
                 spawnPosition.y += 2.5f;
 
                 GameObject hoverMissile = Instantiate(hoverMissilePrefab);
-
                 hoverMissile.transform.position = spawnPosition;
-                hoverMissile.GetComponent<HoverMissile>().SetSpawnDirection(spawnTileid / pointsPerDirection);
+
+                HoverMissile hoverMissileComponent = hoverMissile.GetComponent<HoverMissile>();
+                hoverMissileComponent.SetHoverType((HoverMissileType)Random.Range(
+                    (int)HoverMissileType.Custom,
+                    (int)HoverMissileType.HorizonLinear + 1));
+                GetRandomSettingHoming(hoverMissileComponent);
+                hoverMissileComponent.SetSpawnDirection(spawnTileid / pointsPerDirection);
 
                 currentHoverMissiles.AddLast(hoverMissile);
             }
