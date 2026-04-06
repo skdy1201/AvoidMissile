@@ -98,18 +98,11 @@ public class HoverMissile : Missile
     }
 
     /// <summary>
-    /// 추적 미사일 타입을 랜덤 배정,
-    /// 미사일의 랜덤 설정
+    /// HorizonLinear 타입일 때 스폰 방향으로 회전 설정 후 physics 동기화, 전략 할당.
+    /// 스탯은 스포너가 Instantiate 직후 ApplySnapshot 또는 GetRandomSettingHoming으로 주입.
     /// </summary>
     void Start()
     {
-        hoverType = (HoverMissileType)Random.Range(
-            (int)HoverMissileType.Custom,
-            (int)HoverMissileType.HorizonLinear + 1
-        );
-
-        MissileSpawner.Instance.GetRandomSettingHoming(this);
-
         // HorizonLinear는 spawnDirection이 가리키는 방향으로 직선 이동
         if (hoverType == HoverMissileType.HorizonLinear && spawnDirection >= 0)
         {
@@ -128,9 +121,9 @@ public class HoverMissile : Missile
                 _ => Vector3.back
             };
             transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
-            Initialize();  // rotation 변경 후 physics.direction 동기화
         }
 
+        Initialize();
         AssignStrategy();
     }
 
@@ -178,7 +171,17 @@ public class HoverMissile : Missile
     /// <summary>
     /// 스폰 방향 설정 (0=N, 1=S, 2=E, 3=W)
     /// </summary>
+    public void SetHoverType(HoverMissileType type) => hoverType = type;
     public void SetSpawnDirection(int direction) => spawnDirection = direction;
+
+    /// <summary>
+    /// 스냅샷의 스탯을 미사일에 적용한다. 패턴/랜덤 모두 이 경로를 사용.
+    /// </summary>
+    public void ApplySnapshot(MissileStatsSnapshot snap)
+    {
+        hoverType = (HoverMissileType)snap.HoverType;
+        SetStat(snap.Hp, snap.FlightTime, snap.Speed, snap.TurnTime, snap.TurnRate);
+    }
 
     public void SetHP(int HP) => hp = HP;
     public void SetMoveTime(float time) => maxMoveTime = time;
