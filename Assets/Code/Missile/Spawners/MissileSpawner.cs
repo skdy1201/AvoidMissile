@@ -686,9 +686,9 @@ public partial class MissileSpawner : Spawner<MissileType>
     }
 
     /// <summary>
-    /// 미사일 한 주기
+    /// 낙하 미사일 한 주기 스폰
     /// </summary>
-    private void SpawnMissile()
+    private void SpawnFallingMissiles()
     {
         // 사전 체크
         if (gamePlatform == null)
@@ -781,6 +781,129 @@ public partial class MissileSpawner : Spawner<MissileType>
     }
 
     /// <summary>
+    /// 추적 미사일 한 주기 스폰
+    /// </summary>
+    private void SpawnHoverMissiles()
+    {
+        int spawnNumber = Random.Range(1, 5);
+
+        // 동일 위치 확인
+        HashSet<int> spawnPointNum = new HashSet<int>();
+        int pointsPerDirection = spawnPointGroup.NorthPoints.Count;
+        int totalPoints = pointsPerDirection * 4;
+
+        for (int i = 0; i < spawnNumber; i++)
+        {
+            int spawnTileid = Random.Range(0, totalPoints);
+
+            // 중복 위치 회피
+            if (spawnPointNum.Contains(spawnTileid))
+            {
+                while (true)
+                {
+                    spawnTileid = Random.Range(0, totalPoints);
+
+                    if (!spawnPointNum.Contains(spawnTileid))
+                        break;
+                }
+            }
+
+            spawnPointNum.Add(spawnTileid);
+
+            // Y좌표 조정
+            Vector3 spawnPosition = spawnPointGroup.GetPointPosition(spawnTileid / pointsPerDirection, spawnTileid % pointsPerDirection);
+            spawnPosition.y += 2.5f;
+
+            GameObject hoverMissile = Instantiate(hoverMissilePrefab);
+            hoverMissile.transform.position = spawnPosition;
+
+            HoverMissile hoverMissileComponent = hoverMissile.GetComponent<HoverMissile>();
+            hoverMissileComponent.SetHoverType((HoverMissileType)Random.Range(
+                (int)HoverMissileType.Custom,
+                (int)HoverMissileType.HorizonLinear + 1));
+            GetRandomSettingHoming(hoverMissileComponent);
+            hoverMissileComponent.SetSpawnDirection(spawnTileid / pointsPerDirection);
+
+            currentHoverMissiles.AddLast(hoverMissile);
+        }
+    }
+
+    /// <summary>
+    /// 대형 미사일 한 주기 스폰
+    /// </summary>
+    private void SpawnGrandMissiles()
+    {
+        int spawnCount = Random.Range(1, grandMissileData.count + 1);
+
+        for (int i = 0; i < spawnCount; i++)
+        {
+            if (grandMissilePrefab == null)
+            {
+                Debug.LogWarning("[SpawnGrandMissiles] grandMissilePrefab is NOT assigned!");
+                return;
+            }
+
+            GrandMissileType type = (GrandMissileType)Random.Range(0, 2);
+            float speed = Random.Range(grandMissileData.speed / 2f, grandMissileData.speed);
+            int diameter = Random.Range(2, grandMissileData.diameter);
+
+            int direction = 0;
+            if (type == GrandMissileType.Horizen)
+                direction = Random.Range(1, 5);
+
+            Vector3 spawnPosition = Vector3.zero;
+
+            int spawnIndex = Random.Range(0, 100);
+            int row = spawnIndex / 10;
+            int col = spawnIndex % 10;
+
+            if (type == GrandMissileType.Vertical)
+            {
+                row = AdjustGrandAxis(row, diameter);
+                col = AdjustGrandAxis(col, diameter);
+
+                spawnIndex = row * 10 + col;
+
+                GameObject centerTile = gamePlatform.GetTile(spawnIndex);
+                if (centerTile == null) continue;
+
+                spawnPosition = centerTile.transform.position;
+                spawnPosition.x -= tileX / 2;
+                spawnPosition.z += tileZ / 2;
+                spawnPosition.y = GlobalData.Instance.MissileDropPoint;
+            }
+            else
+            {
+                int axis = Random.Range(0, spawnPointGroup.NorthPoints.Count);
+                axis = AdjustGrandAxis(axis, diameter);
+
+                spawnPosition = spawnPointGroup.GetPointPosition(direction - 1, axis);
+
+                switch(diameter)
+                {
+                    case 2: spawnPosition.y += 4f; break;
+                    case 3: spawnPosition.y += 5.5f; break;
+                    case 4: spawnPosition.y += 6.5f; break;
+                    case 5: spawnPosition.y += 7.5f; break;
+                }
+            }
+
+            GameObject missileObject = Instantiate(grandMissilePrefab);
+            missileObject.transform.position = spawnPosition;
+
+            GrandMissile grandMissile = missileObject.GetComponent<GrandMissile>();
+            if (grandMissile != null)
+            {
+                grandMissile.SetStat(type, speed, diameter, direction);
+                grandMissile.Initialize();
+                grandMissile.SpawnIndex = spawnIndex;
+            }
+
+            currentGrnadMissiles.AddLast(missileObject);
+        }
+    }
+
+    /// <summary>
     /// 대형 미사일의 축 위치를 조정하여 범위를 벗어나지 않게 함
     /// </summary>
     /// <param name="axis">조정할 축 값 (0~9)</param>
@@ -817,7 +940,7 @@ public partial class MissileSpawner : Spawner<MissileType>
             float missileTimer = Mathf.Round(Random.Range(fallingMissileData.waiting / 2f, fallingMissileData.waiting) * 100f) / 100f;
             yield return new WaitForSeconds(missileTimer);
 
-            SpawnMissile();
+            SpawnFallingMissiles();
 
             // 다음 주기 대기 시간
             float waitTimer = Mathf.Round(Random.Range(0f, 5f) * 100f) / 100f;
@@ -834,52 +957,8 @@ public partial class MissileSpawner : Spawner<MissileType>
     {
         while (true)
         {
-            int spawnNumber = Random.Range(1, 5);
-
-            // 동일 위치 확인
-            HashSet<int> spawnPointNum = new HashSet<int>();
-            int pointsPerDirection = spawnPointGroup.NorthPoints.Count;
-            int totalPoints = pointsPerDirection * 4;
-
-            for (int i = 0; i < spawnNumber; i++)
-            {
-                int spawnTileid = Random.Range(0, totalPoints);
-
-                // 중복 위치 회피
-                if (spawnPointNum.Contains(spawnTileid))
-                {
-                    while (true)
-                    {
-                        spawnTileid = Random.Range(0, totalPoints);
-
-                        if (!spawnPointNum.Contains(spawnTileid))
-                            break;
-
-                    }
-                }
-
-                spawnPointNum.Add(spawnTileid);
-
-                // Y좌표 조정
-                Vector3 spawnPosition = spawnPointGroup.GetPointPosition(spawnTileid / pointsPerDirection, spawnTileid % pointsPerDirection);
-                spawnPosition.y += 2.5f;
-
-                GameObject hoverMissile = Instantiate(hoverMissilePrefab);
-                hoverMissile.transform.position = spawnPosition;
-
-                HoverMissile hoverMissileComponent = hoverMissile.GetComponent<HoverMissile>();
-                hoverMissileComponent.SetHoverType((HoverMissileType)Random.Range(
-                    (int)HoverMissileType.Custom,
-                    (int)HoverMissileType.HorizonLinear + 1));
-                GetRandomSettingHoming(hoverMissileComponent);
-                hoverMissileComponent.SetSpawnDirection(spawnTileid / pointsPerDirection);
-
-                currentHoverMissiles.AddLast(hoverMissile);
-            }
-
-            // 다음 사이클 고정 대기 시간
+            SpawnHoverMissiles();
             yield return new WaitForSeconds(15f);
-
         }
     }
 
@@ -891,75 +970,7 @@ public partial class MissileSpawner : Spawner<MissileType>
     {
         while (true)
         {
-            int spawnCount = Random.Range(1, grandMissileData.count + 1);
-
-            for (int i = 0; i < spawnCount; i++)
-            {
-                if (grandMissilePrefab == null)
-                {
-                    Debug.LogWarning("[GrandMissileSpawnLoop] grandMissilePrefab is NOT assigned!");
-                    yield break;
-                }
-
-                GrandMissileType type = (GrandMissileType)Random.Range(0, 2);
-                float speed = Random.Range(grandMissileData.speed / 2f, grandMissileData.speed);
-                int diameter = Random.Range(2, grandMissileData.diameter);
-
-                int direction = 0;
-                if (type == GrandMissileType.Horizen)
-                    direction = Random.Range(1, 5);
-
-                Vector3 spawnPosition = Vector3.zero;
-
-                int spawnIndex = Random.Range(0, 100);
-                int row = spawnIndex / 10;
-                int col = spawnIndex % 10;
-
-                if (type == GrandMissileType.Vertical)
-                {
-                    row = AdjustGrandAxis(row, diameter);
-                    col = AdjustGrandAxis(col, diameter);
-
-                    spawnIndex = row * 10 + col;
-
-                    GameObject centerTile = gamePlatform.GetTile(spawnIndex);
-                    if (centerTile == null) continue;
-
-                    spawnPosition = centerTile.transform.position;
-                    spawnPosition.x -= tileX / 2;
-                    spawnPosition.z += tileZ / 2;
-                    spawnPosition.y = GlobalData.Instance.MissileDropPoint;
-                }
-                else
-                {
-                    int axis = Random.Range(0, spawnPointGroup.NorthPoints.Count);
-                    axis = AdjustGrandAxis(axis, diameter);
-
-                    spawnPosition = spawnPointGroup.GetPointPosition(direction - 1, axis);
-
-                    switch(diameter)
-                    {
-                        case 2: spawnPosition.y += 4f; break;
-                        case 3: spawnPosition.y += 5.5f; break;
-                        case 4: spawnPosition.y += 6.5f; break;
-                        case 5: spawnPosition.y += 7.5f; break;
-                    }
-                }
-
-                GameObject missileObject = Instantiate(grandMissilePrefab);
-                missileObject.transform.position = spawnPosition;
-
-                GrandMissile grandMissile = missileObject.GetComponent<GrandMissile>();
-                if (grandMissile != null)
-                {
-                    grandMissile.SetStat(type, speed, diameter, direction);
-                    grandMissile.Initialize();
-                    grandMissile.SpawnIndex = spawnIndex;
-                }
-
-                currentGrnadMissiles.AddLast(missileObject);
-            }
-
+            SpawnGrandMissiles();
             yield return new WaitForSeconds(Random.Range(15f, 30f));
         }
     }
