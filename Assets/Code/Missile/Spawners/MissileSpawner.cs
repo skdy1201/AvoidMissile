@@ -352,6 +352,9 @@ public partial class MissileSpawner : Spawner<MissileType>
         UpdateFallingMissile();
         UpdateHoverMissile(level);
         UpdateGrandMissile(level);
+
+        if (!patternLoop && level >= 30)
+            patternLoop = true;
     }
 
     /// <summary>
@@ -451,6 +454,7 @@ public partial class MissileSpawner : Spawner<MissileType>
     {
         if (level >= 10) homingLoop = true;
         if (level >= 25) grandLoop = true;
+        if (level >= 30) patternLoop = true;
 
         spawnTimer = 0f;
         spawnQueue.Clear();
@@ -495,7 +499,6 @@ public partial class MissileSpawner : Spawner<MissileType>
 
             // 큐 기반 스폰 시작
             spawning = true;
-            patternLoop = true; // TODO: 6-3 테스트용 — 6-4에서 레벨 30 조건으로 교체
             FillSpawnQueue();
         }
     }
