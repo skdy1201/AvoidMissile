@@ -114,6 +114,7 @@ public partial class MissileSpawner : Spawner<MissileType>
     private bool grandLoop;
     private const int MaxQueueSize = 20;
 
+
     /// <summary>
     /// 스포너에 반환 대기중인 미사일들
     /// </summary>
@@ -189,7 +190,7 @@ public partial class MissileSpawner : Spawner<MissileType>
     {
         fallingQueueSize = spawners[(int)MissileType.Falling].Count;
 
-        if (inPatternSequence) TickPattern();
+        TickPatternDelay();
 
         // 큐 기반 스폰 루프
         if (spawning)
@@ -207,6 +208,7 @@ public partial class MissileSpawner : Spawner<MissileType>
                     case MissileType.Falling: SpawnFallingMissiles(); break;
                     case MissileType.Hover:   SpawnHoverMissiles();   break;
                     case MissileType.Grand:   SpawnGrandMissiles();   break;
+                    case MissileType.Pattern: PrepareToPattern();     return;
                 }
             }
 
@@ -493,6 +495,7 @@ public partial class MissileSpawner : Spawner<MissileType>
 
             // 큐 기반 스폰 시작
             spawning = true;
+            patternLoop = true; // TODO: 6-3 테스트용 — 6-4에서 레벨 30 조건으로 교체
             FillSpawnQueue();
         }
     }
@@ -951,8 +954,16 @@ public partial class MissileSpawner : Spawner<MissileType>
             }
         }
 
-        // 시간순 정렬 후 큐에 삽입
+        // 시간순 정렬
         schedules.Sort((a, b) => a.Time.CompareTo(b.Time));
+
+        // Pattern: 랜덤 인덱스에 삽입, 해당 위치의 기존 스케줄을 교체
+        if (patternLoop && patternPhase == PatternPhase.None && schedules.Count > 0)
+        {
+            int idx = Random.Range(0, schedules.Count);
+            schedules[idx] = new SpawnSchedule(schedules[idx].Time, MissileType.Pattern);
+        }
+
         spawnQueue.Clear();
         for (int i = 0; i < schedules.Count; i++)
             spawnQueue.Enqueue(schedules[i]);

@@ -9,7 +9,7 @@ public partial class MissileSpawner
 {
     #region Private/Protected Fields
 
-    private enum PatternPhase { PreDelay, Playing, PostDelay }
+    private enum PatternPhase { None, PreDelay, Playing, PostDelay }
 
     private Dictionary<string, PatternData> patternDatas;
     private PatternData currentPattern;
@@ -19,7 +19,6 @@ public partial class MissileSpawner
     private PatternPhase patternPhase;
     private float patternDelayTimer;
     private bool patternLoop;
-    private bool inPatternSequence;
     private const float PatternPreDelay = 3f;
     private const float PatternPostDelay = 3f;
 
@@ -47,7 +46,16 @@ public partial class MissileSpawner
     /// </summary>
     public void PrepareToPattern()
     {
-        // TODO: 6-3에서 구현
+        spawning = false;
+        spawnQueue.Clear();
+        spawnTimer = 0f;
+
+        DestroyAllActiveMissiles();
+
+        patternPhase = PatternPhase.PreDelay;
+        patternDelayTimer = PatternPreDelay;
+
+        Debug.Log("[Pattern] PrepareToPattern → PreDelay 시작");
     }
 
     /// <summary>
@@ -73,7 +81,6 @@ public partial class MissileSpawner
 
         patternIdx   = 0;
         patternTimer = 0f;
-        inPatternSequence = true;
         patternPhase = PatternPhase.Playing;
 
         Debug.Log($"[SpawnPattern] 패턴 시작: {currentPattern.PatternName}");
@@ -102,8 +109,9 @@ public partial class MissileSpawner
         if (patternIdx >= currentPattern.Events.Count ||
             patternTimer >= currentPattern.TotalDuration)
         {
-            inPatternSequence = false;
-            Debug.Log($"[Pattern] 패턴 종료: {currentPattern.PatternName}");
+            patternPhase = PatternPhase.PostDelay;
+            patternDelayTimer = PatternPostDelay;
+            Debug.Log($"[Pattern] 패턴 종료 → PostDelay: {currentPattern.PatternName}");
         }
     }
 
@@ -241,7 +249,31 @@ public partial class MissileSpawner
     /// </summary>
     private void TickPatternDelay()
     {
-        // TODO: 6-3에서 구현
+        if (patternPhase == PatternPhase.None) return;
+
+        if (patternPhase == PatternPhase.PreDelay)
+        {
+            patternDelayTimer -= Time.deltaTime;
+            if (patternDelayTimer <= 0f)
+            {
+                SpawnPattern();
+            }
+        }
+        else if (patternPhase == PatternPhase.Playing)
+        {
+            TickPattern();
+        }
+        else if (patternPhase == PatternPhase.PostDelay)
+        {
+            patternDelayTimer -= Time.deltaTime;
+            if (patternDelayTimer <= 0f)
+            {
+                patternPhase = PatternPhase.None;
+                spawning = true;
+                FillSpawnQueue();
+                Debug.Log("[Pattern] PostDelay 종료 → 랜덤 스폰 재개");
+            }
+        }
     }
 
     /// <summary>
