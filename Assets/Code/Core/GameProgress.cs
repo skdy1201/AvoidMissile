@@ -128,7 +128,7 @@ public class GameProgress : Singleton<GameProgress>
         GlobalData.Instance.Player.GetComponent<Player>().ActiveRevive();
         greyScale.ResetGreyScale();
 
-        MissileSpawner.Instance.RestartMissileLoops(currentLevel);
+        MissileSpawner.Instance.ResumeSpawning(currentLevel);
 
         if (currentLevel >= 20)
             ItemSpawner.Instance.StartCoroutine("ItemSpawnLoop");

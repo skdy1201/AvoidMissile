@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -58,10 +57,6 @@ public partial class MissileSpawner : Spawner<MissileType>
 
 
     [Header("Spawn State")]
-    [SerializeField] private bool homingLoop = false;
-    [SerializeField] private bool fallingLoop = false;
-    [SerializeField] private bool grandLoop = false;
-
     [SerializeField] private int fallingQueueSize;
 
     #endregion
@@ -114,6 +109,8 @@ public partial class MissileSpawner : Spawner<MissileType>
 
     private float spawnTimer;
     private bool spawning;
+    private bool homingLoop;
+    private bool grandLoop;
     private const int MaxQueueSize = 20;
 
     /// <summary>
@@ -377,10 +374,9 @@ public partial class MissileSpawner : Spawner<MissileType>
         if (level < 10)
             return;
 
-        // 레벨 10에서 루프 시작
+        // 레벨 10에서 Hover 스폰 활성화
         if (level == 10 && homingLoop == false)
         {
-            StartCoroutine(HoverMissileSpawnLoop());
             homingLoop = true;
             return;
         }
@@ -401,10 +397,9 @@ public partial class MissileSpawner : Spawner<MissileType>
         if (level < 25)
             return;
 
-        // 레벨 25에서 루프 시작
+        // 레벨 25에서 Grand 스폰 활성화
         if (level == 25 && grandLoop == false)
         {
-            StartCoroutine(GrandMissileSpawnLoop());
             grandLoop = true;
             return;
         }
@@ -440,34 +435,24 @@ public partial class MissileSpawner : Spawner<MissileType>
     public override void OnPlayerDeath()
     {
         base.OnPlayerDeath();
-        fallingLoop = false;
+        spawning = false;
         homingLoop = false;
         grandLoop = false;
     }
 
     /// <summary>
-    /// 부활 시 미사일 루프 재시작
+    /// 부활 시 큐 기반 스폰 재개
     /// </summary>
     /// <param name="level">현재 레벨</param>
-    public void RestartMissileLoops(int level)
+    public void ResumeSpawning(int level)
     {
-        if (fallingLoop == false)
-        {
-            StartCoroutine(FallingMissileSpawnLoop());
-            fallingLoop = true;
-        }
+        if (level >= 10) homingLoop = true;
+        if (level >= 25) grandLoop = true;
 
-        if (level >= 10 && homingLoop == false)
-        {
-            StartCoroutine(HoverMissileSpawnLoop());
-            homingLoop = true;
-        }
-
-        if(level >= 25 && grandLoop == false)
-        {
-            StartCoroutine(GrandMissileSpawnLoop());
-            grandLoop = true;
-        }
+        spawnTimer = 0f;
+        spawnQueue.Clear();
+        FillSpawnQueue();
+        spawning = true;
     }
 
     #endregion
@@ -481,13 +466,6 @@ public partial class MissileSpawner : Spawner<MissileType>
     {
         if (SceneManager.GetActiveScene().name == GlobalData.Instance.PlayScene)
         {
-
-            // TODO: 테스트용 주석 처리 — 패턴 시스템 검증 후 복구
-            // if (fallingLoop == false)
-            // {
-            //     StartCoroutine(FallingMissileSpawnLoop());
-            //     fallingLoop = true;
-            // }
 
             // 낙하 미사일 풀 초기화
             if (spawners[(int)MissileType.Falling].Count <= 0)
@@ -531,7 +509,7 @@ public partial class MissileSpawner : Spawner<MissileType>
 
         // 플래그 리셋 (OnPlayerDeath와 중복)
         // 사망 없이 게임 종료 시(일시정지에서 나가기 등) 대응
-        fallingLoop = false;
+        spawning = false;
         homingLoop = false;
         grandLoop = false;
 
@@ -1014,58 +992,6 @@ public partial class MissileSpawner : Spawner<MissileType>
             return 9 - Mathf.CeilToInt(radius);
 
         return axis;
-    }
-
-    #endregion
-
-    #region Coroutines
-
-    /// <summary>
-    /// 낙하 미사일 생성 루프
-    /// </summary>
-    /// <returns> 코루틴 </returns>
-    IEnumerator FallingMissileSpawnLoop()
-    {
-        // 플레이 씬 동안 계속 진행
-        while (true)
-        {
-            // 미사일 생성 타이머 설정
-            float missileTimer = Mathf.Round(Random.Range(fallingMissileData.waiting / 2f, fallingMissileData.waiting) * 100f) / 100f;
-            yield return new WaitForSeconds(missileTimer);
-
-            SpawnFallingMissiles();
-
-            // 다음 주기 대기 시간
-            float waitTimer = Mathf.Round(Random.Range(0f, 5f) * 100f) / 100f;
-
-            yield return new WaitForSeconds(waitTimer);
-        }
-    }
-
-    /// <summary>
-    /// 추적 미사일 생성 루프
-    /// </summary>
-    /// <returns> 코루틴 </returns>
-    IEnumerator HoverMissileSpawnLoop()
-    {
-        while (true)
-        {
-            SpawnHoverMissiles();
-            yield return new WaitForSeconds(15f);
-        }
-    }
-
-    /// <summary>
-    /// 대형 미사일 생성 루프
-    /// </summary>
-    /// <returns>코루틴</returns>
-    IEnumerator GrandMissileSpawnLoop()
-    {
-        while (true)
-        {
-            SpawnGrandMissiles();
-            yield return new WaitForSeconds(Random.Range(15f, 30f));
-        }
     }
 
     #endregion
