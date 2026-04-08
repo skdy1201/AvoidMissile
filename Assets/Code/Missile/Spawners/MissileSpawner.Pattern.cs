@@ -249,7 +249,33 @@ public partial class MissileSpawner
     /// </summary>
     private void DestroyAllActiveMissiles()
     {
-        // TODO: 6-2에서 구현
+        // Falling: 풀 반환
+        while (currentFallingMissiles.Count > 0)
+        {
+            GameObject obj = currentFallingMissiles.First.Value;
+            if (obj != null)
+                ReturnSpawner(MissileType.Falling, obj);
+            else
+                currentFallingMissiles.RemoveFirst();
+        }
+
+        // Hover: Instantiate 기반 → Destroy
+        foreach (GameObject obj in currentHoverMissiles)
+        {
+            if (obj != null)
+                Destroy(obj);
+        }
+        currentHoverMissiles.Clear();
+
+        // Grand: Instantiate 기반 → Destroy
+        foreach (GameObject obj in currentGrnadMissiles)
+        {
+            if (obj != null)
+                Destroy(obj);
+        }
+        currentGrnadMissiles.Clear();
+
+        activePatternMissiles.Clear();
     }
 
     /// <summary>
