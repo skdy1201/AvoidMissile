@@ -9,7 +9,8 @@ public enum MissileType
 {
     Falling,
     Hover,
-    Grand
+    Grand,
+    Pattern
 }
 
 /// <summary>
@@ -188,7 +189,7 @@ public partial class MissileSpawner : Spawner<MissileType>
     {
         fallingQueueSize = spawners[(int)MissileType.Falling].Count;
 
-        if (inPattern) TickPattern();
+        if (inPatternSequence) TickPattern();
 
         // 큐 기반 스폰 루프
         if (spawning)
@@ -493,9 +494,6 @@ public partial class MissileSpawner : Spawner<MissileType>
             // 큐 기반 스폰 시작
             spawning = true;
             FillSpawnQueue();
-
-            // TODO: 테스트용 — 패턴 시스템 검증 후 제거
-            SpawnPattern();
         }
     }
 

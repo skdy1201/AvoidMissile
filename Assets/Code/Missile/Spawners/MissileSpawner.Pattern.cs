@@ -9,11 +9,19 @@ public partial class MissileSpawner
 {
     #region Private/Protected Fields
 
+    private enum PatternPhase { PreDelay, Playing, PostDelay }
+
     private Dictionary<string, PatternData> patternDatas;
     private PatternData currentPattern;
     private int patternIdx;
     private float patternTimer;
-    private bool inPattern;
+
+    private PatternPhase patternPhase;
+    private float patternDelayTimer;
+    private bool patternLoop;
+    private bool inPatternSequence;
+    private const float PatternPreDelay = 3f;
+    private const float PatternPostDelay = 3f;
 
     /// <summary>패턴 이벤트로 스폰된 미사일 — ID → GameObject O(1) 조회</summary>
     private Dictionary<int, GameObject> activePatternMissiles = new Dictionary<int, GameObject>();
@@ -33,6 +41,14 @@ public partial class MissileSpawner
     #endregion
 
     #region Public Methods
+
+    /// <summary>
+    /// 패턴 진입 준비: 랜덤 스폰 정지 → 활성 미사일 제거 → PreDelay 타이머 시작
+    /// </summary>
+    public void PrepareToPattern()
+    {
+        // TODO: 6-3에서 구현
+    }
 
     /// <summary>
     /// 패턴을 시작한다. 이름이 null이면 랜덤 선택.
@@ -57,7 +73,8 @@ public partial class MissileSpawner
 
         patternIdx   = 0;
         patternTimer = 0f;
-        inPattern    = true;
+        inPatternSequence = true;
+        patternPhase = PatternPhase.Playing;
 
         Debug.Log($"[SpawnPattern] 패턴 시작: {currentPattern.PatternName}");
     }
@@ -71,7 +88,7 @@ public partial class MissileSpawner
     /// </summary>
     private void TickPattern()
     {
-        if (!inPattern) return;
+        if (patternPhase != PatternPhase.Playing) return;
 
         patternTimer += Time.deltaTime;
 
@@ -85,7 +102,7 @@ public partial class MissileSpawner
         if (patternIdx >= currentPattern.Events.Count ||
             patternTimer >= currentPattern.TotalDuration)
         {
-            inPattern = false;
+            inPatternSequence = false;
             Debug.Log($"[Pattern] 패턴 종료: {currentPattern.PatternName}");
         }
     }
@@ -217,6 +234,22 @@ public partial class MissileSpawner
                 grand.SetStat(grandType, snap.Speed, snap.GrandDiameter, grandDir);
             }
         }
+    }
+
+    /// <summary>
+    /// PatternPhase에 따라 preDelay / postDelay 타이머를 소비한다.
+    /// </summary>
+    private void TickPatternDelay()
+    {
+        // TODO: 6-3에서 구현
+    }
+
+    /// <summary>
+    /// 씬 내 모든 활성 미사일을 일괄 제거한다.
+    /// </summary>
+    private void DestroyAllActiveMissiles()
+    {
+        // TODO: 6-2에서 구현
     }
 
     /// <summary>
