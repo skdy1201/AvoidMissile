@@ -18,7 +18,7 @@ public partial class MissileSpawner
 
     private PatternPhase patternPhase;
     private float patternDelayTimer;
-    private bool patternLoop;
+    [SerializeField] private bool patternLoop;
     private const float PatternPreDelay = 3f;
     private const float PatternPostDelay = 3f;
 
@@ -47,8 +47,6 @@ public partial class MissileSpawner
     public void PrepareToPattern()
     {
         spawning = false;
-        spawnQueue.Clear();
-        spawnTimer = 0f;
 
         DestroyAllActiveMissiles();
 
@@ -270,7 +268,6 @@ public partial class MissileSpawner
             {
                 patternPhase = PatternPhase.None;
                 spawning = true;
-                FillSpawnQueue();
                 Debug.Log("[Pattern] PostDelay 종료 → 랜덤 스폰 재개");
             }
         }

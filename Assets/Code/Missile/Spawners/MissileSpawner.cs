@@ -41,6 +41,11 @@ public partial class MissileSpawner : Spawner<MissileType>
 {
     #region Serialize Fields
 
+    [Header("Spawn State")]
+    [SerializeField] private bool spawning;
+    [SerializeField] private bool homingLoop;
+    [SerializeField] private bool grandLoop;
+
     [Header("Reference")]
     [SerializeField] public GameObject fallingMissilePrefab;
     [SerializeField] public GameObject hoverMissilePrefab;
@@ -109,10 +114,7 @@ public partial class MissileSpawner : Spawner<MissileType>
     private Queue<SpawnSchedule> spawnQueue = new Queue<SpawnSchedule>();
 
     private float spawnTimer;
-    private bool spawning;
-    private bool homingLoop;
-    private bool grandLoop;
-    private const int MaxQueueSize = 20;
+    private const int MaxQueueSize = 30;
 
 
     /// <summary>
@@ -945,14 +947,13 @@ public partial class MissileSpawner : Spawner<MissileType>
             }
         }
 
-        // Grand: 15~30초 랜덤 간격, 30% 확률 (레벨 25 이상)
+        // Grand: 15~30초 랜덤 간격 (레벨 25 이상)
         if (grandLoop)
         {
             float grandTime = Random.Range(15f, 30f);
             while (grandTime <= time)
             {
-                if (Random.Range(0, 100) >= 70)
-                    schedules.Add(new SpawnSchedule(grandTime, MissileType.Grand));
+                schedules.Add(new SpawnSchedule(grandTime, MissileType.Grand));
                 grandTime += Random.Range(15f, 30f);
             }
         }
