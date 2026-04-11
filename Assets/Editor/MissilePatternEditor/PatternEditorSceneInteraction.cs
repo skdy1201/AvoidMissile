@@ -453,7 +453,7 @@ public static class PatternEditorSceneInteraction
     private static PlacedMissileType GetTypeFromName(string prefabName)
     {
         if (prefabName.Contains("Grand"))  return PlacedMissileType.Grand;
-        if (prefabName.Contains("Homing")) return PlacedMissileType.Hover;
+        if (prefabName.Contains("Hover")) return PlacedMissileType.Hover;
         return PlacedMissileType.Falling;
     }
 
@@ -2168,7 +2168,7 @@ public static class PatternEditorSceneInteraction
 
         // 팔레트에서 타입에 맞는 프리팹 검색
         var prefab = palettePrefabs.Find(p =>
-            p.name.Contains(type.ToString(), System.StringComparison.OrdinalIgnoreCase));
+            paletteTypes[palettePrefabs.IndexOf(p)] == type);
         if (prefab == null) return -1;
 
         Vector3 spawnPos = CalculateSpawnPosition(type, worldPos, onSpawnPoint, spawnId);

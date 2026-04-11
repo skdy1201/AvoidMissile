@@ -1151,14 +1151,14 @@ public class MissilePatternEditor : EditorWindow
     // ── 미사일 배치 (ADR-017) ─────────────────────────────────────────────────
 
     // 팔레트 프리팹 인덱스 → 미사일 타입
-    // HomingMissile → Hover, GrandMissile → Grand, 그 외 → Falling
+    // HoverMissile → Hover, GrandMissile → Grand, 그 외 → Falling
     private PlacedMissileType GetTypeForPrefab(int prefabIndex)
     {
         if (prefabIndex < 0 || prefabIndex >= palettePrefabs.Count)
             return PlacedMissileType.Falling;
         string name = palettePrefabs[prefabIndex].name;
         if (name.Contains("Grand"))  return PlacedMissileType.Grand;
-        if (name.Contains("Homing")) return PlacedMissileType.Hover;
+        if (name.Contains("Hover")) return PlacedMissileType.Hover;
         return PlacedMissileType.Falling;
     }
 
