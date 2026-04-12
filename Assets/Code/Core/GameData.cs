@@ -401,6 +401,7 @@ public class GameData : Singleton<GameData>
         }
 
         MissileSpawner.Instance.PatternDatas = patternDatas;
+        MissileSpawner.Instance.PatternNames = new List<string>(patternDatas.Keys);
         Debug.Log($"[GameData] 패턴 {patternDatas.Count}개 로드 완료.");
     }
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -12,6 +13,7 @@ public partial class MissileSpawner
     private enum PatternPhase { None, PreDelay, Playing, PostDelay }
 
     private Dictionary<string, PatternData> patternDatas;
+    private List<string> patternNames = new List<string>();
     private PatternData currentPattern;
     private int patternIdx;
     private float patternTimer;
@@ -35,6 +37,11 @@ public partial class MissileSpawner
     public Dictionary<string, PatternData> PatternDatas
     {
         set { patternDatas = value; }
+    }
+
+    public List<string> PatternNames
+    {
+        set {patternNames = value; }
     }
 
     #endregion
@@ -73,8 +80,7 @@ public partial class MissileSpawner
         }
         else
         {
-            var keys = new List<string>(patternDatas.Keys);
-            currentPattern = patternDatas[keys[Random.Range(0, keys.Count)]];
+            currentPattern = patternDatas[patternNames[Random.Range(0, patternNames.Count)]];
         }
 
         patternIdx   = 0;
@@ -97,19 +103,21 @@ public partial class MissileSpawner
 
         patternTimer += Time.deltaTime;
 
-        if (patternIdx < currentPattern.Events.Count &&
-            currentPattern.Events[patternIdx].Time <= patternTimer)
+        while (patternIdx < currentPattern.Events.Count &&
+               currentPattern.Events[patternIdx].Time <= patternTimer)
         {
             ExecutePatternEvent(patternIdx);
             patternIdx++;
         }
 
-        if (patternIdx >= currentPattern.Events.Count ||
+        if (patternIdx >= currentPattern.Events.Count &&
             patternTimer >= currentPattern.TotalDuration)
         {
             patternPhase = PatternPhase.PostDelay;
             patternDelayTimer = PatternPostDelay;
             Debug.Log($"[Pattern] 패턴 종료 → PostDelay: {currentPattern.PatternName}");
+            Debug.Log($"[Pattern] 패턴 종료 시간 {currentPattern.TotalDuration}");
+            
         }
     }
 
@@ -154,6 +162,8 @@ public partial class MissileSpawner
         GameObject obj = RentSpawner(MissileType.Falling);
         if (obj == null) return;
 
+        obj.layer = LayerMask.NameToLayer("PatternMissile");
+
         Vector3 pos = ResolveSpawnPosition(info);
         Vector3 spawnPos = pos;
         spawnPos.y = GlobalData.Instance.MissileDropPoint;
@@ -176,6 +186,7 @@ public partial class MissileSpawner
 
         GameObject obj = Instantiate(hoverMissilePrefab);
         obj.transform.position = pos;
+        obj.layer = LayerMask.NameToLayer("PatternMissile");
 
         HoverMissile missile = obj.GetComponent<HoverMissile>();
         missile.ApplySnapshot(snap);
@@ -206,6 +217,11 @@ public partial class MissileSpawner
 
         GameObject obj = Instantiate(grandMissilePrefab);
         obj.transform.position = pos;
+
+        int patternLayer = LayerMask.NameToLayer("PatternMissile");
+        obj.layer = patternLayer;
+        foreach (Transform child in obj.GetComponentsInChildren<Transform>(true))
+            child.gameObject.layer = patternLayer;
 
         GrandMissile missile = obj.GetComponent<GrandMissile>();
         missile.SetStat(type, snap.Speed, snap.GrandDiameter, grandDir);
@@ -245,7 +261,7 @@ public partial class MissileSpawner
     /// <summary>
     /// PatternPhase에 따라 preDelay / postDelay 타이머를 소비한다.
     /// </summary>
-    private void TickPatternDelay()
+    private void TickPatternPhase()
     {
         if (patternPhase == PatternPhase.None) return;
 
@@ -376,5 +392,23 @@ public partial class MissileSpawner
         return spawnId switch { "NE" => 6, "NW" => 7, "SE" => 4, "SW" => 5, _ => -1 };
     }
 
+
+    private void TestPattern()
+    {
+        float time = 0f;
+        List<SpawnSchedule> schedules = new List<SpawnSchedule>();
+
+        var keys = new List<string>(patternDatas.Keys);
+
+        for(int i = 0; i < keys.Count; ++i)
+        {
+            PatternData cur = patternDatas[keys[i]];
+            schedules.Add(new SpawnSchedule(time,MissileType.Pattern));
+        }
+
+        spawnQueue.Clear();
+        for (int i = 0; i < schedules.Count; i++)
+            spawnQueue.Enqueue(schedules[i]);
+    }
     #endregion
 }

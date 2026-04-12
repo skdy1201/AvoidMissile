@@ -114,7 +114,7 @@ public partial class MissileSpawner : Spawner<MissileType>
     private Queue<SpawnSchedule> spawnQueue = new Queue<SpawnSchedule>();
 
     private float spawnTimer;
-    private const int MaxQueueSize = 30;
+    private const int MaxQueueSize = 10;
 
 
     /// <summary>
@@ -192,7 +192,7 @@ public partial class MissileSpawner : Spawner<MissileType>
     {
         fallingQueueSize = spawners[(int)MissileType.Falling].Count;
 
-        TickPatternDelay();
+        TickPatternPhase();
 
         // 큐 기반 스폰 루프
         if (spawning)
@@ -217,7 +217,6 @@ public partial class MissileSpawner : Spawner<MissileType>
             // 큐 소진 시 랜덤 스폰 + 타이머 리셋 + 보충
             if (spawnQueue.Count == 0)
             {
-                SpawnRandomOnQueueEmpty();
                 spawnTimer = 0f;
                 FillSpawnQueue();
             }
@@ -319,6 +318,10 @@ public partial class MissileSpawner : Spawner<MissileType>
         }
 
         missile.SetActive(false);
+
+        int patternLayer = LayerMask.NameToLayer("PatternMissile");
+        if (missile.layer == patternLayer)
+            missile.layer = LayerMask.NameToLayer("Missile");
 
         spawners[typeidx].Enqueue(missile);
 
@@ -475,6 +478,10 @@ public partial class MissileSpawner : Spawner<MissileType>
     {
         if (SceneManager.GetActiveScene().name == GlobalData.Instance.PlayScene)
         {
+            int missileLayer = LayerMask.NameToLayer("Missile");
+            int patternLayer = LayerMask.NameToLayer("PatternMissile");
+            Physics.IgnoreLayerCollision(patternLayer, patternLayer, true);
+            Physics.IgnoreLayerCollision(missileLayer, patternLayer, true);
 
             // 낙하 미사일 풀 초기화
             if (spawners[(int)MissileType.Falling].Count <= 0)
@@ -502,6 +509,9 @@ public partial class MissileSpawner : Spawner<MissileType>
             // 큐 기반 스폰 시작
             spawning = true;
             FillSpawnQueue();
+
+            // 테스트 전용 — 모든 패턴을 큐에 일괄 주입 (필요 시 주석 해제)
+            //TestPattern();
         }
     }
 
@@ -920,49 +930,47 @@ public partial class MissileSpawner : Spawner<MissileType>
     }
 
     /// <summary>
-    /// 타입별 고유 주기로 SpawnSchedule을 생성하여 큐에 삽입 (시간순 정렬)
+    /// 공통 waiting 기반 간격으로 슬롯을 채우되, 각 슬롯의 타입은 해금 상태 기반 가중치(Falling 45 / Hover 35 / Grand 15 / Pattern 5)로 롤링하여 결정.
+    /// Pattern이 해금 상태인데 한 번도 뽑히지 않으면 랜덤 슬롯 1개를 Pattern으로 교체해 최소 1회 등장을 보장한다.
     /// </summary>
     private void FillSpawnQueue()
     {
+        // 첫 스케쥴과의 대기시간을 줄이기 위해 falling 한 번 스폰
+        SpawnFallingMissiles();
+
         List<SpawnSchedule> schedules = new List<SpawnSchedule>();
         float time = 0f;
 
-        // Falling: waiting 기반 간격
+        // 해금 상태 기반 가중치 (Falling 45 / Hover 35 / Grand 15 / Pattern 5)
+        int fallingWeight = 70;
+        int hoverWeight   = homingLoop ? 15 : 0;
+        int grandWeight   = grandLoop  ? 10 : 0;
+        int patternWeight = (patternLoop && patternPhase == PatternPhase.None) ? 5 : 0;
+        int totalWeight   = fallingWeight + hoverWeight + grandWeight + patternWeight;
+
+        // 공통 waiting 기반 간격으로 슬롯 채우되 타입은 가중치 롤링으로 결정
+        bool hasPattern = false;
         while (schedules.Count < MaxQueueSize)
         {
             float interval = Mathf.Round(Random.Range(fallingMissileData.waiting / 2f, fallingMissileData.waiting) * 100f) / 100f;
             float wait = Mathf.Round(Random.Range(0f, 5f) * 100f) / 100f;
             time += interval + wait;
-            schedules.Add(new SpawnSchedule(time, MissileType.Falling));
+
+            int roll = Random.Range(0, totalWeight);
+            MissileType type =
+                roll < fallingWeight                                  ? MissileType.Falling :
+                roll < fallingWeight + hoverWeight                    ? MissileType.Hover   :
+                roll < fallingWeight + hoverWeight + grandWeight      ? MissileType.Grand   :
+                                                                        MissileType.Pattern;
+
+            Debug.Log($"[FillSpawnQueue] slot={schedules.Count} roll={roll}/{totalWeight} → {type} (time={time:F2})");
+
+            if (type == MissileType.Pattern) hasPattern = true;
+            schedules.Add(new SpawnSchedule(time, type));
         }
 
-        // Hover: 15초 고정 간격 (레벨 10 이상)
-        if (homingLoop)
-        {
-            float hoverTime = 15f;
-            while (hoverTime <= time)
-            {
-                schedules.Add(new SpawnSchedule(hoverTime, MissileType.Hover));
-                hoverTime += 15f;
-            }
-        }
-
-        // Grand: 15~30초 랜덤 간격 (레벨 25 이상)
-        if (grandLoop)
-        {
-            float grandTime = Random.Range(15f, 30f);
-            while (grandTime <= time)
-            {
-                schedules.Add(new SpawnSchedule(grandTime, MissileType.Grand));
-                grandTime += Random.Range(15f, 30f);
-            }
-        }
-
-        // 시간순 정렬
-        schedules.Sort((a, b) => a.Time.CompareTo(b.Time));
-
-        // Pattern: 랜덤 인덱스에 삽입, 해당 위치의 기존 스케줄을 교체
-        if (patternLoop && patternPhase == PatternPhase.None && schedules.Count > 0)
+        // Pattern이 해금 상태인데 한 번도 뽑히지 않았으면 랜덤 슬롯 1개를 교체해 최소 1회 보장
+        if (patternWeight > 0 && !hasPattern && schedules.Count > 0)
         {
             int idx = Random.Range(0, schedules.Count);
             schedules[idx] = new SpawnSchedule(schedules[idx].Time, MissileType.Pattern);
@@ -971,20 +979,6 @@ public partial class MissileSpawner : Spawner<MissileType>
         spawnQueue.Clear();
         for (int i = 0; i < schedules.Count; i++)
             spawnQueue.Enqueue(schedules[i]);
-    }
-
-    /// <summary>
-    /// 큐 소진 시 랜덤 타입 하나를 즉시 스폰 (사이클 전환 간격 방지)
-    /// </summary>
-    private void SpawnRandomOnQueueEmpty()
-    {
-        int roll = Random.Range(0, 3);
-        switch (roll)
-        {
-            case 0: SpawnFallingMissiles(); break;
-            case 1: if (homingLoop) SpawnHoverMissiles(); break;
-            case 2: if (grandLoop) SpawnGrandMissiles(); break;
-        }
     }
 
     /// <summary>
