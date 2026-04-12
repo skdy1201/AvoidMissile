@@ -128,6 +128,7 @@ public class Player : MonoBehaviour
         runner = GetComponent<BehaviorTreeRunner>();
 
         GlobalData.Instance.Player = this.gameObject;
+
     }
 
     /// <summary>
@@ -350,7 +351,7 @@ public class Player : MonoBehaviour
             else
                 ActiveRevive();
         }
-        else if (collisionLayer == LayerMask.NameToLayer("Missile") && activePowerJump == false)
+        else if ((collisionLayer == LayerMask.NameToLayer("Missile") || collisionLayer == LayerMask.NameToLayer("PatternMissile"))&& activePowerJump == false)
         {
             Missile missile = other.GetComponentInParent<Missile>();
 
