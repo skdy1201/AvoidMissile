@@ -447,8 +447,6 @@ public partial class MissileSpawner : Spawner<MissileType>
     {
         base.OnPlayerDeath();
         spawning = false;
-        homingLoop = false;
-        grandLoop = false;
     }
 
     /// <summary>
@@ -461,9 +459,15 @@ public partial class MissileSpawner : Spawner<MissileType>
         if (level >= 25) grandLoop = true;
         if (level >= 30) patternLoop = true;
 
-        spawnTimer = 0f;
-        spawnQueue.Clear();
-        FillSpawnQueue();
+        // 패턴 진행 중 사망 → 패턴이 PostDelay 종료 시점에 스스로 spawning=true로 재개하므로 건드리지 않음
+        if (patternPhase != PatternPhase.None) return;
+
+        if(spawnQueue.Count == 0)
+        {
+            spawnTimer = 0f;
+            FillSpawnQueue();
+        }
+
         spawning = true;
     }
 
@@ -528,6 +532,12 @@ public partial class MissileSpawner : Spawner<MissileType>
         spawning = false;
         homingLoop = false;
         grandLoop = false;
+        patternLoop = false;
+        patternPhase = PatternPhase.None;
+
+        // 스폰 큐/타이머 정리 — 재시작 시 이전 세션 잔여 스케줄 실행 방지
+        spawnQueue.Clear();
+        spawnTimer = 0f;
 
         // 미사일 데이터 초기화
         fallingMissileData = defaultFallingData;
@@ -950,20 +960,33 @@ public partial class MissileSpawner : Spawner<MissileType>
 
         // 공통 waiting 기반 간격으로 슬롯 채우되 타입은 가중치 롤링으로 결정
         bool hasPattern = false;
+        int nonFallingStreak = 0;
         while (schedules.Count < MaxQueueSize)
         {
             float interval = Mathf.Round(Random.Range(fallingMissileData.waiting / 2f, fallingMissileData.waiting) * 100f) / 100f;
             float wait = Mathf.Round(Random.Range(0f, 5f) * 100f) / 100f;
             time += interval + wait;
 
-            int roll = Random.Range(0, totalWeight);
-            MissileType type =
-                roll < fallingWeight                                  ? MissileType.Falling :
-                roll < fallingWeight + hoverWeight                    ? MissileType.Hover   :
-                roll < fallingWeight + hoverWeight + grandWeight      ? MissileType.Grand   :
-                                                                        MissileType.Pattern;
+            MissileType type;
+            if (nonFallingStreak >= 3)
+            {
+                // 3슬롯 연속 non-Falling 방지 — 빈 구간 상한 보장
+                type = MissileType.Falling;
+                Debug.Log($"[FillSpawnQueue] slot={schedules.Count} streakGuard → {type} (time={time:F2})");
+            }
+            else
+            {
+                int roll = Random.Range(0, totalWeight);
+                type =
+                    roll < fallingWeight                                  ? MissileType.Falling :
+                    roll < fallingWeight + hoverWeight                    ? MissileType.Hover   :
+                    roll < fallingWeight + hoverWeight + grandWeight      ? MissileType.Grand   :
+                                                                            MissileType.Pattern;
 
-            Debug.Log($"[FillSpawnQueue] slot={schedules.Count} roll={roll}/{totalWeight} → {type} (time={time:F2})");
+                Debug.Log($"[FillSpawnQueue] slot={schedules.Count} roll={roll}/{totalWeight} → {type} (time={time:F2})");
+            }
+
+            nonFallingStreak = (type == MissileType.Falling) ? 0 : nonFallingStreak + 1;
 
             if (type == MissileType.Pattern) hasPattern = true;
             schedules.Add(new SpawnSchedule(time, type));
