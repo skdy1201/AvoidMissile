@@ -70,6 +70,16 @@ public class AudioController : Singleton<AudioController>
     /// </summary>
     private GameObject effectAudioInstance;
 
+    /// <summary>
+    /// 현재 재생 중인 BGM의 실제 인덱스 (Title=0, Play=1~count-1 랜덤)
+    /// </summary>
+    private int currentBgmIndex = 0;
+
+    /// <summary>
+    /// PlayScene BGM 종료 감시 코루틴 핸들
+    /// </summary>
+    private Coroutine playBgmWatcher;
+
     #endregion
 
     #region Unity Lifecycle
@@ -177,7 +187,7 @@ public class AudioController : Singleton<AudioController>
     /// <param name="value"> 볼륨 값 </param>
     public void SetBGMvolume(float value)
     {
-        gameSounds[(int)currentBGM].GetComponent<AudioSource>().volume = value;
+        gameSounds[currentBgmIndex].GetComponent<AudioSource>().volume = value;
     }
 
     /// <summary>
@@ -191,12 +201,12 @@ public class AudioController : Singleton<AudioController>
 
     public void PauseBGM()
     {
-        gameSounds[(int)currentBGM].GetComponent<AudioSource>().Pause();
+        gameSounds[currentBgmIndex].GetComponent<AudioSource>().Pause();
     }
 
     public void PlayCurBGM()
     {
-        gameSounds[(int)currentBGM].GetComponent<AudioSource>().Play();
+        gameSounds[currentBgmIndex].GetComponent<AudioSource>().Play();
     }
 
     #endregion
@@ -212,13 +222,69 @@ public class AudioController : Singleton<AudioController>
         {
             PlayBGM(SoundType.TitleBgm, true);
             currentBGM = SoundType.TitleBgm;
+            currentBgmIndex = (int)SoundType.TitleBgm;
         }
         else
         {
-            PlayBGM(SoundType.PlayBgm, true);
+            PlayRandomPlayBGM();
             currentBGM = SoundType.PlayBgm;
         }
 
+    }
+
+    /// <summary>
+    /// PlayScene용 BGM을 인덱스 [1, count) 범위에서 랜덤으로 재생한다.
+    /// 직전 곡과 같은 인덱스는 제외하고, 종료 후 다음 곡으로 자동 전환된다.
+    /// </summary>
+    private void PlayRandomPlayBGM()
+    {
+        int count = gameSounds.Count;
+        if (count <= 1) return;
+
+        // 기존 재생 중인 BGM 전부 정지
+        for (int i = 0; i < count; ++i)
+        {
+            if (gameSounds[i].activeSelf)
+            {
+                gameSounds[i].GetComponent<AudioSource>().Stop();
+                gameSounds[i].SetActive(false);
+            }
+        }
+
+        // 같은 곡 반복 방지 — 후보 2개 이상일 때 직전 인덱스 제외
+        int next;
+        if (count == 2)
+        {
+            next = 1;
+        }
+        else
+        {
+            do { next = Random.Range(1, count); } while (next == currentBgmIndex);
+        }
+        currentBgmIndex = next;
+
+        GameObject obj = gameSounds[next];
+        obj.SetActive(true);
+        AudioSource source = obj.GetComponent<AudioSource>();
+        source.volume = GameData.Instance.GetSettingValue(OptionType.Bgm);
+        source.loop = false;
+        source.Play();
+
+        if (playBgmWatcher != null) StopCoroutine(playBgmWatcher);
+        playBgmWatcher = StartCoroutine(WatchPlayBgmEnd(source));
+    }
+
+    /// <summary>
+    /// 현재 PlayScene BGM의 종료를 감시하고, 끝나면 다음 곡으로 전환한다.
+    /// </summary>
+    private IEnumerator WatchPlayBgmEnd(AudioSource source)
+    {
+        while (source != null && source.isPlaying)
+            yield return null;
+
+        // 아직 PlayScene이면 다음 곡 재생
+        if (SceneManager.GetActiveScene().name != GlobalData.Instance.TitleScene)
+            PlayRandomPlayBGM();
     }
 
     /// <summary>
