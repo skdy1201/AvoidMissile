@@ -157,11 +157,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
             interstitialAd = ad;
 
             // 광고가 끝날 때, 처리할 이벤트들 등록
-            interstitialAd.OnAdFullScreenContentClosed += () =>
-            {
-                Debug.Log($"[Ad] OnClosed fired t={Time.realtimeSinceStartup:F3} thread={System.Threading.Thread.CurrentThread.ManagedThreadId}");
-                finishinterstitialAd = true;
-            };
+            interstitialAd.OnAdFullScreenContentClosed += () => finishinterstitialAd = true;
             interstitialAd.OnAdFullScreenContentClosed += () => ReleasedinterstitialAd();
         });
   
@@ -341,8 +337,6 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
 
             if(finishinterstitialAd == true)
             {
-                Debug.Log($"[AdChecker] Interstitial t={Time.realtimeSinceStartup:F3} validPause={validPause}");
-
                 if(validPause)
                     Time.timeScale = 0f;
 
@@ -350,8 +344,6 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
             }
             else if(finishRewardedAd == true)
             {
-                Debug.Log($"[AdChecker] Reward t={Time.realtimeSinceStartup:F3} validPause={validPause}");
-
                 // 재부활을 하지 못하도록 미리 세팅
                 Player player = GlobalData.Instance.Player.GetComponent<Player>();
                 player.Revive = true;

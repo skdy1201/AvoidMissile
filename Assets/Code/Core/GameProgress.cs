@@ -152,8 +152,6 @@ public class GameProgress : Singleton<GameProgress>
     /// </remarks>
     protected override void StartProtocol()
     {
-        Debug.Log($"[StartProtocol] GameProgress t={Time.realtimeSinceStartup:F3}");
-
         EventSystem.current.enabled = true;
 
         if (Time.timeScale == 0f)
