@@ -63,6 +63,8 @@ public class SceneController : Singleton<SceneController>
     /// <param name="buttonObject"> 재시작 버튼 </param>
     public void RestartPlayScene()
     {
+        Debug.Log($"[Restart] RestartPlayScene t={Time.realtimeSinceStartup:F3}");
+
         // 플레이어 사망시 timescale이 0
         Time.timeScale = 1.0f;
 
