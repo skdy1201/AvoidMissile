@@ -1,11 +1,28 @@
+# Unity
 -keep class com.google.unity.** {
    *;
 }
--keep public class com.google.android.gms.ads.**{
+
+# AdMob
+-keep public class com.google.android.gms.ads.** {
    public *;
 }
--keep public class com.google.ads.**{
+-keep public class com.google.ads.** {
    public *;
 }
+
+# Play Core (In-App Update)
+-keep class com.google.android.play.core.** { *; }
+-keep interface com.google.android.play.core.** { *; }
+-dontwarn com.google.android.play.core.**
+
+# GMS Tasks (used by Play Core / AdMob via Unity reflection)
+-keep class com.google.android.gms.tasks.** { *; }
+-keep interface com.google.android.gms.tasks.** { *; }
+
+# GMS Common
+-keep class com.google.android.gms.common.** { *; }
+
+# Global
 -keepattributes *Annotation*
 -dontobfuscate
