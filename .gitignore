@@ -3,9 +3,8 @@
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
 #
 
-# 작업 보고서 / RFC (로컬 전용)
-/docs/report/
-/docs/rfc/
+# 작업 보고서 / RFC / 벤치마크 등 (로컬 전용)
+/docs/
 .utmp/
 .claude/
 /[Ll]ibrary/
