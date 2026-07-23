@@ -283,6 +283,7 @@ public class GrandMissile : Missile
     {
         if (other.gameObject.layer == LayerMask.NameToLayer("GameBoundary"))
         {
+            MissileSpawner.Instance.RemoveGrandMissile(this.gameObject);
             Destroy(this.gameObject);
             return;
         }
@@ -294,6 +295,7 @@ public class GrandMissile : Missile
         {
             Vector3 contact = other.ClosestPoint(transform.position);
             ActiveBombEffect(contact, BoomParticle.Grand);
+            MissileSpawner.Instance.RemoveGrandMissile(this.gameObject);
             Destroy(this.gameObject);
             return;
         }
@@ -305,6 +307,7 @@ public class GrandMissile : Missile
             {
                 Vector3 contact = other.ClosestPoint(transform.position);
                 ActiveBombEffect(contact, BoomParticle.Grand);
+                MissileSpawner.Instance.RemoveGrandMissile(this.gameObject);
                 Destroy(this.gameObject);
             }
         }

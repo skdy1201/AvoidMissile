@@ -242,6 +242,7 @@ public class HoverMissile : Missile
                 ActiveBombEffect(contact);
 
                 gameObject.SetActive(false);
+                MissileSpawner.Instance.RemoveHoverMissile(gameObject);
                 Destroy(gameObject);
             }
             return;

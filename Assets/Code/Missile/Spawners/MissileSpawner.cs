@@ -10,7 +10,6 @@ public enum MissileType
     Falling,
     Hover,
     Grand,
-    Pattern
 }
 
 /// <summary>
@@ -45,6 +44,7 @@ public partial class MissileSpawner : Spawner<MissileType>
     [SerializeField] private bool spawning;
     [SerializeField] private bool homingLoop;
     [SerializeField] private bool grandLoop;
+    [SerializeField] private bool patternLoop;
 
     [Header("Reference")]
     [SerializeField] public GameObject fallingMissilePrefab;
@@ -65,6 +65,11 @@ public partial class MissileSpawner : Spawner<MissileType>
     [Header("Spawn State")]
     [SerializeField] private int fallingQueueSize;
 
+    [Header("Pattern Spawn")]
+    [SerializeField] private float patternCycleCooldown;
+    [SerializeField] private float readyPatternTimer;
+    [SerializeField] private PatternPhase patternPhase;
+    [SerializeField] private bool patternReady = false;
     #endregion
 
     #region Private/Protected Fields
@@ -192,11 +197,25 @@ public partial class MissileSpawner : Spawner<MissileType>
     {
         fallingQueueSize = spawners[(int)MissileType.Falling].Count;
 
+        if(patternLoop && readyPatternTimer > 0)
+        {
+            readyPatternTimer -= Time.deltaTime;
+
+            if(readyPatternTimer <= 0f)
+            {
+                patternReady = true;            
+            }
+        }
+
+        if(patternReady && currentGrnadMissiles.Count == 0 && patternPhase == PatternPhase.None)
+        PrepareToPattern();
+
         TickPatternPhase();
 
         // 큐 기반 스폰 루프
         if (spawning)
         {
+
             if (spawnQueue.Count == 0)
                 FillSpawnQueue();
 
@@ -210,7 +229,7 @@ public partial class MissileSpawner : Spawner<MissileType>
                     case MissileType.Falling: SpawnFallingMissiles(); break;
                     case MissileType.Hover:   SpawnHoverMissiles();   break;
                     case MissileType.Grand:   SpawnGrandMissiles();   break;
-                    case MissileType.Pattern: PrepareToPattern();     return;
+                    default: return;
                 }
             }
 
@@ -307,6 +326,14 @@ public partial class MissileSpawner : Spawner<MissileType>
     /// </summary>
     /// <param name="type"> 미사일 타입(열거형) </param>
     /// <param name="missile"> 미사일 오브젝트 </param>
+    /// <summary>
+    /// 대형 미사일이 자체 소멸할 때 추적 리스트에서 등록 해제한다.
+    /// </summary>
+    public void RemoveGrandMissile(GameObject missile)
+    {
+        currentGrnadMissiles.Remove(missile);
+    }
+
     public override void ReturnSpawner(MissileType type, GameObject missile)
     {
         int typeidx = (int)type;
@@ -514,8 +541,10 @@ public partial class MissileSpawner : Spawner<MissileType>
             spawning = true;
             FillSpawnQueue();
 
-            // 테스트 전용 — 모든 패턴을 큐에 일괄 주입 (필요 시 주석 해제)
-            //TestPattern();
+            patternLoop = false;
+            patternReady = false;
+            readyPatternTimer = patternCycleCooldown;
+
         }
     }
 
@@ -524,6 +553,8 @@ public partial class MissileSpawner : Spawner<MissileType>
     /// </summary>
     protected override void EndProtocol()
     {
+        Debug.Log($"[MissileSpawner.EndProtocol] CALLED. patternDatas={(patternDatas==null?"null":$"Count={patternDatas.Count}")}\n{System.Environment.StackTrace}");
+
         gamePlatform = null;
         hoverMissileSpawnPoints.Clear();
 
@@ -534,6 +565,9 @@ public partial class MissileSpawner : Spawner<MissileType>
         grandLoop = false;
         patternLoop = false;
         patternPhase = PatternPhase.None;
+        patternReady = false;
+        readyPatternTimer = patternCycleCooldown;
+        activePatternMissiles.Clear();
 
         // 스폰 큐/타이머 정리 — 재시작 시 이전 세션 잔여 스케줄 실행 방지
         spawnQueue.Clear();
@@ -567,6 +601,20 @@ public partial class MissileSpawner : Spawner<MissileType>
             currentNode = currentNode.Next;
             Destroy(cur.Value);
         }
+
+        currentHoverMissiles.Clear();
+
+        // 대형 미사일 제거
+        currentNode = currentGrnadMissiles.First;
+
+        while (currentNode != null)
+        {
+            var cur = currentNode;
+            currentNode = currentNode.Next;
+            Destroy(cur.Value);
+        }
+
+        currentGrnadMissiles.Clear();
 
         // 반환 대기중인 미사일 처리
         if (returnMissiles.Count > 0)
@@ -952,14 +1000,12 @@ public partial class MissileSpawner : Spawner<MissileType>
         float time = 0f;
 
         // 해금 상태 기반 가중치 (Falling 45 / Hover 35 / Grand 15 / Pattern 5)
-        int fallingWeight = 70;
-        int hoverWeight   = homingLoop ? 15 : 0;
-        int grandWeight   = grandLoop  ? 10 : 0;
-        int patternWeight = (patternLoop && patternPhase == PatternPhase.None) ? 5 : 0;
-        int totalWeight   = fallingWeight + hoverWeight + grandWeight + patternWeight;
+        int fallingWeight = 72;
+        int hoverWeight   = homingLoop ? 12 : 0;
+        int grandWeight   = grandLoop  ? 11 : 0;
+        int totalWeight   = fallingWeight + hoverWeight + grandWeight;
 
         // 공통 waiting 기반 간격으로 슬롯 채우되 타입은 가중치 롤링으로 결정
-        bool hasPattern = false;
         int nonFallingStreak = 0;
         while (schedules.Count < MaxQueueSize)
         {
@@ -981,22 +1027,17 @@ public partial class MissileSpawner : Spawner<MissileType>
                     roll < fallingWeight                                  ? MissileType.Falling :
                     roll < fallingWeight + hoverWeight                    ? MissileType.Hover   :
                     roll < fallingWeight + hoverWeight + grandWeight      ? MissileType.Grand   :
-                                                                            MissileType.Pattern;
+                                                                            MissileType.Falling;
+
+                if(patternReady && type == MissileType.Grand)
+                    type = MissileType.Falling;
 
                 Debug.Log($"[FillSpawnQueue] slot={schedules.Count} roll={roll}/{totalWeight} → {type} (time={time:F2})");
             }
 
             nonFallingStreak = (type == MissileType.Falling) ? 0 : nonFallingStreak + 1;
 
-            if (type == MissileType.Pattern) hasPattern = true;
             schedules.Add(new SpawnSchedule(time, type));
-        }
-
-        // Pattern이 해금 상태인데 한 번도 뽑히지 않았으면 랜덤 슬롯 1개를 교체해 최소 1회 보장
-        if (patternWeight > 0 && !hasPattern && schedules.Count > 0)
-        {
-            int idx = Random.Range(0, schedules.Count);
-            schedules[idx] = new SpawnSchedule(schedules[idx].Time, MissileType.Pattern);
         }
 
         spawnQueue.Clear();

@@ -18,9 +18,7 @@ public partial class MissileSpawner
     private int patternIdx;
     private float patternTimer;
 
-    private PatternPhase patternPhase;
     private float patternDelayTimer;
-    [SerializeField] private bool patternLoop;
     private const float PatternPreDelay = 3f;
     private const float PatternPostDelay = 3f;
 
@@ -68,21 +66,31 @@ public partial class MissileSpawner
     /// </summary>
     public void SpawnPattern(string patternName = null)
     {
+        Debug.Log($"[SpawnPattern] 진입 patternName={patternName} instId={GetInstanceID()} go={gameObject.name}");
+
         if (patternDatas == null || patternDatas.Count == 0)
         {
-            Debug.LogWarning("[SpawnPattern] 패턴 데이터 없음");
+            Debug.LogWarning($"[SpawnPattern] 패턴 데이터 없음 instId={GetInstanceID()}");
             return;
         }
 
+        Debug.Log($"[SpawnPattern] patternDatas keys = [{string.Join(",", patternDatas.Keys)}]");
+        Debug.Log($"[SpawnPattern] patternNames     = [{string.Join(",", patternNames)}]");
+
         if (patternName != null && patternDatas.TryGetValue(patternName, out PatternData named))
         {
+            Debug.Log("[SpawnPattern] matched first branch");
             currentPattern = named;
         }
         else
         {
-            currentPattern = patternDatas[patternNames[Random.Range(0, patternNames.Count)]];
+            Debug.Log("[SpawnPattern] fell into else branch");
+            string fallbackName = patternNames[Random.Range(0, patternNames.Count)];
+            Debug.Log($"[SpawnPattern] else branch fallbackName={fallbackName}, contained={patternDatas.ContainsKey(fallbackName)}");
+            currentPattern = patternDatas[fallbackName];
         }
 
+        Debug.Log("[SpawnPattern] about to set Playing");
         patternIdx   = 0;
         patternTimer = 0f;
         patternPhase = PatternPhase.Playing;
@@ -101,6 +109,7 @@ public partial class MissileSpawner
     {
         if (patternPhase != PatternPhase.Playing) return;
 
+        Debug.Log("in pattern play");
         patternTimer += Time.deltaTime;
 
         while (patternIdx < currentPattern.Events.Count &&
@@ -258,6 +267,11 @@ public partial class MissileSpawner
         }
     }
 
+    private string RandomPattern()
+    {
+        return patternNames[Random.Range(0, patternNames.Count)];    
+    }
+
     /// <summary>
     /// PatternPhase에 따라 preDelay / postDelay 타이머를 소비한다.
     /// </summary>
@@ -268,9 +282,11 @@ public partial class MissileSpawner
         if (patternPhase == PatternPhase.PreDelay)
         {
             patternDelayTimer -= Time.deltaTime;
+
             if (patternDelayTimer <= 0f)
             {
-                SpawnPattern();
+                string patternName = RandomPattern();
+                SpawnPattern(patternName);
             }
         }
         else if (patternPhase == PatternPhase.Playing)
@@ -284,6 +300,8 @@ public partial class MissileSpawner
             {
                 patternPhase = PatternPhase.None;
                 spawning = true;
+                patternReady = false;
+                readyPatternTimer = patternCycleCooldown;
                 Debug.Log("[Pattern] PostDelay 종료 → 랜덤 스폰 재개");
             }
         }
@@ -392,23 +410,5 @@ public partial class MissileSpawner
         return spawnId switch { "NE" => 6, "NW" => 7, "SE" => 4, "SW" => 5, _ => -1 };
     }
 
-
-    private void TestPattern()
-    {
-        float time = 0f;
-        List<SpawnSchedule> schedules = new List<SpawnSchedule>();
-
-        var keys = new List<string>(patternDatas.Keys);
-
-        for(int i = 0; i < keys.Count; ++i)
-        {
-            PatternData cur = patternDatas[keys[i]];
-            schedules.Add(new SpawnSchedule(time,MissileType.Pattern));
-        }
-
-        spawnQueue.Clear();
-        for (int i = 0; i < schedules.Count; i++)
-            spawnQueue.Enqueue(schedules[i]);
-    }
     #endregion
 }
