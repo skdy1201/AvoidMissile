@@ -897,6 +897,7 @@ MonoBehaviour:
   spawning: 0
   homingLoop: 0
   grandLoop: 0
+  patternLoop: 0
   fallingMissilePrefab: {fileID: 4702976934742720838, guid: 8fc4ccd0f013de54aa42e869c9b6ca73, type: 3}
   hoverMissilePrefab: {fileID: 4606004508970681605, guid: 8aaa6a727f4a9fe4a9e4550bb3c62770, type: 3}
   grandMissilePrefab: {fileID: 2844906244194635021, guid: 6b3a6c2f7cfdf954888a6c91ec785476, type: 3}
@@ -939,7 +940,9 @@ MonoBehaviour:
     diameterMax: 0
   hoverMissileSpawnPoints: []
   fallingQueueSize: 0
-  patternLoop: 0
+  patternCycleCooldown: 60
+  readyPatternTimer: 0
+  patternReady: 0
 --- !u!4 &471068745
 Transform:
   m_ObjectHideFlags: 0
