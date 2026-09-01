@@ -999,10 +999,10 @@ public partial class MissileSpawner : Spawner<MissileType>
         List<SpawnSchedule> schedules = new List<SpawnSchedule>();
         float time = 0f;
 
-        // 해금 상태 기반 가중치 (Falling 45 / Hover 35 / Grand 15 / Pattern 5)
-        int fallingWeight = 72;
-        int hoverWeight   = homingLoop ? 12 : 0;
-        int grandWeight   = grandLoop  ? 11 : 0;
+        // 해금 상태 기반 가중치 (Falling 75 / Hover 13 / Grand 12)
+        int fallingWeight = 75;
+        int hoverWeight   = homingLoop ? 13 : 0;
+        int grandWeight   = grandLoop  ? 12 : 0;
         int totalWeight   = fallingWeight + hoverWeight + grandWeight;
 
         // 공통 waiting 기반 간격으로 슬롯 채우되 타입은 가중치 롤링으로 결정
