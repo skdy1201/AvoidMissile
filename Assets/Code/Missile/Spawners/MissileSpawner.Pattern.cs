@@ -57,45 +57,28 @@ public partial class MissileSpawner
 
         patternPhase = PatternPhase.PreDelay;
         patternDelayTimer = PatternPreDelay;
-
-        Debug.Log("[Pattern] PrepareToPattern → PreDelay 시작");
     }
 
     /// <summary>
-    /// 패턴을 시작한다. 이름이 null이면 랜덤 선택.
+    /// 패턴을 시작한다. 이름이 없거나 목록에 없는 이름이면 무작위로 고른다.
     /// </summary>
     public void SpawnPattern(string patternName = null)
     {
-        Debug.Log($"[SpawnPattern] 진입 patternName={patternName} instId={GetInstanceID()} go={gameObject.name}");
-
         if (patternDatas == null || patternDatas.Count == 0)
         {
-            Debug.LogWarning($"[SpawnPattern] 패턴 데이터 없음 instId={GetInstanceID()}");
+            Debug.LogWarning("[Pattern] 패턴 데이터가 없다");
             return;
         }
 
-        Debug.Log($"[SpawnPattern] patternDatas keys = [{string.Join(",", patternDatas.Keys)}]");
-        Debug.Log($"[SpawnPattern] patternNames     = [{string.Join(",", patternNames)}]");
+        // 이름을 못 받았거나 그 이름이 없으면 무작위 선택으로 떨어진다
+        if (patternName == null || !patternDatas.ContainsKey(patternName))
+            patternName = RandomPattern();
 
-        if (patternName != null && patternDatas.TryGetValue(patternName, out PatternData named))
-        {
-            Debug.Log("[SpawnPattern] matched first branch");
-            currentPattern = named;
-        }
-        else
-        {
-            Debug.Log("[SpawnPattern] fell into else branch");
-            string fallbackName = patternNames[Random.Range(0, patternNames.Count)];
-            Debug.Log($"[SpawnPattern] else branch fallbackName={fallbackName}, contained={patternDatas.ContainsKey(fallbackName)}");
-            currentPattern = patternDatas[fallbackName];
-        }
+        currentPattern = patternDatas[patternName];
 
-        Debug.Log("[SpawnPattern] about to set Playing");
         patternIdx   = 0;
         patternTimer = 0f;
         patternPhase = PatternPhase.Playing;
-
-        Debug.Log($"[SpawnPattern] 패턴 시작: {currentPattern.PatternName}");
     }
 
     #endregion
@@ -109,7 +92,6 @@ public partial class MissileSpawner
     {
         if (patternPhase != PatternPhase.Playing) return;
 
-        Debug.Log("in pattern play");
         patternTimer += Time.deltaTime;
 
         while (patternIdx < currentPattern.Events.Count &&
@@ -124,9 +106,6 @@ public partial class MissileSpawner
         {
             patternPhase = PatternPhase.PostDelay;
             patternDelayTimer = PatternPostDelay;
-            Debug.Log($"[Pattern] 패턴 종료 → PostDelay: {currentPattern.PatternName}");
-            Debug.Log($"[Pattern] 패턴 종료 시간 {currentPattern.TotalDuration}");
-            
         }
     }
 
@@ -233,7 +212,7 @@ public partial class MissileSpawner
         GrandMissile missile = obj.GetComponent<GrandMissile>();
         missile.ApplySnapshot(snap);
 
-        currentGrnadMissiles.AddLast(obj);
+        currentGrandMissiles.AddLast(obj);
         activePatternMissiles[missileId] = obj;
     }
 
@@ -290,7 +269,6 @@ public partial class MissileSpawner
                 spawning = true;
                 patternReady = false;
                 readyPatternTimer = patternCycleCooldown;
-                Debug.Log("[Pattern] PostDelay 종료 → 랜덤 스폰 재개");
             }
         }
     }
@@ -319,12 +297,12 @@ public partial class MissileSpawner
         currentHoverMissiles.Clear();
 
         // Grand: Instantiate 기반 → Destroy
-        foreach (GameObject obj in currentGrnadMissiles)
+        foreach (GameObject obj in currentGrandMissiles)
         {
             if (obj != null)
                 Destroy(obj);
         }
-        currentGrnadMissiles.Clear();
+        currentGrandMissiles.Clear();
 
         activePatternMissiles.Clear();
     }

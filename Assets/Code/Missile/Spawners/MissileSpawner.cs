@@ -102,7 +102,7 @@ public partial class MissileSpawner : Spawner<MissileType>
     /// <summary>
     /// 현재 활성화된 대형 미사일
     /// </summary>
-    private LinkedList<GameObject> currentGrnadMissiles = new LinkedList<GameObject>();
+    private LinkedList<GameObject> currentGrandMissiles = new LinkedList<GameObject>();
 
     /// <summary>
     /// 미사일 이름 지정을 위한 번호
@@ -207,8 +207,11 @@ public partial class MissileSpawner : Spawner<MissileType>
             }
         }
 
-        if(patternReady && currentGrnadMissiles.Count == 0 && patternPhase == PatternPhase.None)
-        PrepareToPattern();
+        // 쿨다운이 끝났고(patternReady), 활성 대형이 없고, 직전 패턴이 완전히 끝났을 때만 진입
+        if (patternReady && currentGrandMissiles.Count == 0 && patternPhase == PatternPhase.None)
+        {
+            PrepareToPattern();
+        }
 
         TickPatternPhase();
 
@@ -331,7 +334,7 @@ public partial class MissileSpawner : Spawner<MissileType>
     /// </summary>
     public void RemoveGrandMissile(GameObject missile)
     {
-        currentGrnadMissiles.Remove(missile);
+        currentGrandMissiles.Remove(missile);
     }
 
     public override void ReturnSpawner(MissileType type, GameObject missile)
@@ -605,7 +608,7 @@ public partial class MissileSpawner : Spawner<MissileType>
         currentHoverMissiles.Clear();
 
         // 대형 미사일 제거
-        currentNode = currentGrnadMissiles.First;
+        currentNode = currentGrandMissiles.First;
 
         while (currentNode != null)
         {
@@ -614,7 +617,7 @@ public partial class MissileSpawner : Spawner<MissileType>
             Destroy(cur.Value);
         }
 
-        currentGrnadMissiles.Clear();
+        currentGrandMissiles.Clear();
 
         // 반환 대기중인 미사일 처리
         if (returnMissiles.Count > 0)
@@ -983,7 +986,7 @@ public partial class MissileSpawner : Spawner<MissileType>
                 grandMissile.SpawnIndex = spawnIndex;
             }
 
-            currentGrnadMissiles.AddLast(missileObject);
+            currentGrandMissiles.AddLast(missileObject);
         }
     }
 
