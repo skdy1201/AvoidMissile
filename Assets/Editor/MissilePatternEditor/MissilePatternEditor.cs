@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -9,7 +9,7 @@ public class MissilePatternEditor : EditorWindow
     #region Enums
     private enum ViewMode            { TopDown, SceneView }
     private enum EndOfPatternPolicy  { Destroy, KeepLast }           // Phase 2: 재생 종료 시 스폰 오브젝트 처리 방식
-    private enum PlacedMissileType   { Falling, Grand, Hover }       // Phase 3a: 배치된 미사일 타입 (ADR-016)
+    
     #endregion
 
     #region Layout Constants
