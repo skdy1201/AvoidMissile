@@ -106,18 +106,20 @@ public class HoverMissile : Missile
         // HorizonLinear는 spawnDirection이 가리키는 방향으로 직선 이동
         if (hoverType == HoverMissileType.HorizonLinear && spawnDirection >= 0)
         {
-            // 직선: 0=N→S, 1=S→N, 2=E→W, 3=W→E
-            // 대각선: 4=SE, 5=SW, 6=NE, 7=NW
+            // spawnDirection = 스폰 위치 인덱스 (SpawnPointGroup.GetPointPosition과 동일한 번호).
+            // 벡터는 그 위치에서 판 안쪽을 향한다.
+            // 직선:   0=N→S    1=S→N    2=E→W    3=W→E
+            // 대각선: 4=NE→SW  5=NW→SE  6=SE→NW  7=SW→NE
             Vector3 dir = spawnDirection switch
             {
                 0 => Vector3.back,
                 1 => Vector3.forward,
                 2 => Vector3.left,
                 3 => Vector3.right,
-                4 => new Vector3(+1f, 0f, -1f).normalized,
-                5 => new Vector3(-1f, 0f, -1f).normalized,
-                6 => new Vector3(+1f, 0f, +1f).normalized,
-                7 => new Vector3(-1f, 0f, +1f).normalized,
+                4 => new Vector3(-1f, 0f, -1f).normalized,   // NE 스폰 → 남서로
+                5 => new Vector3(+1f, 0f, -1f).normalized,   // NW 스폰 → 남동으로
+                6 => new Vector3(-1f, 0f, +1f).normalized,   // SE 스폰 → 북서로
+                7 => new Vector3(+1f, 0f, +1f).normalized,   // SW 스폰 → 북동으로
                 _ => Vector3.back
             };
             transform.rotation = Quaternion.LookRotation(dir, Vector3.up);

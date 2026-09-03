@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -407,7 +407,8 @@ public partial class MissileSpawner
         if (spawnId.StartsWith("S:")) return 1;
         if (spawnId.StartsWith("E:")) return 2;
         if (spawnId.StartsWith("W:")) return 3;
-        return spawnId switch { "NE" => 6, "NW" => 7, "SE" => 4, "SW" => 5, _ => -1 };
+        // 스폰 코너 → 판 안쪽(반대 코너)으로 이동. 에디터 GetSpawnFacingDirection과 일치.
+        return spawnId switch { "NE" => 4, "NW" => 5, "SE" => 6, "SW" => 7, _ => -1 };
     }
 
     #endregion
