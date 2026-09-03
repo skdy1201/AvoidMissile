@@ -179,9 +179,8 @@ public partial class MissileSpawner
 
         FallingMissile missile = obj.GetComponent<FallingMissile>();
         missile.XZCoord = new Vector2(pos.x, pos.z);
-        missile.SetStat(snap.Speed);
         obj.transform.position = spawnPos;
-        missile.Initialize();
+        missile.ApplySnapshot(snap);
         obj.SetActive(true);
 
         currentFallingMissiles.AddLast(obj);
@@ -207,8 +206,7 @@ public partial class MissileSpawner
 
     private void SpawnPatternGrand(int missileId, SpawnInfo info, MissileStatsSnapshot snap)
     {
-        int grandDir = snap.GrandDirection;
-        GrandMissileType type = grandDir == 0 ? GrandMissileType.Vertical : GrandMissileType.Horizen;
+        GrandMissileType type = GrandMissile.TypeFromDirection(snap.GrandDirection);
 
         Vector3 pos = ResolveSpawnPosition(info);
 
@@ -233,13 +231,16 @@ public partial class MissileSpawner
             child.gameObject.layer = patternLayer;
 
         GrandMissile missile = obj.GetComponent<GrandMissile>();
-        missile.SetStat(type, snap.Speed, snap.GrandDiameter, grandDir);
-        missile.Initialize();
+        missile.ApplySnapshot(snap);
 
         currentGrnadMissiles.AddLast(obj);
         activePatternMissiles[missileId] = obj;
     }
 
+    /// <summary>
+    /// StatChange 이벤트의 스냅샷을 대상 미사일에 반영한다.
+    /// 스냅샷을 어떻게 읽을지는 각 미사일의 ApplySnapshot이 정한다.
+    /// </summary>
     private void ChangeStat(PatternEvent patternEvent)
     {
         foreach (int missileId in patternEvent.LinkedMissileIds)
@@ -247,23 +248,10 @@ public partial class MissileSpawner
             if (!activePatternMissiles.TryGetValue(missileId, out GameObject obj) || obj == null) continue;
             if (!patternEvent.StatsSnapshots.TryGetValue(missileId, out MissileStatsSnapshot snap)) continue;
 
-            FallingMissile falling = obj.GetComponent<FallingMissile>();
-            if (falling != null) { falling.SetStat(snap.Speed); continue; }
+            Missile missile = obj.GetComponent<Missile>();
+            if (missile == null) continue;
 
-            HoverMissile hover = obj.GetComponent<HoverMissile>();
-            if (hover != null)
-            {
-                hover.SetStat(snap.Hp, snap.FlightTime, snap.Speed, snap.TurnTime, snap.TurnRate);
-                continue;
-            }
-
-            GrandMissile grand = obj.GetComponent<GrandMissile>();
-            if (grand != null)
-            {
-                int grandDir = snap.GrandDirection;
-                GrandMissileType grandType = grandDir == 0 ? GrandMissileType.Vertical : GrandMissileType.Horizen;
-                grand.SetStat(grandType, snap.Speed, snap.GrandDiameter, grandDir);
-            }
+            missile.ApplySnapshot(snap);
         }
     }
 

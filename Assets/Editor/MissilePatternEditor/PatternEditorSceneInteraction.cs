@@ -1617,7 +1617,7 @@ public static class PatternEditorSceneInteraction
     }
 
     /// <summary>
-    /// GrandMissile.Initialize()의 회전 로직을 에디터에서 재현.
+    /// GrandMissile.ApplyStat()의 회전 로직을 에디터에서 재현.
     /// direction 0=Vertical, 1=N→S, 2=S→N, 3=E→W, 4=W→E
     /// </summary>
     /// <remarks>

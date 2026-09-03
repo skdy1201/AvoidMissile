@@ -125,7 +125,7 @@ public class HoverMissile : Missile
             transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
         }
 
-        Initialize();
+        ApplyStat();
         AssignStrategy();
     }
 
@@ -140,7 +140,7 @@ public class HoverMissile : Missile
     /// <summary>
     /// 내부 스탯으로 physics 설정
     /// </summary>
-    public override void Initialize()
+    public override void ApplyStat()
     {
         physics.speed = moveSpeed;
         physics.direction = transform.forward;
@@ -179,10 +179,11 @@ public class HoverMissile : Missile
     /// <summary>
     /// 스냅샷의 스탯을 미사일에 적용한다. 패턴/랜덤 모두 이 경로를 사용.
     /// </summary>
-    public void ApplySnapshot(MissileStatsSnapshot snap)
+    public override void ApplySnapshot(MissileStatsSnapshot snapshot)
     {
-        hoverType = (HoverMissileType)snap.HoverType;
-        SetStat(snap.Hp, snap.FlightTime, snap.Speed, snap.TurnTime, snap.TurnRate);
+        hoverType = (HoverMissileType)snapshot.HoverType;
+        SetStat(snapshot.Hp, snapshot.FlightTime, snapshot.Speed, snapshot.TurnTime, snapshot.TurnRate);
+        ApplyStat();
     }
 
     public void SetHP(int HP) => hp = HP;

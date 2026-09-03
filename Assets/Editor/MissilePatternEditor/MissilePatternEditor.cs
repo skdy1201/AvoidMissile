@@ -1749,7 +1749,7 @@ public class MissilePatternEditor : EditorWindow
             var cols = prefabInst.GetComponentsInChildren<Collider>(true);
             for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
 
-            // 프리팹 모델 스케일 — GrandMissile.Initialize() 로직 재현 (tileXSize * diameter / meshSize.x)
+            // 프리팹 모델 스케일 — GrandMissile.ApplyStat() 로직 재현 (tileXSize * diameter / meshSize.x)
             int diam = m.GrandDiameter > 0 ? m.GrandDiameter : 2;
             var mf = prefabInst.GetComponentInChildren<MeshFilter>();
             if (mf != null && mf.sharedMesh != null)

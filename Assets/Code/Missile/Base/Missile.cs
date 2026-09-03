@@ -79,9 +79,18 @@ public class Missile : MonoBehaviour
     #region Public Methods
 
     /// <summary>
-    /// 미사일 초기화 (내부 스탯으로 physics 설정)
+    /// 내부 스탯을 실제 physics/transform에 반영한다.
+    /// 스폰 시 1회, 런타임 스탯 변경 시마다 호출한다.
     /// </summary>
-    public virtual void Initialize()
+    public virtual void ApplyStat()
+    {
+    }
+
+    /// <summary>
+    /// 스냅샷의 스탯을 적용하고 즉시 반영한다.
+    /// 스냅샷을 어떻게 읽을지는 각 파생 클래스가 정한다.
+    /// </summary>
+    public virtual void ApplySnapshot(MissileStatsSnapshot snapshot)
     {
     }
 

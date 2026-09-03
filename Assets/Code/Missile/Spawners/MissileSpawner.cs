@@ -464,7 +464,7 @@ public partial class MissileSpawner : Spawner<MissileType>
         float rotateSpeed = Mathf.Round(Random.Range(hoverMissileData.turnRate / 2f, hoverMissileData.turnRate) * 100f) / 100f;
 
         missile.SetStat(healthPoint, moveTime, moveSpeed, rotateTime, rotateSpeed);
-        missile.Initialize();
+        missile.ApplyStat();
     }
 
     /// <summary>
@@ -856,7 +856,7 @@ public partial class MissileSpawner : Spawner<MissileType>
             // 낙하 속도 설정 (units/second)
             float randomSpeed = Mathf.Round(Random.Range(fallingMissileData.fallSpeed / 2f, fallingMissileData.fallSpeed) * 100f) / 100f;
             fallingMissile.SetStat(randomSpeed);
-            fallingMissile.Initialize();
+            fallingMissile.ApplyStat();
 
             missileObject.SetActive(true);
 
@@ -979,7 +979,7 @@ public partial class MissileSpawner : Spawner<MissileType>
             if (grandMissile != null)
             {
                 grandMissile.SetStat(type, speed, diameter, direction);
-                grandMissile.Initialize();
+                grandMissile.ApplyStat();
                 grandMissile.SpawnIndex = spawnIndex;
             }
 
