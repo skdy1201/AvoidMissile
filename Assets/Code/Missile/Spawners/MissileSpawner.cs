@@ -988,8 +988,11 @@ public partial class MissileSpawner : Spawner<MissileType>
     }
 
     /// <summary>
-    /// 공통 waiting 기반 간격으로 슬롯을 채우되, 각 슬롯의 타입은 해금 상태 기반 가중치(Falling 45 / Hover 35 / Grand 15 / Pattern 5)로 롤링하여 결정.
-    /// Pattern이 해금 상태인데 한 번도 뽑히지 않으면 랜덤 슬롯 1개를 Pattern으로 교체해 최소 1회 등장을 보장한다.
+    /// 공통 waiting 기반 간격으로 슬롯을 채우되, 각 슬롯의 타입은 해금 상태 기반 가중치로 롤링하여 결정.
+    /// 가중치는 Falling 75 / Hover 13 / Grand 12 이며, 미해금 항목은 0이라 총합이 달라진다.
+    /// Pattern은 이 롤에 포함되지 않는다 — patternCycleCooldown 타이머로 별도 발동하며,
+    /// patternReady 상태에서는 Grand 슬롯을 Falling으로 돌려 패턴 시작 조건(대형 0개)을 만든다.
+    /// non-Falling이 3슬롯 연속되면 강제로 Falling을 넣어 빈 구간을 제한한다.
     /// </summary>
     private void FillSpawnQueue()
     {
@@ -1023,11 +1026,11 @@ public partial class MissileSpawner : Spawner<MissileType>
             else
             {
                 int roll = Random.Range(0, totalWeight);
+                // roll < totalWeight(= fw+hw+gw)가 보장되므로 마지막 구간은 곧 Grand다.
                 type =
-                    roll < fallingWeight                                  ? MissileType.Falling :
-                    roll < fallingWeight + hoverWeight                    ? MissileType.Hover   :
-                    roll < fallingWeight + hoverWeight + grandWeight      ? MissileType.Grand   :
-                                                                            MissileType.Falling;
+                    roll < fallingWeight               ? MissileType.Falling :
+                    roll < fallingWeight + hoverWeight ? MissileType.Hover   :
+                                                         MissileType.Grand;
 
                 if(patternReady && type == MissileType.Grand)
                     type = MissileType.Falling;
