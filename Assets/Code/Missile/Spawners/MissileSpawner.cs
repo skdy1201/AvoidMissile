@@ -556,8 +556,6 @@ public partial class MissileSpawner : Spawner<MissileType>
     /// </summary>
     protected override void EndProtocol()
     {
-        Debug.Log($"[MissileSpawner.EndProtocol] CALLED. patternDatas={(patternDatas==null?"null":$"Count={patternDatas.Count}")}\n{System.Environment.StackTrace}");
-
         gamePlatform = null;
         hoverMissileSpawnPoints.Clear();
 
