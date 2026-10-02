@@ -236,7 +236,7 @@ public partial class MissileSpawner
 
     private string RandomPattern()
     {
-        return patternNames[Random.Range(0, patternNames.Count)];    
+        return patternNames[Random.Range(0, patternNames.Count)];
     }
 
     /// <summary>
