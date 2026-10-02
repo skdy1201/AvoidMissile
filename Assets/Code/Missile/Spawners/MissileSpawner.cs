@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,7 +8,23 @@ using UnityEngine.SceneManagement;
 public enum MissileType
 {
     Falling,
-    Hover
+    Hover,
+    Grand,
+}
+
+/// <summary>
+/// 스폰 스케줄 — 시간과 미사일 타입을 묶어 큐에 삽입
+/// </summary>
+public struct SpawnSchedule
+{
+    public float Time;
+    public MissileType Type;
+
+    public SpawnSchedule(float time, MissileType type)
+    {
+        Time = time;
+        Type = type;
+    }
 }
 
 /// <summary>
@@ -21,9 +36,15 @@ public enum MissileType
 /// 미사일 시스템에서 레벨 변경을 준비
 /// 추적 미사일은 현재 Spawner까지 사용할 필요가 없어 그냥 생성,제거
 ///</remarks>
-public class MissileSpawner : Spawner<MissileType>
+public partial class MissileSpawner : Spawner<MissileType>
 {
     #region Serialize Fields
+
+    [Header("Spawn State")]
+    [SerializeField] private bool spawning;
+    [SerializeField] private bool homingLoop;
+    [SerializeField] private bool grandLoop;
+    [SerializeField] private bool patternLoop;
 
     [Header("Reference")]
     [SerializeField] public GameObject fallingMissilePrefab;
@@ -42,12 +63,13 @@ public class MissileSpawner : Spawner<MissileType>
 
 
     [Header("Spawn State")]
-    [SerializeField] private bool homingLoop = false;
-    [SerializeField] private bool fallingLoop = false;
-    [SerializeField] private bool grandLoop = false;
-
     [SerializeField] private int fallingQueueSize;
 
+    [Header("Pattern Spawn")]
+    [SerializeField] private float patternCycleCooldown;
+    [SerializeField] private float readyPatternTimer;
+    [SerializeField] private PatternPhase patternPhase;
+    [SerializeField] private bool patternReady = false;
     #endregion
 
     #region Private/Protected Fields
@@ -80,7 +102,7 @@ public class MissileSpawner : Spawner<MissileType>
     /// <summary>
     /// 현재 활성화된 대형 미사일
     /// </summary>
-    private LinkedList<GameObject> currentGrnadMissiles = new LinkedList<GameObject>();
+    private LinkedList<GameObject> currentGrandMissiles = new LinkedList<GameObject>();
 
     /// <summary>
     /// 미사일 이름 지정을 위한 번호
@@ -90,6 +112,15 @@ public class MissileSpawner : Spawner<MissileType>
     // 타일 하나의 크기
     private float tileX;
     private float tileZ;
+
+    /// <summary>
+    /// 스폰 스케줄 큐 — 시간순으로 (시간, 타입) 쌍을 관리
+    /// </summary>
+    private Queue<SpawnSchedule> spawnQueue = new Queue<SpawnSchedule>();
+
+    private float spawnTimer;
+    private const int MaxQueueSize = 10;
+
 
     /// <summary>
     /// 스포너에 반환 대기중인 미사일들
@@ -160,11 +191,58 @@ public class MissileSpawner : Spawner<MissileType>
     }
 
     /// <summary>
-    /// 반환 대기 중인 미사일 정리
+    /// 큐 소비 + 패턴 틱 + 반환 대기 미사일 정리
     /// </summary>
     void Update()
     {
         fallingQueueSize = spawners[(int)MissileType.Falling].Count;
+
+        if(patternLoop && readyPatternTimer > 0)
+        {
+            readyPatternTimer -= Time.deltaTime;
+
+            if(readyPatternTimer <= 0f)
+            {
+                patternReady = true;            
+            }
+        }
+
+        // 쿨다운이 끝났고(patternReady), 활성 대형이 없고, 직전 패턴이 완전히 끝났을 때만 진입
+        if (patternReady && currentGrandMissiles.Count == 0 && patternPhase == PatternPhase.None)
+        {
+            PrepareToPattern();
+        }
+
+        TickPatternPhase();
+
+        // 큐 기반 스폰 루프
+        if (spawning)
+        {
+
+            if (spawnQueue.Count == 0)
+                FillSpawnQueue();
+
+            spawnTimer += Time.deltaTime;
+
+            while (spawnQueue.Count > 0 && spawnQueue.Peek().Time <= spawnTimer)
+            {
+                SpawnSchedule schedule = spawnQueue.Dequeue();
+                switch (schedule.Type)
+                {
+                    case MissileType.Falling: SpawnFallingMissiles(); break;
+                    case MissileType.Hover:   SpawnHoverMissiles();   break;
+                    case MissileType.Grand:   SpawnGrandMissiles();   break;
+                    default: return;
+                }
+            }
+
+            // 큐 소진 시 랜덤 스폰 + 타이머 리셋 + 보충
+            if (spawnQueue.Count == 0)
+            {
+                spawnTimer = 0f;
+                FillSpawnQueue();
+            }
+        }
 
         // 미사일 리스트가 25개 이상이면, 일괄 반환
         if (returnMissiles.Count >= 25)
@@ -251,6 +329,14 @@ public class MissileSpawner : Spawner<MissileType>
     /// </summary>
     /// <param name="type"> 미사일 타입(열거형) </param>
     /// <param name="missile"> 미사일 오브젝트 </param>
+    /// <summary>
+    /// 대형 미사일이 자체 소멸할 때 추적 리스트에서 등록 해제한다.
+    /// </summary>
+    public void RemoveGrandMissile(GameObject missile)
+    {
+        currentGrandMissiles.Remove(missile);
+    }
+
     public override void ReturnSpawner(MissileType type, GameObject missile)
     {
         int typeidx = (int)type;
@@ -262,6 +348,10 @@ public class MissileSpawner : Spawner<MissileType>
         }
 
         missile.SetActive(false);
+
+        int patternLayer = LayerMask.NameToLayer("PatternMissile");
+        if (missile.layer == patternLayer)
+            missile.layer = LayerMask.NameToLayer("Missile");
 
         spawners[typeidx].Enqueue(missile);
 
@@ -297,6 +387,9 @@ public class MissileSpawner : Spawner<MissileType>
         UpdateFallingMissile();
         UpdateHoverMissile(level);
         UpdateGrandMissile(level);
+
+        if (!patternLoop && level >= 30)
+            patternLoop = true;
     }
 
     /// <summary>
@@ -322,10 +415,9 @@ public class MissileSpawner : Spawner<MissileType>
         if (level < 10)
             return;
 
-        // 레벨 10에서 루프 시작
+        // 레벨 10에서 Hover 스폰 활성화
         if (level == 10 && homingLoop == false)
         {
-            StartCoroutine(HoverMissileSpawnLoop());
             homingLoop = true;
             return;
         }
@@ -346,10 +438,9 @@ public class MissileSpawner : Spawner<MissileType>
         if (level < 25)
             return;
 
-        // 레벨 25에서 루프 시작
+        // 레벨 25에서 Grand 스폰 활성화
         if (level == 25 && grandLoop == false)
         {
-            StartCoroutine(GrandMissileSpawnLoop());
             grandLoop = true;
             return;
         }
@@ -376,7 +467,7 @@ public class MissileSpawner : Spawner<MissileType>
         float rotateSpeed = Mathf.Round(Random.Range(hoverMissileData.turnRate / 2f, hoverMissileData.turnRate) * 100f) / 100f;
 
         missile.SetStat(healthPoint, moveTime, moveSpeed, rotateTime, rotateSpeed);
-        missile.Initialize();
+        missile.ApplyStat();
     }
 
     /// <summary>
@@ -385,34 +476,29 @@ public class MissileSpawner : Spawner<MissileType>
     public override void OnPlayerDeath()
     {
         base.OnPlayerDeath();
-        fallingLoop = false;
-        homingLoop = false;
-        grandLoop = false;
+        spawning = false;
     }
 
     /// <summary>
-    /// 부활 시 미사일 루프 재시작
+    /// 부활 시 큐 기반 스폰 재개
     /// </summary>
     /// <param name="level">현재 레벨</param>
-    public void RestartMissileLoops(int level)
+    public void ResumeSpawning(int level)
     {
-        if (fallingLoop == false)
+        if (level >= 10) homingLoop = true;
+        if (level >= 25) grandLoop = true;
+        if (level >= 30) patternLoop = true;
+
+        // 패턴 진행 중 사망 → 패턴이 PostDelay 종료 시점에 스스로 spawning=true로 재개하므로 건드리지 않음
+        if (patternPhase != PatternPhase.None) return;
+
+        if(spawnQueue.Count == 0)
         {
-            StartCoroutine(FallingMissileSpawnLoop());
-            fallingLoop = true;
+            spawnTimer = 0f;
+            FillSpawnQueue();
         }
 
-        if (level >= 10 && homingLoop == false)
-        {
-            StartCoroutine(HoverMissileSpawnLoop());
-            homingLoop = true;
-        }
-
-        if(level >= 25 && grandLoop == false)
-        {
-            StartCoroutine(GrandMissileSpawnLoop());
-            grandLoop = true;
-        }
+        spawning = true;
     }
 
     #endregion
@@ -426,12 +512,10 @@ public class MissileSpawner : Spawner<MissileType>
     {
         if (SceneManager.GetActiveScene().name == GlobalData.Instance.PlayScene)
         {
-
-            if (fallingLoop == false)
-            {
-                StartCoroutine(FallingMissileSpawnLoop());
-                fallingLoop = true;
-            }
+            int missileLayer = LayerMask.NameToLayer("Missile");
+            int patternLayer = LayerMask.NameToLayer("PatternMissile");
+            Physics.IgnoreLayerCollision(patternLayer, patternLayer, true);
+            Physics.IgnoreLayerCollision(missileLayer, patternLayer, true);
 
             // 낙하 미사일 풀 초기화
             if (spawners[(int)MissileType.Falling].Count <= 0)
@@ -455,6 +539,15 @@ public class MissileSpawner : Spawner<MissileType>
             tileZ = worldSize.z;
 
             CreateSpawnPoint();
+
+            // 큐 기반 스폰 시작
+            spawning = true;
+            FillSpawnQueue();
+
+            patternLoop = false;
+            patternReady = false;
+            readyPatternTimer = patternCycleCooldown;
+
         }
     }
 
@@ -468,9 +561,18 @@ public class MissileSpawner : Spawner<MissileType>
 
         // 플래그 리셋 (OnPlayerDeath와 중복)
         // 사망 없이 게임 종료 시(일시정지에서 나가기 등) 대응
-        fallingLoop = false;
+        spawning = false;
         homingLoop = false;
         grandLoop = false;
+        patternLoop = false;
+        patternPhase = PatternPhase.None;
+        patternReady = false;
+        readyPatternTimer = patternCycleCooldown;
+        activePatternMissiles.Clear();
+
+        // 스폰 큐/타이머 정리 — 재시작 시 이전 세션 잔여 스케줄 실행 방지
+        spawnQueue.Clear();
+        spawnTimer = 0f;
 
         // 미사일 데이터 초기화
         fallingMissileData = defaultFallingData;
@@ -500,6 +602,20 @@ public class MissileSpawner : Spawner<MissileType>
             currentNode = currentNode.Next;
             Destroy(cur.Value);
         }
+
+        currentHoverMissiles.Clear();
+
+        // 대형 미사일 제거
+        currentNode = currentGrandMissiles.First;
+
+        while (currentNode != null)
+        {
+            var cur = currentNode;
+            currentNode = currentNode.Next;
+            Destroy(cur.Value);
+        }
+
+        currentGrandMissiles.Clear();
 
         // 반환 대기중인 미사일 처리
         if (returnMissiles.Count > 0)
@@ -655,9 +771,9 @@ public class MissileSpawner : Spawner<MissileType>
     }
 
     /// <summary>
-    /// 미사일 한 주기
+    /// 낙하 미사일 한 주기 스폰
     /// </summary>
-    private void SpawnMissile()
+    private void SpawnFallingMissiles()
     {
         // 사전 체크
         if (gamePlatform == null)
@@ -741,12 +857,196 @@ public class MissileSpawner : Spawner<MissileType>
             // 낙하 속도 설정 (units/second)
             float randomSpeed = Mathf.Round(Random.Range(fallingMissileData.fallSpeed / 2f, fallingMissileData.fallSpeed) * 100f) / 100f;
             fallingMissile.SetStat(randomSpeed);
-            fallingMissile.Initialize();
+            fallingMissile.ApplyStat();
 
             missileObject.SetActive(true);
 
             currentFallingMissiles.AddLast(missileObject);
         }
+    }
+
+    /// <summary>
+    /// 추적 미사일 한 주기 스폰
+    /// </summary>
+    private void SpawnHoverMissiles()
+    {
+        int spawnNumber = Random.Range(1, 5);
+
+        // 동일 위치 확인
+        HashSet<int> spawnPointNum = new HashSet<int>();
+        int pointsPerDirection = spawnPointGroup.NorthPoints.Count;
+        int totalPoints = pointsPerDirection * 4;
+
+        for (int i = 0; i < spawnNumber; i++)
+        {
+            int spawnTileid = Random.Range(0, totalPoints);
+
+            // 중복 위치 회피
+            if (spawnPointNum.Contains(spawnTileid))
+            {
+                while (true)
+                {
+                    spawnTileid = Random.Range(0, totalPoints);
+
+                    if (!spawnPointNum.Contains(spawnTileid))
+                        break;
+                }
+            }
+
+            spawnPointNum.Add(spawnTileid);
+
+            // Y좌표 조정
+            Vector3 spawnPosition = spawnPointGroup.GetPointPosition(spawnTileid / pointsPerDirection, spawnTileid % pointsPerDirection);
+            spawnPosition.y += 2.5f;
+
+            GameObject hoverMissile = Instantiate(hoverMissilePrefab);
+            hoverMissile.transform.position = spawnPosition;
+
+            HoverMissile hoverMissileComponent = hoverMissile.GetComponent<HoverMissile>();
+            hoverMissileComponent.SetHoverType((HoverMissileType)Random.Range(
+                (int)HoverMissileType.Custom,
+                (int)HoverMissileType.HorizonLinear + 1));
+            GetRandomSettingHoming(hoverMissileComponent);
+            hoverMissileComponent.SetSpawnDirection(spawnTileid / pointsPerDirection);
+
+            currentHoverMissiles.AddLast(hoverMissile);
+        }
+    }
+
+    /// <summary>
+    /// 대형 미사일 한 주기 스폰
+    /// </summary>
+    private void SpawnGrandMissiles()
+    {
+        int spawnCount = Random.Range(1, grandMissileData.count + 1);
+
+        for (int i = 0; i < spawnCount; i++)
+        {
+            if (grandMissilePrefab == null)
+            {
+                Debug.LogWarning("[SpawnGrandMissiles] grandMissilePrefab is NOT assigned!");
+                return;
+            }
+
+            GrandMissileType type = (GrandMissileType)Random.Range(0, 2);
+            float speed = Random.Range(grandMissileData.speed / 2f, grandMissileData.speed);
+            int diameter = Random.Range(2, grandMissileData.diameter);
+
+            int direction = 0;
+            if (type == GrandMissileType.Horizen)
+                direction = Random.Range(1, 5);
+
+            Vector3 spawnPosition = Vector3.zero;
+
+            int spawnIndex = Random.Range(0, 100);
+            int row = spawnIndex / 10;
+            int col = spawnIndex % 10;
+
+            if (type == GrandMissileType.Vertical)
+            {
+                row = AdjustGrandAxis(row, diameter);
+                col = AdjustGrandAxis(col, diameter);
+
+                spawnIndex = row * 10 + col;
+
+                GameObject centerTile = gamePlatform.GetTile(spawnIndex);
+                if (centerTile == null) continue;
+
+                spawnPosition = centerTile.transform.position;
+                spawnPosition.x -= tileX / 2;
+                spawnPosition.z += tileZ / 2;
+                spawnPosition.y = GlobalData.Instance.MissileDropPoint;
+            }
+            else
+            {
+                int axis = Random.Range(0, spawnPointGroup.NorthPoints.Count);
+                axis = AdjustGrandAxis(axis, diameter);
+
+                spawnPosition = spawnPointGroup.GetPointPosition(direction - 1, axis);
+
+                switch(diameter)
+                {
+                    case 2: spawnPosition.y += 4f; break;
+                    case 3: spawnPosition.y += 5.5f; break;
+                    case 4: spawnPosition.y += 6.5f; break;
+                    case 5: spawnPosition.y += 7.5f; break;
+                }
+            }
+
+            GameObject missileObject = Instantiate(grandMissilePrefab);
+            missileObject.transform.position = spawnPosition;
+
+            GrandMissile grandMissile = missileObject.GetComponent<GrandMissile>();
+            if (grandMissile != null)
+            {
+                grandMissile.SetStat(type, speed, diameter, direction);
+                grandMissile.ApplyStat();
+                grandMissile.SpawnIndex = spawnIndex;
+            }
+
+            currentGrandMissiles.AddLast(missileObject);
+        }
+    }
+
+    /// <summary>
+    /// 공통 waiting 기반 간격으로 슬롯을 채우되, 각 슬롯의 타입은 해금 상태 기반 가중치로 롤링하여 결정.
+    /// 가중치는 Falling 75 / Hover 13 / Grand 12 이며, 미해금 항목은 0이라 총합이 달라진다.
+    /// Pattern은 이 롤에 포함되지 않는다 — patternCycleCooldown 타이머로 별도 발동하며,
+    /// patternReady 상태에서는 Grand 슬롯을 Falling으로 돌려 패턴 시작 조건(대형 0개)을 만든다.
+    /// non-Falling이 3슬롯 연속되면 강제로 Falling을 넣어 빈 구간을 제한한다.
+    /// </summary>
+    private void FillSpawnQueue()
+    {
+        // 첫 스케쥴과의 대기시간을 줄이기 위해 falling 한 번 스폰
+        SpawnFallingMissiles();
+
+        List<SpawnSchedule> schedules = new List<SpawnSchedule>();
+        float time = 0f;
+
+        // 해금 상태 기반 가중치 (Falling 75 / Hover 13 / Grand 12)
+        int fallingWeight = 75;
+        int hoverWeight   = homingLoop ? 13 : 0;
+        int grandWeight   = grandLoop  ? 12 : 0;
+        int totalWeight   = fallingWeight + hoverWeight + grandWeight;
+
+        // 공통 waiting 기반 간격으로 슬롯 채우되 타입은 가중치 롤링으로 결정
+        int nonFallingStreak = 0;
+        while (schedules.Count < MaxQueueSize)
+        {
+            float interval = Mathf.Round(Random.Range(fallingMissileData.waiting / 2f, fallingMissileData.waiting) * 100f) / 100f;
+            float wait = Mathf.Round(Random.Range(0f, 5f) * 100f) / 100f;
+            time += interval + wait;
+
+            MissileType type;
+            if (nonFallingStreak >= 3)
+            {
+                // 3슬롯 연속 non-Falling 방지 — 빈 구간 상한 보장
+                type = MissileType.Falling;
+                Debug.Log($"[FillSpawnQueue] slot={schedules.Count} streakGuard → {type} (time={time:F2})");
+            }
+            else
+            {
+                int roll = Random.Range(0, totalWeight);
+                // roll < totalWeight(= fw+hw+gw)가 보장되므로 마지막 구간은 곧 Grand다.
+                type =
+                    roll < fallingWeight               ? MissileType.Falling :
+                    roll < fallingWeight + hoverWeight ? MissileType.Hover   :
+                                                         MissileType.Grand;
+
+                if(patternReady && type == MissileType.Grand)
+                    type = MissileType.Falling;
+
+                Debug.Log($"[FillSpawnQueue] slot={schedules.Count} roll={roll}/{totalWeight} → {type} (time={time:F2})");
+            }
+
+            nonFallingStreak = (type == MissileType.Falling) ? 0 : nonFallingStreak + 1;
+
+            schedules.Add(new SpawnSchedule(time, type));
+        }
+
+        spawnQueue.Clear();
+        for (int i = 0; i < schedules.Count; i++)
+            spawnQueue.Enqueue(schedules[i]);
     }
 
     /// <summary>
@@ -767,165 +1067,6 @@ public class MissileSpawner : Spawner<MissileType>
             return 9 - Mathf.CeilToInt(radius);
 
         return axis;
-    }
-
-    #endregion
-
-    #region Coroutines
-
-    /// <summary>
-    /// 낙하 미사일 생성 루프
-    /// </summary>
-    /// <returns> 코루틴 </returns>
-    IEnumerator FallingMissileSpawnLoop()
-    {
-        // 플레이 씬 동안 계속 진행
-        while (true)
-        {
-            // 미사일 생성 타이머 설정
-            float missileTimer = Mathf.Round(Random.Range(fallingMissileData.waiting / 2f, fallingMissileData.waiting) * 100f) / 100f;
-            yield return new WaitForSeconds(missileTimer);
-
-            SpawnMissile();
-
-            // 다음 주기 대기 시간
-            float waitTimer = Mathf.Round(Random.Range(0f, 5f) * 100f) / 100f;
-
-            yield return new WaitForSeconds(waitTimer);
-        }
-    }
-
-    /// <summary>
-    /// 추적 미사일 생성 루프
-    /// </summary>
-    /// <returns> 코루틴 </returns>
-    IEnumerator HoverMissileSpawnLoop()
-    {
-        while (true)
-        {
-            int spawnNumber = Random.Range(1, 5);
-
-            // 동일 위치 확인
-            HashSet<int> spawnPointNum = new HashSet<int>();
-            int pointsPerDirection = spawnPointGroup.NorthPoints.Count;
-            int totalPoints = pointsPerDirection * 4;
-
-            for (int i = 0; i < spawnNumber; i++)
-            {
-                int spawnTileid = Random.Range(0, totalPoints);
-
-                // 중복 위치 회피
-                if (spawnPointNum.Contains(spawnTileid))
-                {
-                    while (true)
-                    {
-                        spawnTileid = Random.Range(0, totalPoints);
-
-                        if (!spawnPointNum.Contains(spawnTileid))
-                            break;
-
-                    }
-                }
-
-                spawnPointNum.Add(spawnTileid);
-
-                // Y좌표 조정
-                Vector3 spawnPosition = spawnPointGroup.GetPointPosition(spawnTileid / pointsPerDirection, spawnTileid % pointsPerDirection);
-                spawnPosition.y += 2.5f;
-
-                GameObject hoverMissile = Instantiate(hoverMissilePrefab);
-
-                hoverMissile.transform.position = spawnPosition;
-                hoverMissile.GetComponent<HoverMissile>().SetSpawnDirection(spawnTileid / pointsPerDirection);
-
-                currentHoverMissiles.AddLast(hoverMissile);
-            }
-
-            // 다음 사이클 고정 대기 시간
-            yield return new WaitForSeconds(15f);
-
-        }
-    }
-
-    /// <summary>
-    /// 대형 미사일 생성 루프
-    /// </summary>
-    /// <returns>코루틴</returns>
-    IEnumerator GrandMissileSpawnLoop()
-    {
-        while (true)
-        {
-            int spawnCount = Random.Range(1, grandMissileData.count + 1);
-
-            for (int i = 0; i < spawnCount; i++)
-            {
-                if (grandMissilePrefab == null)
-                {
-                    Debug.LogWarning("[GrandMissileSpawnLoop] grandMissilePrefab is NOT assigned!");
-                    yield break;
-                }
-
-                GrandMissileType type = (GrandMissileType)Random.Range(0, 2);
-                float speed = Random.Range(grandMissileData.speed / 2f, grandMissileData.speed);
-                int diameter = Random.Range(2, grandMissileData.diameter);
-
-                int direction = 0;
-                if (type == GrandMissileType.Horizen)
-                    direction = Random.Range(1, 5);
-
-                Vector3 spawnPosition = Vector3.zero;
-
-                int spawnIndex = Random.Range(0, 100);
-                int row = spawnIndex / 10;
-                int col = spawnIndex % 10;
-
-                if (type == GrandMissileType.Vertical)
-                {
-                    row = AdjustGrandAxis(row, diameter);
-                    col = AdjustGrandAxis(col, diameter);
-
-                    spawnIndex = row * 10 + col;
-
-                    GameObject centerTile = gamePlatform.GetTile(spawnIndex);
-                    if (centerTile == null) continue;
-
-                    spawnPosition = centerTile.transform.position;
-                    spawnPosition.x -= tileX / 2;
-                    spawnPosition.z += tileZ / 2;
-                    spawnPosition.y = GlobalData.Instance.MissileDropPoint;
-                }
-                else
-                {
-                    int axis = Random.Range(0, spawnPointGroup.NorthPoints.Count);
-                    axis = AdjustGrandAxis(axis, diameter);
-
-                    spawnPosition = spawnPointGroup.GetPointPosition(direction - 1, axis);
-
-                    switch(diameter)
-                    {
-                        case 2: spawnPosition.y += 4f; break;
-                        case 3: spawnPosition.y += 5.5f; break;
-                        case 4: spawnPosition.y += 6.5f; break;
-                        case 5: spawnPosition.y += 7.5f; break;
-                    }
-                }
-
-                GameObject missileObject = Instantiate(grandMissilePrefab);
-                missileObject.transform.position = spawnPosition;
-
-                GrandMissile grandMissile = missileObject.GetComponent<GrandMissile>();
-                if (grandMissile != null)
-                {
-                    grandMissile.SetStat(type, speed, diameter, direction);
-                    grandMissile.Initialize();
-                    grandMissile.SpawnIndex = spawnIndex;
-                }
-
-                currentGrnadMissiles.AddLast(missileObject);
-            }
-
-            yield return new WaitForSeconds(Random.Range(15f, 30f));
-        }
     }
 
     #endregion

@@ -34,12 +34,24 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
 
     private RewardedAd rewardedAd;
     
+    // 광고 이후 콜백이 늦게 돌아와 게임이 다시 시작했음에도 불구하고, 정지되는 것을 방지
+    private bool validPause = false;
+
     // 광고 로딩 실패시, 로드횟수 제한
     private int currentRetryCount = 0;
     private const int maxRetryCount = 3;
 
     #endregion
 
+    #region Property
+
+    public bool ValidPause
+    {
+        get { return validPause; }
+        set { validPause = value;}
+    }
+
+    #endregion
 
     #region Unity Lifecycle
 
@@ -208,6 +220,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
         if (interstitialAd != null && interstitialAd.CanShowAd())
         {
             Debug.Log("Show Ad");
+            validPause = true;
             interstitialAd.Show();
         }
     }
@@ -229,6 +242,7 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
                 if(reward.Type == "Revive" && reward.Amount == 1)
                 {
                     Debug.Log("Reward Check Sucesses");
+                    validPause = true;
                     finishRewardedAd = true;
                 }
             });
@@ -323,8 +337,9 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
 
             if(finishinterstitialAd == true)
             {
-                Debug.Log("in finishinterstitialad finish");
-                Time.timeScale = 0f;
+                if(validPause)
+                    Time.timeScale = 0f;
+
                 finishinterstitialAd = false;
             }
             else if(finishRewardedAd == true)
@@ -334,7 +349,9 @@ public class GoogleMobileAdsController : Singleton<GoogleMobileAdsController>
                 player.Revive = true;
                 GameProgress.Instance.PlayerAlive = true;
 
-                Time.timeScale = 0f;
+                if(validPause)
+                    Time.timeScale = 0f;
+
                 finishRewardedAd = false;
 
             }

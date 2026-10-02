@@ -198,7 +198,7 @@ public class GrandMissile : Missile
     /// <summary>
     /// 내부 스탯으로 physics, 크기, 회전 설정
     /// </summary>
-    public override void Initialize()
+    public override void ApplyStat()
     {
         // direction에 따른 이동 방향 결정
         // 0: Vertical (위→아래), 1: 북→남, 2: 남→북, 3: 동→서, 4: 서→동
@@ -251,6 +251,23 @@ public class GrandMissile : Missile
         direction = randomDirection;
     }
 
+    /// <summary>
+    /// 방향 값에서 미사일 타입을 도출한다. 0이면 수직 낙하, 그 외는 수평 이동.
+    /// </summary>
+    /// <param name="grandDirection">방향 (0: Vertical, 1: 북, 2: 남, 3: 동, 4: 서)</param>
+    public static GrandMissileType TypeFromDirection(int grandDirection)
+        => grandDirection == 0 ? GrandMissileType.Vertical : GrandMissileType.Horizen;
+
+    /// <summary>
+    /// 스냅샷의 스탯을 적용하고 반영한다. 타입은 방향 값에서 도출한다.
+    /// </summary>
+    public override void ApplySnapshot(MissileStatsSnapshot snapshot)
+    {
+        SetStat(TypeFromDirection(snapshot.GrandDirection), snapshot.Speed,
+                snapshot.GrandDiameter, snapshot.GrandDirection);
+        ApplyStat();
+    }
+
     #endregion
 
     #region Private Methods
@@ -283,6 +300,7 @@ public class GrandMissile : Missile
     {
         if (other.gameObject.layer == LayerMask.NameToLayer("GameBoundary"))
         {
+            MissileSpawner.Instance.RemoveGrandMissile(this.gameObject);
             Destroy(this.gameObject);
             return;
         }
@@ -294,6 +312,7 @@ public class GrandMissile : Missile
         {
             Vector3 contact = other.ClosestPoint(transform.position);
             ActiveBombEffect(contact, BoomParticle.Grand);
+            MissileSpawner.Instance.RemoveGrandMissile(this.gameObject);
             Destroy(this.gameObject);
             return;
         }
@@ -305,6 +324,7 @@ public class GrandMissile : Missile
             {
                 Vector3 contact = other.ClosestPoint(transform.position);
                 ActiveBombEffect(contact, BoomParticle.Grand);
+                MissileSpawner.Instance.RemoveGrandMissile(this.gameObject);
                 Destroy(this.gameObject);
             }
         }

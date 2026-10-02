@@ -134,9 +134,18 @@ public class FallingMissile : Missile
     /// <summary>
     /// 내부 스탯으로 physics 설정
     /// </summary>
-    public override void Initialize()
+    public override void ApplyStat()
     {
         SetSpeed(speed, Vector3.down);
+    }
+
+    /// <summary>
+    /// 스냅샷의 낙하 속도를 적용하고 반영한다.
+    /// </summary>
+    public override void ApplySnapshot(MissileStatsSnapshot snapshot)
+    {
+        SetStat(snapshot.Speed);
+        ApplyStat();
     }
 
     /// <summary>

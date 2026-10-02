@@ -1,4 +1,4 @@
-﻿GrandMissile,Current,Increse,Max
+﻿GrandMissile,Current,Increment,Max
 Count,1,1,2
-Speed,0.5,0.02,2.5
+Speed,0.5,0.2,2.5
 Diameter,2,1,5

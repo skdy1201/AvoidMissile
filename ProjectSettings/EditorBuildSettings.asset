@@ -21,6 +21,7 @@ EditorBuildSettings:
     path: Assets/Scene/Test/ParticleTestScene.unity
     guid: d1912664cd08b4f4cb40dea32ef21539
   m_configObjects:
+    com.unity.adaptivePerformance.basic.provider_settings: {fileID: 11400000, guid: 691b93b2ddff32d4f86be49b2917f62b, type: 2}
     com.unity.adaptiveperformance.google.android.provider_settings: {fileID: 11400000, guid: 14d0128b3a0d45245be62cb81b4f4da5, type: 2}
     com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: f0bb5beeff59db7479ffbf08a2dcffc3, type: 2}
     com.unity.adaptiveperformance.samsung.android.provider_settings: {fileID: 11400000, guid: c971b8a725615bd46a8de57a36846b70, type: 2}

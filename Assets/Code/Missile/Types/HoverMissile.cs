@@ -98,39 +98,34 @@ public class HoverMissile : Missile
     }
 
     /// <summary>
-    /// 추적 미사일 타입을 랜덤 배정,
-    /// 미사일의 랜덤 설정
+    /// HorizonLinear 타입일 때 스폰 방향으로 회전 설정 후 physics 동기화, 전략 할당.
+    /// 스탯은 스포너가 Instantiate 직후 ApplySnapshot 또는 GetRandomSettingHoming으로 주입.
     /// </summary>
     void Start()
     {
-        hoverType = (HoverMissileType)Random.Range(
-            (int)HoverMissileType.Custom,
-            (int)HoverMissileType.HorizonLinear + 1
-        );
-
-        MissileSpawner.Instance.GetRandomSettingHoming(this);
-
         // HorizonLinear는 spawnDirection이 가리키는 방향으로 직선 이동
         if (hoverType == HoverMissileType.HorizonLinear && spawnDirection >= 0)
         {
-            // 직선: 0=N→S, 1=S→N, 2=E→W, 3=W→E
-            // 대각선: 4=SE, 5=SW, 6=NE, 7=NW
+            // spawnDirection = 스폰 위치 인덱스 (SpawnPointGroup.GetPointPosition과 동일한 번호).
+            // 벡터는 그 위치에서 판 안쪽을 향한다.
+            // 직선:   0=N→S    1=S→N    2=E→W    3=W→E
+            // 대각선: 4=NE→SW  5=NW→SE  6=SE→NW  7=SW→NE
             Vector3 dir = spawnDirection switch
             {
                 0 => Vector3.back,
                 1 => Vector3.forward,
                 2 => Vector3.left,
                 3 => Vector3.right,
-                4 => new Vector3(+1f, 0f, -1f).normalized,
-                5 => new Vector3(-1f, 0f, -1f).normalized,
-                6 => new Vector3(+1f, 0f, +1f).normalized,
-                7 => new Vector3(-1f, 0f, +1f).normalized,
+                4 => new Vector3(-1f, 0f, -1f).normalized,   // NE 스폰 → 남서로
+                5 => new Vector3(+1f, 0f, -1f).normalized,   // NW 스폰 → 남동으로
+                6 => new Vector3(-1f, 0f, +1f).normalized,   // SE 스폰 → 북서로
+                7 => new Vector3(+1f, 0f, +1f).normalized,   // SW 스폰 → 북동으로
                 _ => Vector3.back
             };
             transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
-            Initialize();  // rotation 변경 후 physics.direction 동기화
         }
 
+        ApplyStat();
         AssignStrategy();
     }
 
@@ -145,7 +140,7 @@ public class HoverMissile : Missile
     /// <summary>
     /// 내부 스탯으로 physics 설정
     /// </summary>
-    public override void Initialize()
+    public override void ApplyStat()
     {
         physics.speed = moveSpeed;
         physics.direction = transform.forward;
@@ -178,7 +173,18 @@ public class HoverMissile : Missile
     /// <summary>
     /// 스폰 방향 설정 (0=N, 1=S, 2=E, 3=W)
     /// </summary>
+    public void SetHoverType(HoverMissileType type) => hoverType = type;
     public void SetSpawnDirection(int direction) => spawnDirection = direction;
+
+    /// <summary>
+    /// 스냅샷의 스탯을 미사일에 적용한다. 패턴/랜덤 모두 이 경로를 사용.
+    /// </summary>
+    public override void ApplySnapshot(MissileStatsSnapshot snapshot)
+    {
+        hoverType = (HoverMissileType)snapshot.HoverType;
+        SetStat(snapshot.Hp, snapshot.FlightTime, snapshot.Speed, snapshot.TurnTime, snapshot.TurnRate);
+        ApplyStat();
+    }
 
     public void SetHP(int HP) => hp = HP;
     public void SetMoveTime(float time) => maxMoveTime = time;
@@ -239,6 +245,7 @@ public class HoverMissile : Missile
                 ActiveBombEffect(contact);
 
                 gameObject.SetActive(false);
+                MissileSpawner.Instance.RemoveHoverMissile(gameObject);
                 Destroy(gameObject);
             }
             return;

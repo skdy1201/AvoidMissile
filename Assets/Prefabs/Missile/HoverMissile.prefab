@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 3869330270303193034}
   - component: {fileID: 7175113956955934945}
   - component: {fileID: 3837538034599168353}
-  - component: {fileID: 7617719121394823317}
+  - component: {fileID: 5411861171130001407}
   m_Layer: 7
-  m_Name: HomingMissile
+  m_Name: HoverMissile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -54,13 +54,11 @@ MonoBehaviour:
     speed: 0
     direction: {x: 0, y: 0, z: 0}
   hp: 0
-  moveTime: 0
   maxMoveTime: 0
+  moveSpeed: 0
   rotateTime: 0
   rotateSpeed: 0
-  homingType: 0
-  movementActive: 1
-  rotationActive: 0
+  hoverType: 0
 --- !u!54 &3837538034599168353
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -88,7 +86,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 116
   m_CollisionDetection: 0
---- !u!65 &7617719121394823317
+--- !u!65 &5411861171130001407
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -108,7 +106,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 0.3, y: 0.3, z: 1.3}
-  m_Center: {x: 0, y: 0, z: -0.05}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &522229444912611239
 PrefabInstance:
   m_ObjectHideFlags: 0

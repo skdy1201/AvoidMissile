@@ -252,6 +252,8 @@ MonoBehaviour:
   bgmSounds:
   - {fileID: 373852677243838759, guid: 83049844e83ae064eaef3a76f5887fac, type: 3}
   - {fileID: 373852677243838759, guid: 8cf96cd410cd84e4f9e580f7102d54bf, type: 3}
+  - {fileID: 373852677243838759, guid: e7b78c8c88508a6428dd4baf6d24dada, type: 3}
+  - {fileID: 373852677243838759, guid: 133a52ec4a4abfd45be863c6fb5c2bc7, type: 3}
   currentBGM: 0
   boomEffect:
   - {fileID: 8300000, guid: 8739d8dd2f743ff41a41e22e6f8b8b1c, type: 3}
@@ -892,6 +894,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71c5a8115fd10fc47ae6c2d38cfe2f62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spawning: 0
+  homingLoop: 0
+  grandLoop: 0
+  patternLoop: 0
   fallingMissilePrefab: {fileID: 4702976934742720838, guid: 8fc4ccd0f013de54aa42e869c9b6ca73, type: 3}
   hoverMissilePrefab: {fileID: 4606004508970681605, guid: 8aaa6a727f4a9fe4a9e4550bb3c62770, type: 3}
   grandMissilePrefab: {fileID: 2844906244194635021, guid: 6b3a6c2f7cfdf954888a6c91ec785476, type: 3}
@@ -933,10 +939,10 @@ MonoBehaviour:
     diameterIncrement: 0
     diameterMax: 0
   hoverMissileSpawnPoints: []
-  homingLoop: 0
-  fallingLoop: 0
-  grandLoop: 0
   fallingQueueSize: 0
+  patternCycleCooldown: 60
+  readyPatternTimer: 0
+  patternReady: 0
 --- !u!4 &471068745
 Transform:
   m_ObjectHideFlags: 0

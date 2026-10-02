@@ -76,6 +76,7 @@ public class GameData : Singleton<GameData>
 
         LoadItemData();
         LoadMissileData();
+        LoadMissilePatternData();
     }
 
     #endregion
@@ -377,6 +378,107 @@ public class GameData : Singleton<GameData>
         }
 
         MissileSpawner.Instance.HoverData = setting;
+    }
+
+    /// <summary>
+    /// Patterns 폴더의 모든 패턴 바이너리를 로드해 MissileSpawner에 전달.
+    /// </summary>
+    private void LoadMissilePatternData()
+    {
+        TextAsset[] patternAssets = Resources.LoadAll<TextAsset>("Patterns");
+        if (patternAssets.Length == 0)
+        {
+            Debug.LogWarning("[GameData] Patterns 폴더에 패턴 파일이 없습니다.");
+            return;
+        }
+
+        var patternDatas = new Dictionary<string, PatternData>();
+        foreach (var asset in patternAssets)
+        {
+            PatternData data = LoadPatternFromAsset(asset);
+            if (data != null)
+                patternDatas[data.PatternName] = data;
+        }
+
+        MissileSpawner.Instance.PatternDatas = patternDatas;
+        MissileSpawner.Instance.PatternNames = new List<string>(patternDatas.Keys);
+        Debug.Log($"[GameData] 패턴 {patternDatas.Count}개 로드 완료. injected into MissileSpawner instId={MissileSpawner.Instance.GetInstanceID()} go={MissileSpawner.Instance.gameObject.name}");
+    }
+
+    private PatternData LoadPatternFromAsset(TextAsset asset)
+    {
+        using (var stream = new MemoryStream(asset.bytes))
+        using (var reader = new BinaryReader(stream, Encoding.UTF8))
+        {
+            int fileType = reader.ReadInt32();
+            if (fileType != 0) // 0 = Pattern (PatternSave.FileType)
+            {
+                Debug.LogError($"[GameData] 패턴 파일 타입 불일치: {asset.name}");
+                return null;
+            }
+
+            reader.ReadInt32(); // version (추후 분기 처리)
+
+            var data = new PatternData
+            {
+                PatternName   = reader.ReadString(),
+                TotalDuration = reader.ReadSingle(),
+                Events        = new List<PatternEvent>()
+            };
+
+            int evCount = reader.ReadInt32();
+            for (int i = 0; i < evCount; i++)
+                data.Events.Add(ReadPatternEvent(reader));
+
+            return data;
+        }
+    }
+
+    private PatternEvent ReadPatternEvent(BinaryReader reader)
+    {
+        var ev = new PatternEvent
+        {
+            Time      = reader.ReadSingle(),
+            EventType = (PatternEventType)reader.ReadInt32(),
+        };
+
+        int missileCount = reader.ReadInt32();
+        for (int j = 0; j < missileCount; j++)
+        {
+            int id = reader.ReadInt32();
+            ev.LinkedMissileIds.Add(id);
+
+            if (ev.EventType == PatternEventType.Spawn)
+            {
+                ev.SpawnInfos[id] = new SpawnInfo
+                {
+                    Type             = (PlacedMissileType)reader.ReadInt32(),
+                    LocationKey      = reader.ReadString(),
+                    OriginalPosition = new Vector3(
+                        reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle())
+                };
+            }
+
+            if (ev.EventType != PatternEventType.Destroy)
+                ev.StatsSnapshots[id] = ReadPatternSnapshot(reader);
+        }
+
+        return ev;
+    }
+
+    private MissileStatsSnapshot ReadPatternSnapshot(BinaryReader reader)
+    {
+        return new MissileStatsSnapshot
+        {
+            Speed          = reader.ReadSingle(),
+            Hp             = reader.ReadInt32(),
+            HoverType      = reader.ReadInt32(),
+            FlightTime     = reader.ReadSingle(),
+            TurnTime       = reader.ReadSingle(),
+            TurnRate       = reader.ReadSingle(),
+            GrandDiameter  = reader.ReadInt32(),
+            GrandDirection = reader.ReadInt32(),
+        };
     }
 
     /// <summary>

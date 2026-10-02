@@ -217,7 +217,7 @@ GameObject:
   m_Component:
   - component: {fileID: 162694877}
   - component: {fileID: 162694876}
-  m_Layer: 9
+  m_Layer: 10
   m_Name: fallCollider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -530,7 +530,7 @@ GameObject:
   m_Component:
   - component: {fileID: 454169955}
   - component: {fileID: 454169954}
-  m_Layer: 9
+  m_Layer: 10
   m_Name: fallCollider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -836,7 +836,7 @@ GameObject:
   m_Component:
   - component: {fileID: 713751465}
   - component: {fileID: 713751464}
-  m_Layer: 9
+  m_Layer: 10
   m_Name: fallCollider3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1556,7 +1556,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1394774749}
   - component: {fileID: 1394774748}
-  m_Layer: 9
+  m_Layer: 10
   m_Name: fallCollider2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2167,7 +2167,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2076445789}
   - component: {fileID: 2076445788}
-  m_Layer: 9
+  m_Layer: 10
   m_Name: fallCollider4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
